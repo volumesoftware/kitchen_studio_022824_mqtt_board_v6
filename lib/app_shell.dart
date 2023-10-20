@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kitchen_studio_10162023/pages/cooking_units/cooking_units_page.dart';
-import 'package:kitchen_studio_10162023/pages/ingredients/recipes_page.dart';
+import 'package:kitchen_studio_10162023/pages/ingredients/ingredients_page.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/recipes_page.dart';
 import 'package:kitchen_studio_10162023/pages/tasks/tasks_page.dart';
 import 'package:kitchen_studio_10162023/pages/transporter_units/cooking_units_page.dart';

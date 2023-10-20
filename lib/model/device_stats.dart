@@ -1,4 +1,3 @@
-import 'package:kitchen_studio_10162023/model/data_table.dart';
 
 class DeviceStats {
   int? id;
@@ -48,7 +47,6 @@ class DeviceStats {
       });
 
   DeviceStats.fromJson(Map<String, dynamic> json) {
-    print(json);
 
     instructionSize = json['instruction_size'];
     ipAddress = json['ip_address'];
@@ -132,10 +130,14 @@ class DeviceStats {
 
   }
 
+  static String tableName(){
+    return 'DeviceStats';
+  }
+
   static String dropCreateCommand() {
     return '''
-    DROP TABLE IF EXISTS DeviceStats;
-    CREATE TABLE DeviceStats(
+    DROP TABLE IF EXISTS ${DeviceStats.tableName()};
+    CREATE TABLE ${DeviceStats.tableName()}(
         id INTEGER PRIMARY KEY,
         ip_address TEXT,
         port INTEGER,

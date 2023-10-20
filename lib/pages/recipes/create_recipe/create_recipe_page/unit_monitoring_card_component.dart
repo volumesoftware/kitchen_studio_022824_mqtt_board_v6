@@ -3,22 +3,21 @@ import 'dart:math' as math; // import this
 import 'package:flutter/material.dart';
 import 'package:gauge_indicator/gauge_indicator.dart';
 import 'package:kitchen_studio_10162023/model/device_stats.dart';
-import 'package:kitchen_studio_10162023/service/udp_service.dart';
 
-class CookingUnitCardComponent extends StatefulWidget {
+class UnitMonitoringCardComponent extends StatefulWidget {
   final DeviceStats deviceStats;
+  final RawDatagramSocket udpSocket;
 
-  const CookingUnitCardComponent({Key? key, required this.deviceStats})
+  const UnitMonitoringCardComponent(
+      {Key? key, required this.deviceStats, required this.udpSocket})
       : super(key: key);
 
   @override
-  State<CookingUnitCardComponent> createState() =>
-      _CookingUnitCardComponentState();
+  State<UnitMonitoringCardComponent> createState() =>
+      _UnitMonitoringCardComponentState();
 }
 
-class _CookingUnitCardComponentState extends State<CookingUnitCardComponent> {
-  UdpService? udpService = UdpService.instance;
-
+class _UnitMonitoringCardComponentState extends State<UnitMonitoringCardComponent> {
   @override
   void dispose() {
     super.dispose();
@@ -54,7 +53,7 @@ class _CookingUnitCardComponentState extends State<CookingUnitCardComponent> {
                       case 'zero':
                         String jsonData =
                             '{"operation":"199","request_id":"zeroing"}';
-                        udpService?.send(
+                        widget.udpSocket.send(
                             jsonData.codeUnits,
                             InternetAddress(widget.deviceStats.ipAddress!),
                             8888);
@@ -62,7 +61,7 @@ class _CookingUnitCardComponentState extends State<CookingUnitCardComponent> {
                       case 'heat_until':
                         String jsonData =
                             '{"operation":"212","target_temperature":40,"duration":120000,"request_id":"heat_until"}';
-                        udpService?.send(
+                        widget.udpSocket.send(
                             jsonData.codeUnits,
                             InternetAddress(widget.deviceStats.ipAddress!),
                             8888);
@@ -117,8 +116,8 @@ class _CookingUnitCardComponentState extends State<CookingUnitCardComponent> {
                       child: Transform(
                         alignment: Alignment.center,
                         transform: Matrix4.rotationY(math.pi),
-                        child:
-                            RotatedBox(quarterTurns: 2, child: progressGauge()),
+                        child: RotatedBox(
+                            quarterTurns: 2, child: progressGauge()),
                       ),
                       bottom: 0),
                   Text("${widget.deviceStats.temperature1}",
@@ -146,27 +145,6 @@ class _CookingUnitCardComponentState extends State<CookingUnitCardComponent> {
               "${(widget.deviceStats.machineTime)} uptime",
               style: Theme.of(context).textTheme.titleSmall,
             ),
-            ButtonBar(
-              children: [
-                ElevatedButton(
-                    onPressed: () {},
-                    child: Row(
-                      children: [Text("Add Task"), Icon(Icons.add)],
-                    )),
-                IconButton(
-                    onPressed: () async {},
-                    icon: Icon(
-                      Icons.play_circle_outlined,
-                      color: Colors.green,
-                    )),
-                IconButton(
-                    onPressed: () {},
-                    icon: Icon(
-                      Icons.stop_circle_outlined,
-                      color: Colors.red,
-                    )),
-              ],
-            )
           ],
         ),
       ),
@@ -220,9 +198,10 @@ class _CookingUnitCardComponentState extends State<CookingUnitCardComponent> {
             ]));
   }
 
+
   Widget temperatureGauge() {
-    double? temperature =
-        double.tryParse(widget.deviceStats.temperature1!.toStringAsFixed(2));
+
+    double? temperature = double.tryParse(widget.deviceStats.temperature1!.toStringAsFixed(2));
     return AnimatedRadialGauge(
         duration: const Duration(seconds: 2),
         curve: Curves.elasticOut,

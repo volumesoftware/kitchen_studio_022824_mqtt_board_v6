@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:kitchen_studio_10162023/service/database_service.dart';
+import 'package:kitchen_studio_10162023/service/udp_service.dart';
 import 'app_router.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await DatabaseService.instance.initialize();
+  await UdpService.instance.initialize();
   runApp(MyApp());
 }
 

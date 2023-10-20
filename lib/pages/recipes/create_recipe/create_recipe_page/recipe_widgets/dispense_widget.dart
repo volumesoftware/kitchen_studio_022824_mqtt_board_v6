@@ -1,11 +1,15 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:kitchen_studio_10162023/model/dispense_operation.dart';
+import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/recipe_widget_action.dart';
 
 class DispenseWidget extends StatefulWidget {
-  final int index;
-  final Function(int idx, double targetTemperature, int cycle) onValueUpdate;
+  final DispenseOperation operation;
+  final RecipeWidgetActions recipeWidgetActions;
 
   const DispenseWidget(
-      {Key? key, required this.onValueUpdate, required this.index})
+      {Key? key, required this.operation, required this.recipeWidgetActions})
       : super(key: key);
 
   @override
@@ -13,11 +17,21 @@ class DispenseWidget extends StatefulWidget {
 }
 
 class _DispenseWidgetState extends State<DispenseWidget> {
+  DispenseOperation? operation;
   bool inEditMode = false;
+  TextEditingController? _targetTemperatureController;
+  TextEditingController? _cycleController;
+  RecipeWidgetActions? recipeWidgetActions;
 
-  final TextEditingController targetTemperatureController =
-      TextEditingController();
-  final TextEditingController cycleController = TextEditingController();
+  @override
+  void initState() {
+    recipeWidgetActions = widget.recipeWidgetActions;
+    operation = widget.operation;
+    _targetTemperatureController =
+        TextEditingController(text: "${operation?.targetTemperature}");
+    _cycleController = TextEditingController(text: "${operation?.cycle}");
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +48,7 @@ class _DispenseWidgetState extends State<DispenseWidget> {
         automaticallyImplyLeading: false,
         actions: [
           CircleAvatar(
-            child: Text("${widget.index + 1}"),
+            child: Text("${operation!.currentIndex! + 1}"),
           )
         ],
       ),
@@ -42,47 +56,61 @@ class _DispenseWidgetState extends State<DispenseWidget> {
         margin: EdgeInsets.symmetric(vertical: 10),
         child: Column(
           children: [
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 3),
-              child: inEditMode
-                  ? TextField(
-                      controller: targetTemperatureController,
+            inEditMode
+                ? Padding(
+                    padding: EdgeInsets.symmetric(vertical: 3),
+                    child: TextField(
+                      controller: _targetTemperatureController,
                       decoration: InputDecoration(
                         isDense: true,
                         border: OutlineInputBorder(),
+                        label: Text('Target Temperature'),
                         hintText: 'Target Temperature',
                       ),
-                    )
-                  : ListTile(
-                      title: Text('Target Temperature'),
-                      trailing: Text("120.00"),
                     ),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 3),
-              child: inEditMode
-                  ? TextField(
-                      controller: cycleController,
+                  )
+                : ListTile(
+                    title: Text('Target Temperature'),
+                    trailing: Text("${_targetTemperatureController?.text}"),
+                  ),
+            inEditMode
+                ? Padding(
+                    padding: EdgeInsets.symmetric(vertical: 3),
+                    child: TextField(
+                      controller: _cycleController,
                       decoration: InputDecoration(
-                        isDense: true,
-                        border: OutlineInputBorder(),
-                        hintText: 'Cycle',
-                      ),
-                    )
-                  : ListTile(
-                      title: Text('Cycle'),
-                      trailing: Text("120.00"),
+                          isDense: true,
+                          border: OutlineInputBorder(),
+                          hintText: 'Cycle count',
+                          label: Text("Cycle count")),
                     ),
-            )
+                  )
+                : ListTile(
+                    title: Text('Cycle Count'),
+                    trailing: Text("${_cycleController?.text}"),
+                  ),
           ],
         ),
       ),
       bottomSheet: ButtonBar(
         children: [
-          ElevatedButton(onPressed: () {}, child: Text("Delete")),
+          ElevatedButton(
+              onPressed: () {
+                recipeWidgetActions?.onDelete(operation!);
+              },
+              child: Text("Delete")),
+          ElevatedButton(
+              onPressed: () {
+                operation?.toJson();
+              },
+              child: Text("Test")),
           inEditMode
               ? FilledButton(
                   onPressed: () {
+                    operation?.targetTemperature =
+                        double.tryParse(_targetTemperatureController!.text);
+                    operation?.cycle = int.tryParse(_cycleController!.text);
+                    recipeWidgetActions?.onValueUpdate(operation!);
                     setState(() {
                       inEditMode = false;
                     });
@@ -91,14 +119,10 @@ class _DispenseWidgetState extends State<DispenseWidget> {
                     "Update",
                   ))
               : FilledButton(
-                  onPressed: () {
-                    setState(() {
-                      inEditMode = true;
-                    });
-                  },
-                  child: Text(
-                    "Edit",
-                  )),
+                  onPressed: () => setState(() {
+                        inEditMode = true;
+                      }),
+                  child: Text("Edit")),
         ],
       ),
     );

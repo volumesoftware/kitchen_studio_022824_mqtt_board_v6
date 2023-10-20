@@ -1,6 +1,10 @@
 import 'dart:io';
 
 import 'package:kitchen_studio_10162023/model/device_stats.dart';
+import 'package:kitchen_studio_10162023/model/dock_ingredient_operation.dart';
+import 'package:kitchen_studio_10162023/model/ingredient.dart';
+import 'package:kitchen_studio_10162023/model/instruction.dart';
+import 'package:kitchen_studio_10162023/model/recipe.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class DatabaseService {
@@ -24,19 +28,20 @@ class DatabaseService {
     database =
         await databaseFactory.openDatabase('/assets/database/kitchenstudio.db',
             options: OpenDatabaseOptions(
-              version: 3,
+              version: 13,
+              onUpgrade: (db, oldVersion, newVersion) => createDrop(db, newVersion),
               onCreate: (db, version) => createDrop(db, version),
             ));
     print(database?.path);
     print(database?.getVersion());
-    await database?.execute(DeviceStats.dropCreateCommand());
-
-
   }
 
-  void createDrop(Database db, int version) async {
+  Future<void> createDrop(Database db, int version) async {
     print("creating database");
-    await database?.execute(DeviceStats.dropCreateCommand());
-
+    await db.execute(DeviceStats.dropCreateCommand());
+    await db.execute(Recipe.dropCreateCommand());
+    await db.execute(Ingredient.dropCreateCommand());
+    await db.execute(IngredientItem.dropCreateCommand());
+    await db.execute(BaseOperation.dropCreateCommand());
   }
 }
