@@ -1,7 +1,7 @@
 import 'package:kitchen_studio_10162023/model/instruction.dart';
 
 class PumpWaterOperation implements BaseOperation {
-  static int CODE = 210;
+  static const int CODE = 210;
 
   @override
   int? id;
@@ -9,7 +9,7 @@ class PumpWaterOperation implements BaseOperation {
   @override
   int? recipeId;
   @override
-  int? operation = 210;
+  int? operation = PumpWaterOperation.CODE;
 
   @override
   int? currentIndex;
@@ -35,18 +35,22 @@ class PumpWaterOperation implements BaseOperation {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['request_id'] = 'Pumping Water';
     data['operation'] = operation;
+    data['recipe_id'] = recipeId;
     data['current_index'] = currentIndex;
     data['instruction_size'] = instructionSize;
-    data['targetTemperature'] = targetTemperature;
+    data['target_temperature'] = targetTemperature;
     data['duration'] = duration;
     return data;
   }
 
-  PumpWaterOperation.fromJson(Map<String, dynamic> json) {
-    operation = json['operation'];
-    targetTemperature = json['target_temperature'];
-    currentIndex = json['current_index'];
-    instructionSize = json['instruction_size'];
-    duration = json['duration'];
+
+  PumpWaterOperation.fromDatabase(Map<String, Object?> json) {
+    id = json['id'] as int;
+    recipeId = json['recipe_id']==null? null: json['recipe_id'] as int;
+    operation = json["operation"] == null ? null : json["operation"] as int;
+    currentIndex = json["current_index"]==null? null: json["current_index"] as int;
+    instructionSize =json["instruction_size"]==null? null: json["instruction_size"] as int;
+    targetTemperature = json["target_temperature"]==null? null: json["target_temperature"] as double;
+    duration = json["duration"]==null? null: json["duration"] as int;
   }
 }

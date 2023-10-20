@@ -3,13 +3,14 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:kitchen_studio_10162023/dao/operation_data_access.dart';
 import 'package:kitchen_studio_10162023/model/device_stats.dart';
 import 'package:kitchen_studio_10162023/model/dispense_operation.dart';
 import 'package:kitchen_studio_10162023/model/dock_ingredient_operation.dart';
 import 'package:kitchen_studio_10162023/model/drop_ingredient_operation.dart';
 import 'package:kitchen_studio_10162023/model/flip_operation.dart';
 import 'package:kitchen_studio_10162023/model/heat_for_operation.dart';
-import 'package:kitchen_studio_10162023/model/heat_until_temperature.dart';
+import 'package:kitchen_studio_10162023/model/heat_until_temperature_operation.dart';
 import 'package:kitchen_studio_10162023/model/instruction.dart';
 import 'package:kitchen_studio_10162023/model/pump_oil_operation.dart';
 import 'package:kitchen_studio_10162023/model/pump_water_operation.dart';
@@ -27,6 +28,7 @@ import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recip
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/wash_widget.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/unit_monitoring_card_component.dart';
 import 'package:kitchen_studio_10162023/service/database_service.dart';
+import 'package:kitchen_studio_10162023/service/recipe_runner_service.dart';
 import 'package:kitchen_studio_10162023/service/udp_listener.dart';
 import 'package:kitchen_studio_10162023/service/udp_service.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -48,8 +50,10 @@ class _CreateRecipePageState extends State<CreateRecipePage>
   Database? connectedDatabase;
   List<DeviceStats> devices = [];
   Timer? timer;
-  List<BaseOperation> instructions = [];
+  List<BaseOperation>? instructions = [];
   final GlobalKey<ScaffoldState> _key = GlobalKey(); // Create a key
+  BaseOperationDataAccess baseOperationDataAccess = BaseOperationDataAccess
+      .instance;
 
   bool manualOpen = false;
 
@@ -67,7 +71,7 @@ class _CreateRecipePageState extends State<CreateRecipePage>
     connectedDatabase = instance.connectedDatabase;
     try {
       connectedDatabase?.query('DeviceStats').then(
-        (value) {
+            (value) {
           if (value.isNotEmpty) {
             for (var mappedUnits in value) {
               setState(() {
@@ -84,13 +88,24 @@ class _CreateRecipePageState extends State<CreateRecipePage>
         jsonData.codeUnits, InternetAddress("192.168.43.255"), 8888);
     timer = Timer.periodic(
       Duration(seconds: 3),
-      (timer) {
+          (timer) {
         udpService?.send(
             jsonData.codeUnits, InternetAddress("192.168.43.255"), 8888);
       },
     );
 
+    populateOperations();
+
     super.initState();
+  }
+
+  void populateOperations() async {
+    var temp = await baseOperationDataAccess.search(
+        "recipe_id = ?", whereArgs: [widget.recipe.id!]);
+    print(temp);
+    setState(() {
+      instructions = temp;
+    });
   }
 
   @override
@@ -122,12 +137,14 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                 selectedDevice = result;
               });
             },
-            itemBuilder: (BuildContext context) => devices
-                .map((e) => PopupMenuItem<DeviceStats>(
+            itemBuilder: (BuildContext context) =>
+                devices
+                    .map((e) =>
+                    PopupMenuItem<DeviceStats>(
                       value: e,
                       child: Text('${e.moduleName}'),
                     ))
-                .toList(),
+                    .toList(),
           ),
           SizedBox(width: 10),
           IconButton(
@@ -142,13 +159,16 @@ class _CreateRecipePageState extends State<CreateRecipePage>
       ),
       endDrawer: selectedDevice != null
           ? Container(
-              width: 400,
-              height: 450,
-              child: UnitMonitoringCardComponent(
-                udpSocket: udpService?.udp,
-                deviceStats: selectedDevice!,
-              ),
-            )
+        width: 400,
+        height: 450,
+        child: UnitMonitoringCardComponent(
+          udpSocket: udpService?.udp,
+          deviceStats: selectedDevice!,
+          onTestRecipe: () async{
+            await recipeRunner(widget.recipe, instructions!, selectedDevice!);
+          },
+        ),
+      )
           : SizedBox(),
       body: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -156,7 +176,10 @@ class _CreateRecipePageState extends State<CreateRecipePage>
           Card(
             child: Container(
               padding: const EdgeInsets.all(10),
-              width: MediaQuery.of(context).size.width * 0.2,
+              width: MediaQuery
+                  .of(context)
+                  .size
+                  .width * 0.2,
               child: ListView(
                 children: [
                   Container(
@@ -182,8 +205,8 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                     title: const Text('Heat Until Temperature'),
                     onTap: () {
                       setState(() {
-                        instructions.add(HeatUntilTemperatureOperation(
-                            currentIndex: instructions.length,
+                        onSave(HeatUntilTemperatureOperation(
+                            currentIndex: instructions!.length,
                             targetTemperature: 20));
                       });
                     },
@@ -200,8 +223,8 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                     onTap: () {
                       setState(() {
                         setState(() {
-                          instructions.add(HeatForOperation(
-                              currentIndex: instructions.length,
+                          onSave(HeatForOperation(
+                              currentIndex: instructions!.length,
                               duration: 6,
                               targetTemperature: 20));
                         });
@@ -216,8 +239,8 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                     onTap: () {
                       setState(() {
                         setState(() {
-                          instructions.add(WashOperation(
-                              currentIndex: instructions.length,
+                          onSave(WashOperation(
+                              currentIndex: instructions!.length,
                               duration: 6,
                               cycle: 1,
                               targetTemperature: 20));
@@ -231,8 +254,8 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                     onTap: () {
                       setState(() {
                         setState(() {
-                          instructions.add(DispenseOperation(
-                              currentIndex: instructions.length,
+                          onSave(DispenseOperation(
+                              currentIndex: instructions!.length,
                               cycle: 1,
                               targetTemperature: 20));
                         });
@@ -244,8 +267,8 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                     title: const Text('Flip'),
                     onTap: () {
                       setState(() {
-                        instructions.add(FlipOperation(
-                            currentIndex: instructions.length,
+                        onSave(FlipOperation(
+                            currentIndex: instructions!.length,
                             cycle: 1,
                             interval: 2,
                             targetTemperature: 20));
@@ -257,8 +280,8 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                     title: const Text('Pump Oil'),
                     onTap: () {
                       setState(() {
-                        instructions.add(PumpOilOperation(
-                            currentIndex: instructions.length,
+                        onSave(PumpOilOperation(
+                            currentIndex: instructions!.length,
                             duration: 10,
                             targetTemperature: 20));
                       });
@@ -269,8 +292,8 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                     title: const Text('Pump Water'),
                     onTap: () {
                       setState(() {
-                        instructions.add(PumpOilOperation(
-                            currentIndex: instructions.length,
+                        onSave(PumpOilOperation(
+                            currentIndex: instructions!.length,
                             duration: 10,
                             targetTemperature: 20));
                       });
@@ -281,8 +304,8 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                     title: const Text('Dock Ingredient'),
                     onTap: () {
                       setState(() {
-                        instructions.add(DockIngredientOperation(
-                            currentIndex: instructions.length,
+                        onSave(DockIngredientOperation(
+                            currentIndex: instructions!.length,
                             targetTemperature: 20));
                       });
                     },
@@ -292,8 +315,8 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                     title: const Text('Drop Ingredient'),
                     onTap: () {
                       setState(() {
-                        instructions.add(DropIngredientOperation(
-                            currentIndex: instructions.length,
+                        onSave(DropIngredientOperation(
+                            currentIndex: instructions!.length,
                             targetTemperature: 20,
                             cycle: 3));
                       });
@@ -304,19 +327,25 @@ class _CreateRecipePageState extends State<CreateRecipePage>
             ),
           ),
           Container(
-            width: MediaQuery.of(context).size.width * 0.74,
-            height: MediaQuery.of(context).size.height,
+            width: MediaQuery
+                .of(context)
+                .size
+                .width * 0.74,
+            height: MediaQuery
+                .of(context)
+                .size
+                .height,
             child: GridView.builder(
-              itemCount: instructions.length,
+              itemCount: instructions!.length,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 4, childAspectRatio: 1),
               itemBuilder: (context, index) {
-                instructions[index].currentIndex = index;
+                instructions![index].currentIndex = index;
 
                 return Card(
                   child: Padding(
                     padding: EdgeInsets.all(5),
-                    child: getInstructionWidget(instructions[index]),
+                    child: getInstructionWidget(instructions![index]),
                   ),
                 );
               },
@@ -335,11 +364,11 @@ class _CreateRecipePageState extends State<CreateRecipePage>
 
   void removeOperation(int index) {
     setState(() {
-      instructions.remove(instructions[index]);
+      instructions!.remove(instructions![index]);
     });
-    for (var i = 0; i < instructions.length; i++) {
+    for (var i = 0; i < instructions!.length; i++) {
       setState(() {
-        instructions[i].currentIndex = i;
+        instructions![i].currentIndex = i;
       });
     }
   }
@@ -396,16 +425,27 @@ class _CreateRecipePageState extends State<CreateRecipePage>
     );
   }
 
+  void onSave(BaseOperation operation) async {
+    operation.recipeId = widget.recipe.id;
+    await baseOperationDataAccess.create(operation);
+
+    populateOperations();
+
+    for (var i = 0; i < instructions!.length; i++) {
+      setState(() {
+        instructions![i].currentIndex = i;
+      });
+    }
+  }
+
   @override
   void onDelete(BaseOperation operation) {
-    removeOperation(operation.currentIndex!);
+    baseOperationDataAccess.delete(operation.id!).then((value) => populateOperations());
   }
 
   @override
   void onValueUpdate(BaseOperation operation) {
-    setState(() {
-      instructions[operation.currentIndex!] = operation;
-    });
+    baseOperationDataAccess.updateById(operation.id!, operation).then((value) => populateOperations());
   }
 
   @override

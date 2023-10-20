@@ -29,6 +29,19 @@ class Recipe {
     cookCount = json["cook_count"] == null? 0: json["cook_count"] as int;
   }
 
+  Map<String, dynamic> toJson(){
+    return {
+          'recipe_name':recipeName ,
+          'image_file_path': imageFilePath,
+          'type_handler': typeHandler,
+          'author': author,
+          'estimated_time_completion': estimatedTimeCompletion,
+          'rating': rating,
+          'cook_count': cookCount,
+    };
+  }
+
+
   static String tableName() {
     return 'Recipe';
   }

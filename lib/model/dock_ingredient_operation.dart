@@ -2,7 +2,7 @@ import 'package:kitchen_studio_10162023/model/ingredient.dart';
 import 'package:kitchen_studio_10162023/model/instruction.dart';
 
 class DockIngredientOperation implements BaseOperation {
-  static int CODE = 206;
+  static const int CODE = 206;
 
   @override
   int? id;
@@ -27,20 +27,16 @@ class DockIngredientOperation implements BaseOperation {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['request_id'] = 'Docking Ingredient';
     data['operation'] = operation;
+    data['recipe_id'] = recipeId;
     data['current_index'] = currentIndex;
     data['instruction_size'] = instructionSize;
     data['target_temperature'] = targetTemperature;
     return data;
   }
 
-  DockIngredientOperation.fromJson(Map<String, dynamic> json) {
-    operation = json['operation'];
-    currentIndex = json['current_index'];
-    instructionSize = json['instruction_size'];
-    targetTemperature = json['target_temperature'];
-  }
-
   DockIngredientOperation.fromDatabase(Map<String, Object?> json, this.ingredientItems) {
+    id = json['id'] as int;
+    recipeId = json['recipe_id'] as int;
     operation = json['operation']== null? 0: json['operation'] as int;
     currentIndex = json['current_index'] == null? 0 : json['current_index'] as int;
     instructionSize =  json['instruction_size'] == null? 0 : json['instruction_size'] as int;
@@ -72,6 +68,15 @@ class IngredientItem {
     ingredientId = json['ingredient_id']== null? 0: json['ingredient_id'] as int;
     operationId = json['operation_id']== null? 0: json['operation_id'] as int;
     quantity =json['quantity']== null? 0.0: json['quantity'] as double;
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'ingredient_id' : ingredientId,
+      'mode' : mode,
+      'operation_id' : operationId,
+      'quantity' : quantity
+    };
   }
 
   static String tableName() {

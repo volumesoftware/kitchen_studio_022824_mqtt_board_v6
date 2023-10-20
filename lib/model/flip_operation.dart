@@ -1,7 +1,7 @@
 import 'package:kitchen_studio_10162023/model/instruction.dart';
 
 class FlipOperation implements BaseOperation {
-  static int CODE = 213;
+  static const int CODE = 213;
 
   @override
   int? id;
@@ -37,20 +37,24 @@ class FlipOperation implements BaseOperation {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['request_id'] = 'Flipping';
     data['operation'] = operation;
-    data['targetTemperature'] = targetTemperature;
+    data['recipe_id'] = recipeId;
     data['current_index'] = currentIndex;
     data['instruction_size'] = instructionSize;
+    data['target_temperature'] = targetTemperature;
     data['cycle'] = cycle;
     data['interval'] = interval;
     return data;
   }
 
-  FlipOperation.fromJson(Map<String, dynamic> json) {
-    operation = json['operation'];
-    currentIndex = json['current_index'];
-    targetTemperature = json['target_temperature'];
-    instructionSize = json['instruction_size'];
-    cycle = json['cycle'];
-    interval = json['interval'];
+  FlipOperation.fromDatabase(Map<String, Object?> json) {
+    id = json['id'] as int;
+    recipeId = json['recipe_id']==null? null: json['recipe_id'] as int;
+    operation = json["operation"] == null ? null : json["operation"] as int;
+    currentIndex = json["current_index"]==null? null: json["current_index"] as int;
+    instructionSize =json["instruction_size"]==null? null: json["instruction_size"] as int;
+    targetTemperature = json["target_temperature"]==null? null: json["target_temperature"] as double;
+    cycle = json["cycle"] == null? 0 : json["cycle"] as int;
+    interval = json["interval"] == null? 0 : json["interval"] as int;
   }
+
 }

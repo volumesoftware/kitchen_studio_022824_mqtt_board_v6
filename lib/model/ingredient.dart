@@ -30,6 +30,18 @@ class Ingredient {
     coordinateZ = json["coordinate_z"] == null ? 0.0: json["coordinate_z"] as double;
   }
 
+  Map<String, dynamic> toJson(){
+    return {
+      'ingredient_name':ingredientName ,
+      'ingredient_type': imageFilePath,
+      'image_file_path': imageFilePath,
+      'stock_level': stockLevel,
+      'coordinate_x': coordinateX,
+      'coordinate_y': coordinateY,
+      'coordinate_z': coordinateZ,
+    };
+  }
+
   static String tableName() {
     return 'Ingredient';
   }

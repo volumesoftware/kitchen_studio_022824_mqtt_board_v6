@@ -17,15 +17,7 @@ class RecipeDataAccess implements DataAccess<Recipe> {
 
   @override
   Future<int?> create(Recipe t) async {
-    return database?.insert(Recipe.tableName(), {
-      'recipe_name': t.recipeName,
-      'author': t.author,
-      'type_handler': t.typeHandler,
-      'estimated_time_completion': t.estimatedTimeCompletion,
-      'rating': t.rating,
-      'cook_count': t.cookCount,
-      'image_file_path': t.imageFilePath,
-    });
+    return database?.insert(Recipe.tableName(), t.toJson());
   }
 
   @override
@@ -51,16 +43,7 @@ class RecipeDataAccess implements DataAccess<Recipe> {
   @override
   Future<Recipe?> updateById(int id, Recipe t) async {
     int? count = await database?.update(
-        Recipe.tableName(),
-        {
-          'recipe_name': t.recipeName,
-          'author': t.author,
-          'type_handler': t.typeHandler,
-          'estimated_time_completion': t.estimatedTimeCompletion,
-          'rating': t.rating,
-          'cook_count': t.cookCount,
-          'image_file_path': t.imageFilePath,
-        },
+        Recipe.tableName(), t.toJson(),
         where: "id = ?",
         whereArgs: [id]);
 

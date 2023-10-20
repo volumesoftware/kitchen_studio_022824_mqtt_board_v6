@@ -17,15 +17,7 @@ class IngredientDataAccess implements DataAccess<Ingredient> {
 
   @override
   Future<int?> create(Ingredient t) async {
-    return database?.insert(Ingredient.tableName(), {
-      'ingredient_name': t.ingredientName,
-      'ingredient_type': t.ingredientType,
-      'image_file_path': t.imageFilePath,
-      'stock_level': t.stockLevel,
-      'coordinate_x': t.coordinateX,
-      'coordinate_y': t.coordinateY,
-      'coordinate_z': t.coordinateZ,
-    });
+    return database?.insert(Ingredient.tableName(), t.toJson());
   }
 
   @override
@@ -52,16 +44,7 @@ class IngredientDataAccess implements DataAccess<Ingredient> {
   @override
   Future<Ingredient?> updateById(int id, Ingredient t) async {
     int? count = await database?.update(
-        Ingredient.tableName(),
-        {
-          'ingredient_name': t.ingredientName,
-          'ingredient_type': t.ingredientType,
-          'image_file_path': t.imageFilePath,
-          'stock_level': t.stockLevel,
-          'coordinate_x': t.coordinateX,
-          'coordinate_y': t.coordinateY,
-          'coordinate_z': t.coordinateZ,
-        },
+        Ingredient.tableName(), t.toJson(),
         where: "id = ?",
         whereArgs: [id]);
 

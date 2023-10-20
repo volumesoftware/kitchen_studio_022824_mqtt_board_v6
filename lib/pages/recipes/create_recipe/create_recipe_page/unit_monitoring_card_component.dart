@@ -7,9 +7,13 @@ import 'package:kitchen_studio_10162023/model/device_stats.dart';
 class UnitMonitoringCardComponent extends StatefulWidget {
   final DeviceStats deviceStats;
   final RawDatagramSocket udpSocket;
+  final Function onTestRecipe;
 
   const UnitMonitoringCardComponent(
-      {Key? key, required this.deviceStats, required this.udpSocket})
+      {Key? key,
+      required this.deviceStats,
+      required this.udpSocket,
+      required this.onTestRecipe})
       : super(key: key);
 
   @override
@@ -17,7 +21,8 @@ class UnitMonitoringCardComponent extends StatefulWidget {
       _UnitMonitoringCardComponentState();
 }
 
-class _UnitMonitoringCardComponentState extends State<UnitMonitoringCardComponent> {
+class _UnitMonitoringCardComponentState
+    extends State<UnitMonitoringCardComponent> {
   @override
   void dispose() {
     super.dispose();
@@ -45,64 +50,13 @@ class _UnitMonitoringCardComponentState extends State<UnitMonitoringCardComponen
                   "${widget.deviceStats.moduleName}",
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
-                PopupMenuButton<String>(
-                  enabled: widget.deviceStats.requestId == 'idle',
-                  icon: Icon(Icons.filter_list),
-                  onSelected: (String result) {
-                    switch (result) {
-                      case 'zero':
-                        String jsonData =
-                            '{"operation":"199","request_id":"zeroing"}';
-                        widget.udpSocket.send(
-                            jsonData.codeUnits,
-                            InternetAddress(widget.deviceStats.ipAddress!),
-                            8888);
-                        break;
-                      case 'heat_until':
-                        String jsonData =
-                            '{"operation":"212","target_temperature":40,"duration":120000,"request_id":"heat_until"}';
-                        widget.udpSocket.send(
-                            jsonData.codeUnits,
-                            InternetAddress(widget.deviceStats.ipAddress!),
-                            8888);
-                        break;
-                      case 'filter2':
-                        print('filter 2 clicked');
-                        break;
-                      case 'clearFilters':
-                        print('Clear filters');
-                        break;
-                      default:
-                    }
-                  },
-                  itemBuilder: (BuildContext context) =>
-                      <PopupMenuEntry<String>>[
-                    const PopupMenuItem<String>(
-                      value: 'zero',
-                      child: Text('Reset (Zero)'),
-                    ),
-                    const PopupMenuItem<String>(
-                      value: 'wash',
-                      child: Text('Wash'),
-                    ),
-                    const PopupMenuItem<String>(
-                      value: 'dispense',
-                      child: Text('Dispense'),
-                    ),
-                    const PopupMenuItem<String>(
-                      value: 'cooling',
-                      child: Text('Cooling'),
-                    ),
-                    const PopupMenuItem<String>(
-                      value: 'heat_until',
-                      child: Text('Heat Until'),
-                    ),
-                    const PopupMenuItem<String>(
-                      value: 'shutdown',
-                      child: Text('Shutdown'),
-                    )
-                  ],
-                )
+                ElevatedButton(
+                    onPressed: () {
+                      widget.onTestRecipe();
+                    },
+                    child: Row(
+                      children: [Text("Run Recipe"), Icon(Icons.play_circle)],
+                    ))
               ],
             )),
             Container(
@@ -116,8 +70,8 @@ class _UnitMonitoringCardComponentState extends State<UnitMonitoringCardComponen
                       child: Transform(
                         alignment: Alignment.center,
                         transform: Matrix4.rotationY(math.pi),
-                        child: RotatedBox(
-                            quarterTurns: 2, child: progressGauge()),
+                        child:
+                            RotatedBox(quarterTurns: 2, child: progressGauge()),
                       ),
                       bottom: 0),
                   Text("${widget.deviceStats.temperature1}",
@@ -198,10 +152,9 @@ class _UnitMonitoringCardComponentState extends State<UnitMonitoringCardComponen
             ]));
   }
 
-
   Widget temperatureGauge() {
-
-    double? temperature = double.tryParse(widget.deviceStats.temperature1!.toStringAsFixed(2));
+    double? temperature =
+        double.tryParse(widget.deviceStats.temperature1!.toStringAsFixed(2));
     return AnimatedRadialGauge(
         duration: const Duration(seconds: 2),
         curve: Curves.elasticOut,

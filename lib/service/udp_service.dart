@@ -14,10 +14,12 @@ class UdpService {
     _udpSocket?.broadcastEnabled = true;
     _udpSocket?.listen((event) {
       Datagram? dg = _udpSocket?.receive();
-      if (dg != null) {}
-      listeners.forEach((element) {
-        element.udpData(dg);
-      });
+      if (dg != null) {
+        listeners.forEach((element) {
+          element.udpData(dg);
+        });
+      }
+
     });
   }
 

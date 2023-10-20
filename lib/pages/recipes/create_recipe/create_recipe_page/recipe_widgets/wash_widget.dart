@@ -27,8 +27,7 @@ class _WashWidgetState extends State<WashWidget> {
   void initState() {
     recipeWidgetActions = widget.recipeWidgetActions;
     operation = widget.operation;
-    _targetTemperatureController =
-        TextEditingController(text: "${operation?.targetTemperature}");
+    _targetTemperatureController = TextEditingController(text: "${operation?.targetTemperature}");
     _durationController = TextEditingController(text: "${operation?.duration}");
     _cycleController = TextEditingController(text: "${operation?.cycle}");
     super.initState();
