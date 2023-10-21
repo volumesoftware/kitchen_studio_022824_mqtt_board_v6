@@ -21,59 +21,61 @@ Future recipeRunner(Recipe recipe, List<BaseOperation> operations,
 }
 
 void runners(SendPort mySendPort) async {
+  Timer? timer;
   String jsonData = '{"operation":100}';
-
   /// Set up a receiver port for Mike
   ReceivePort thisRunnerPort = ReceivePort();
-
   /// Send Mike receivePort sendPort via mySendPort
   mySendPort.send(thisRunnerPort.sendPort);
-
   /// Listen to messages sent to Mike's receive port
   await for (var message in thisRunnerPort) {
     if (message is List) {
       Recipe recipe = message[0];
       List<BaseOperation> operations = message[1];
-      DeviceStats deviceStats = message[2];
+      DeviceStats server = message[2];
       final SendPort thisRunnerSenderPort = message[3];
 
-      RawDatagramSocket socket =
-          await RawDatagramSocket.bind(InternetAddress.anyIPv4, 8889);
-      socket.broadcastEnabled = true;
-      int currentIndex = 0;
-
-      socket.send(jsonEncode(operations[currentIndex].toJson()).codeUnits,
-          InternetAddress(deviceStats.ipAddress!), deviceStats.port!);
-      currentIndex = currentIndex + 1;
-
-      socket.send(jsonData.codeUnits, InternetAddress(deviceStats.ipAddress!), 8888);
-
-
-      while (currentIndex < operations.length){
-        socket.send(jsonData.codeUnits, InternetAddress(deviceStats.ipAddress!), 8888);
-        Datagram? dg = socket.receive();
-        if (dg != null) {
-          String result = String.fromCharCodes(dg.data);
-          DeviceStats incomingStats = DeviceStats.fromJson(jsonDecode(result));
-
-          if (incomingStats.ipAddress == deviceStats.ipAddress) {
-            if (incomingStats.requestId == 'idle') {
-              thisRunnerSenderPort.send("Running next queue");
-              socket.send(
-                  jsonEncode(operations[currentIndex].toJson()).codeUnits,
-                  InternetAddress(deviceStats.ipAddress!),
-                  deviceStats.port!);
-              currentIndex = currentIndex + 1;
-            } else {
-              thisRunnerSenderPort.send("Completed");
-            }
-          }
+      for (BaseOperation operation in operations) {
+        bool? available = await waitUntilUnitIsFree(operation, server);
+        if (available != null) {
+          thisRunnerSenderPort.send(available);
         }
       }
-
-
-      thisRunnerSenderPort.send("Completed");
-
     }
   }
+}
+
+Future<bool?> waitUntilUnitIsFree(
+    BaseOperation operation, DeviceStats server) async {
+  RawDatagramSocket? socket =
+      await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
+
+  String jsonData = '{"operation":100}';
+  Timer timer = Timer.periodic(
+    Duration(seconds: 3),
+    (timer) {
+      socket.send(
+          jsonData.codeUnits, InternetAddress(server.ipAddress!), server.port!);
+    },
+  );
+
+  socket.send(jsonEncode(operation.toJson()).codeUnits,
+      InternetAddress(server.ipAddress!), server.port!);
+
+  Completer<bool?> completer = Completer();
+  // Listen for incoming data and complete the Future when data is received
+  var sub = socket.listen((RawSocketEvent event) {
+    if (event == RawSocketEvent.read) {
+      Datagram? datagram = socket.receive();
+      if (datagram != null) {
+        String result = String.fromCharCodes(datagram.data);
+        DeviceStats incomingStats = DeviceStats.fromJson(jsonDecode(result));
+        if (incomingStats.requestId == 'idle') {
+          completer.complete(true);
+          socket.close();
+        }
+      }
+    }
+  });
+  return completer.future;
 }

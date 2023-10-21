@@ -111,7 +111,7 @@ class _UnitMonitoringCardComponentState
         curve: Curves.elasticOut,
         radius: 100,
         initialValue: 50,
-        value: widget.deviceStats.progress ?? 0.0,
+        value: (widget.deviceStats.currentLocalTime! / widget.deviceStats.localTimeMax!) * 100 ?? 0.0,
         axis: GaugeAxis(
             min: 0,
             max: 100,
