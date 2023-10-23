@@ -7,6 +7,7 @@ import 'package:kitchen_studio_10162023/service/task_runner_pool.dart';
 import 'package:kitchen_studio_10162023/service/task_runner_service.dart';
 import 'package:kitchen_studio_10162023/service/udp_listener.dart';
 import 'package:kitchen_studio_10162023/service/udp_service.dart';
+import 'package:kitchen_studio_10162023/widgets/thermometers.dart';
 
 class RunningTasks extends StatefulWidget {
   const RunningTasks({Key? key}) : super(key: key);
@@ -121,9 +122,12 @@ class _RunningTaskItemState extends State<RunningTaskItem>
   double _progress = 0.0;
   DeviceStats? _deviceStats;
   ExpansionTileController _controller = ExpansionTileController();
+  final ValueNotifier<double> temperature = ValueNotifier(0.3);
+  bool manualOpen = false;
 
   @override
   void initState() {
+    temperature.value = _deviceStats?.temperature1 ?? 28 / 200;
     setState(() {
       index = widget.index;
       p = widget.taskPayload;
@@ -142,30 +146,49 @@ class _RunningTaskItemState extends State<RunningTaskItem>
 
   @override
   Widget build(BuildContext context) {
-    return ExpansionTile(
-      controller: _controller,
-      children: expandedCard(),
-      title: ListTile(
-        leading: Text("${index + 1}"),
-        title: Text("${_deviceStats?.moduleName}"),
-        subtitle: Text(p?.task.taskName ?? 'No task'),
-        trailing: progressGauge(),
+    return InkWell(
+      onTap: () {
+        setState(() {
+          manualOpen = true;
+        });
+      },
+      child: ExpansionTile(
+        controller: _controller,
+        children: expandedCard(),
+        title: ListTile(
+          leading: Text("${index + 1}"),
+          title: Text("${_deviceStats?.moduleName}"),
+          subtitle: Text(p?.task.taskName ?? 'No task'),
+          trailing: progressGauge(),
+        ),
       ),
     );
   }
 
   List<Widget> expandedCard() {
     return [
-
       Container(
         width: double.infinity,
-        height: 150,
+        height: 200,
         child: Stack(
           alignment: AlignmentDirectional.center,
           children: [
-            Positioned(child: temperatureGauge(), top: 0),
-            Text("${_deviceStats?.temperature1?.toStringAsFixed(2)}",
-                style: Theme.of(context).textTheme.displaySmall)
+            Container(
+              width: 250,
+              height: 250,
+              child: Thermometer(
+                temperature: temperature,
+              ),
+            ),
+            Text("${_deviceStats?.temperature1?.toStringAsFixed(2)} °C",
+                style: Theme.of(context).textTheme.displaySmall),
+            Positioned(
+                child: Transform(
+                  alignment: Alignment.center,
+                  transform: Matrix4.rotationY(math.pi),
+                  child: RotatedBox(quarterTurns: 2, child: progressGauge()),
+                ),
+                bottom: 0),
           ],
         ),
       ),
@@ -188,7 +211,8 @@ class _RunningTaskItemState extends State<RunningTaskItem>
       Text(
         "${(_deviceStats?.machineTime)} up time",
         style: Theme.of(context).textTheme.titleSmall,
-      )];
+      )
+    ];
   }
 
   Widget progressGauge() {
@@ -298,12 +322,12 @@ class _RunningTaskItemState extends State<RunningTaskItem>
       required DeviceStats deviceStats,
       required double progress}) {
     widget.itemChanged();
+    temperature.value = _deviceStats?.temperature1 ?? 28 / 200;
 
-    if(busy ){
+    if (busy) {
       _controller.expand();
-    }else{
-      _controller.collapse();
     }
+
     setState(() {
       _progress = progress;
       _deviceStats = deviceStats;

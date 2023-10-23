@@ -19,14 +19,15 @@ class CookingUnitCardComponent extends StatefulWidget {
       _CookingUnitCardComponentState();
 }
 
-class _CookingUnitCardComponentState extends State<CookingUnitCardComponent> implements UdpListener{
+class _CookingUnitCardComponentState extends State<CookingUnitCardComponent>
+    implements UdpListener {
   UdpService? udpService = UdpService.instance;
   TaskRunnerPool pool = TaskRunnerPool.instance;
   final ValueNotifier<double> temperature = ValueNotifier(0.3);
 
   @override
   void dispose() {
-    temperature.value = widget.deviceStats.temperature1! / 100;
+    temperature.value = widget.deviceStats.temperature1! / 200;
     pool.removeStatsListener(this);
     super.dispose();
   }
@@ -292,6 +293,6 @@ class _CookingUnitCardComponentState extends State<CookingUnitCardComponent> imp
 
   @override
   void udpData(Datagram? dg) {
-    temperature.value = widget.deviceStats.temperature1! /100;
+    if (dg != null) temperature.value = widget.deviceStats.temperature1! / 200;
   }
 }

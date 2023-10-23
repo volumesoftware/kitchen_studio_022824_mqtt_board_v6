@@ -106,11 +106,9 @@ class _CookingUnitsPageState extends State<CookingUnitsPage>
   void udpData(Datagram? dg) {
     if (dg != null) {
       var incomingDevices = taskRunnerPool.getDevices();
-      if (incomingDevices != null) {
-        setState(() {
+      setState(() {
         devices = incomingDevices;
       });
-      }
     }
   }
 }

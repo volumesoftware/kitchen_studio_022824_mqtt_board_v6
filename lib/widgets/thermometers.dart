@@ -140,7 +140,7 @@ class MercuryPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final temperatureHeight = size.height - temperatureReduced * size.height;
-    final paintColorStops = [0.0, 0.1, 0.3, 0.6, 0.8];
+    final paintColorStops = [0.0, 0.3, 0.7, 0.8, 0.95];
 
     paintOneWave(
       canvas,
@@ -163,11 +163,11 @@ class MercuryPainter extends CustomPainter {
       cyclicAnimationValue: animation,
       colorStops: paintColorStops,
       colors: [
-        Colors.redAccent.shade100,
-        Colors.red.shade200,
-        Colors.orange.shade200,
-        Colors.yellow.shade200,
-        Colors.blue.shade200,
+        Colors.redAccent.shade400,
+        Colors.red.shade400,
+        Colors.orange.shade400,
+        Colors.yellow.shade400,
+        Colors.blue.shade400,
       ],
     );
   }
