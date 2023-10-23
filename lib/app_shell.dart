@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kitchen_studio_10162023/app_router.dart';
 import 'package:kitchen_studio_10162023/pages/cooking_units/cooking_units_page.dart';
 import 'package:kitchen_studio_10162023/pages/ingredients/ingredients_page.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/recipes_page.dart';
@@ -78,6 +79,7 @@ class _AppShellScreenState extends State<AppShellScreen> {
                       setState(() {
                         selectedIndex = 3;
                       });
+                      Navigator.of(context).pushNamed(AppRouter.taskScreen);
                     },
                   ),
                   ListTile(
@@ -119,7 +121,7 @@ class _AppShellScreenState extends State<AppShellScreen> {
         }
       case 3:
         {
-          return TasksPage();
+          return Row();
         }
       case 4:
         {

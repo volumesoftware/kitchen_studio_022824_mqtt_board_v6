@@ -1,4 +1,3 @@
-
 class DeviceStats {
   int? id;
   String? ipAddress;
@@ -23,31 +22,29 @@ class DeviceStats {
 
   List<double> temperatureArray = [];
 
-  DeviceStats(
-      {this.id,
-      this.ipAddress,
-      this.port,
-      this.moduleName,
-      this.type,
-      this.group,
-      this.v5,
-      this.code,
-      this.requestId,
-      this.memoryUsage,
-      this.progress,
-      this.waterValveOpen,
-      this.waterJetOpen,
-      this.temperature1,
-      this.temperature2,
-      this.currentLocalTime,
-      this.localTimeMax,
-      this.machineTime,
-      this.targetTemperature,
-      this.instructionSize
-      });
+  DeviceStats({this.id,
+    this.ipAddress,
+    this.port,
+    this.moduleName,
+    this.type,
+    this.group,
+    this.v5,
+    this.code,
+    this.requestId,
+    this.memoryUsage,
+    this.progress,
+    this.waterValveOpen,
+    this.waterJetOpen,
+    this.temperature1,
+    this.temperature2,
+    this.currentLocalTime,
+    this.localTimeMax,
+    this.machineTime,
+    this.targetTemperature,
+    this.instructionSize
+  });
 
   DeviceStats.fromJson(Map<String, dynamic> json) {
-
     instructionSize = json['instruction_size'];
     ipAddress = json['ip_address'];
     port = json['port'];
@@ -58,7 +55,7 @@ class DeviceStats {
     code = json['code'];
     requestId = json['request_id'];
     memoryUsage =
-        json['memory_usage'] == null ? 0.0 : json['memory_usage'].toDouble();
+    json['memory_usage'] == null ? 0.0 : json['memory_usage'].toDouble();
     progress = json['progress'] == null ? 0.0 : json['progress'].toDouble();
     waterValveOpen = json['water_valve_open'] == 1 ? true : false;
     waterJetOpen = json['water_jet_open'] == 1 ? true : false;
@@ -68,9 +65,9 @@ class DeviceStats {
     localTimeMax = json['local_time_max'].toInt();
     machineTime = json['machine_time'].toInt();
     targetTemperature =
-        json['target_temperature'] == null || json['target_temperature'] == 0
-            ? 0.0
-            : json['target_temperature']?.toDouble();
+    json['target_temperature'] == null || json['target_temperature'] == 0
+        ? 0.0
+        : json['target_temperature']?.toDouble();
 
     temperatureArray = json['temperature_array'] == null
         ? []
@@ -78,32 +75,26 @@ class DeviceStats {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['ip_address'] = ipAddress;
-    data['port'] = port;
-    data['module_name'] = moduleName;
-    data['type'] = type;
-    data['group'] = group;
-    data['v5'] = v5;
-    data['code'] = code;
-    data['request_id'] = requestId;
-    data['memory_usage'] = memoryUsage;
-    data['progress'] = progress;
-    data['water_valve_open'] = waterValveOpen;
-    data['water_jet_open'] = waterJetOpen;
-    data['temperature_1'] = temperature1;
-    data['temperature_2'] = temperature2;
-    data['current_local_time'] = currentLocalTime;
-    data['local_time_max'] = localTimeMax;
-    data['machine_time'] = machineTime;
-    data['target_temperature'] = targetTemperature;
-    data['instruction_size'] = instructionSize;
-
-
-
-
-    data['temperature_array'] = temperatureArray;
-    return data;
+    return {
+      'ip_address': ipAddress,
+      'port': port,
+      'module_name': moduleName,
+      'type': type,
+      'v5': v5,
+      'code': code,
+      'request_id': requestId,
+      'memory_usage': memoryUsage,
+      'progress': progress,
+      'water_valve_open': waterValveOpen == true ? 1 : 0,
+      'water_jet_open': waterJetOpen == true ? 1 : 0,
+      'temperature_1': temperature1,
+      'temperature_2': temperature2,
+      'current_local_time': currentLocalTime,
+      'local_time_max': localTimeMax,
+      'machine_time': machineTime,
+      'target_temperature': targetTemperature,
+      'instruction_size': instructionSize
+    };
   }
 
   DeviceStats.fromDatabase(Map<String, Object?> json) {
@@ -119,18 +110,24 @@ class DeviceStats {
     waterValveOpen = json["water_valve_open"] == 1 ? true : false;
     waterJetOpen = json["water_jet_open"] == 1 ? true : false;
 
-    temperature1 = json['temperature_1']==null? 0.0 : json['temperature_1'] as double;
-    temperature2 = json['temperature_2'] == null? 0.0: json['temperature_2'] as double;
-    currentLocalTime = json['current_local_time'] == null? 0: json['current_local_time'] as int;
-    localTimeMax = json['local_time_max'] == null? 0 :json['local_time_max'] as int;
-    machineTime =json['machine_time'] == null? 0: json['machine_time'] as int;
-    targetTemperature = json['target_temperature'] == null? 0: json['target_temperature'] as double;
-    instructionSize =json['instruction_size'] ==null? 0: json['instruction_size'] as int;
-
-
+    temperature1 =
+    json['temperature_1'] == null ? 0.0 : json['temperature_1'] as double;
+    temperature2 =
+    json['temperature_2'] == null ? 0.0 : json['temperature_2'] as double;
+    currentLocalTime =
+    json['current_local_time'] == null ? 0 : json['current_local_time'] as int;
+    localTimeMax =
+    json['local_time_max'] == null ? 0 : json['local_time_max'] as int;
+    machineTime =
+    json['machine_time'] == null ? 0 : json['machine_time'] as int;
+    targetTemperature = json['target_temperature'] == null
+        ? 0
+        : json['target_temperature'] as double;
+    instructionSize =
+    json['instruction_size'] == null ? 0 : json['instruction_size'] as int;
   }
 
-  static String tableName(){
+  static String tableName() {
     return 'DeviceStats';
   }
 

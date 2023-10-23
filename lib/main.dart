@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:kitchen_studio_10162023/service/database_service.dart';
 import 'package:kitchen_studio_10162023/service/udp_service.dart';
-import 'package:window_manager/window_manager.dart';
 import 'app_router.dart';
+import 'service/task_runner_pool.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await DatabaseService.instance.initialize();
   await UdpService.instance.initialize();
-
+  TaskRunnerPool.instance.initialize();
   runApp(MyApp());
 }
 

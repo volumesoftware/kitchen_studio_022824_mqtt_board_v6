@@ -4,8 +4,7 @@ import 'package:kitchen_studio_10162023/service/udp_listener.dart';
 
 class UdpService {
   RawDatagramSocket? _udpSocket;
-
-  List<UdpListener> listeners = [];
+  UdpListener? _listener;
 
   UdpService._privateConstructor();
 
@@ -15,20 +14,19 @@ class UdpService {
     _udpSocket?.listen((event) {
       Datagram? dg = _udpSocket?.receive();
       if (dg != null) {
-        listeners.forEach((element) {
-          element.udpData(dg);
-        });
+        _listener?.udpData(dg);
       }
-
     });
   }
 
-  void addListener(UdpListener listener) {
-    this.listeners.add(listener);
+  Future<void> listen(UdpListener listener) async {
+    _udpSocket ??= await RawDatagramSocket.bind(InternetAddress.anyIPv4, 8889);
+    _listener = listener;
   }
 
-  void removeListener(UdpListener listener) {
-    this.listeners.remove(listener);
+  void closeListener() {
+    _listener = null;
+    _udpSocket?.close();
   }
 
   int send(List<int> buffer, InternetAddress address, int port) {

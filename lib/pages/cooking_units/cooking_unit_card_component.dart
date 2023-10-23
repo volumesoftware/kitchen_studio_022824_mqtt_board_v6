@@ -3,7 +3,10 @@ import 'dart:math' as math; // import this
 import 'package:flutter/material.dart';
 import 'package:gauge_indicator/gauge_indicator.dart';
 import 'package:kitchen_studio_10162023/model/device_stats.dart';
+import 'package:kitchen_studio_10162023/service/task_runner_pool.dart';
+import 'package:kitchen_studio_10162023/service/udp_listener.dart';
 import 'package:kitchen_studio_10162023/service/udp_service.dart';
+import 'package:kitchen_studio_10162023/widgets/thermometers.dart';
 
 class CookingUnitCardComponent extends StatefulWidget {
   final DeviceStats deviceStats;
@@ -16,16 +19,21 @@ class CookingUnitCardComponent extends StatefulWidget {
       _CookingUnitCardComponentState();
 }
 
-class _CookingUnitCardComponentState extends State<CookingUnitCardComponent> {
+class _CookingUnitCardComponentState extends State<CookingUnitCardComponent> implements UdpListener{
   UdpService? udpService = UdpService.instance;
+  TaskRunnerPool pool = TaskRunnerPool.instance;
+  final ValueNotifier<double> temperature = ValueNotifier(0.3);
 
   @override
   void dispose() {
+    temperature.value = widget.deviceStats.temperature1! / 100;
+    pool.removeStatsListener(this);
     super.dispose();
   }
 
   @override
   void initState() {
+    pool.addStatsListener(this);
     super.initState();
   }
 
@@ -112,7 +120,16 @@ class _CookingUnitCardComponentState extends State<CookingUnitCardComponent> {
               child: Stack(
                 alignment: AlignmentDirectional.center,
                 children: [
-                  Positioned(child: temperatureGauge(), top: 0),
+                  Container(
+                    width: 250,
+                    height: 250,
+                    child: Thermometer(
+                      temperature: temperature,
+                    ),
+                  ),
+                  Text(
+                      "${widget.deviceStats.temperature1?.toStringAsFixed(2)} °C",
+                      style: Theme.of(context).textTheme.displaySmall),
                   Positioned(
                       child: Transform(
                         alignment: Alignment.center,
@@ -121,8 +138,6 @@ class _CookingUnitCardComponentState extends State<CookingUnitCardComponent> {
                             RotatedBox(quarterTurns: 2, child: progressGauge()),
                       ),
                       bottom: 0),
-                  Text("${widget.deviceStats.temperature1}",
-                      style: Theme.of(context).textTheme.displaySmall)
                 ],
               ),
             ),
@@ -143,7 +158,7 @@ class _CookingUnitCardComponentState extends State<CookingUnitCardComponent> {
               style: Theme.of(context).textTheme.titleSmall,
             ),
             Text(
-              "${(widget.deviceStats.machineTime)} uptime",
+              "${(widget.deviceStats.machineTime)} up time",
               style: Theme.of(context).textTheme.titleSmall,
             ),
             ButtonBar(
@@ -273,5 +288,10 @@ class _CookingUnitCardComponentState extends State<CookingUnitCardComponent> {
                 cornerRadius: Radius.zero,
               )
             ]));
+  }
+
+  @override
+  void udpData(Datagram? dg) {
+    temperature.value = widget.deviceStats.temperature1! /100;
   }
 }

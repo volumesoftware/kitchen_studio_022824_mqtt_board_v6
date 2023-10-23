@@ -6,14 +6,17 @@ import 'dart:isolate';
 import 'package:kitchen_studio_10162023/model/device_stats.dart';
 import 'package:kitchen_studio_10162023/model/instruction.dart';
 import 'package:kitchen_studio_10162023/model/recipe.dart';
+import 'package:kitchen_studio_10162023/model/zeroing_operation.dart';
 
 Future recipeRunner(Recipe recipe, List<BaseOperation> operations,
     DeviceStats deviceStats) async {
   ReceivePort thisRecieverPort = ReceivePort();
   Isolate.spawn<SendPort>(runners, thisRecieverPort.sendPort);
   SendPort mikeSendPort = await thisRecieverPort.first;
+
   ReceivePort runnerRecieverPort = ReceivePort();
-  mikeSendPort.send([recipe, operations, deviceStats, runnerRecieverPort.sendPort]);
+  mikeSendPort
+      .send([recipe, operations, deviceStats, runnerRecieverPort.sendPort]);
 
   runnerRecieverPort.listen((message) {
     print("Runners'S RESPONSE: ==== $message");
@@ -23,10 +26,13 @@ Future recipeRunner(Recipe recipe, List<BaseOperation> operations,
 void runners(SendPort mySendPort) async {
   Timer? timer;
   String jsonData = '{"operation":100}';
+
   /// Set up a receiver port for Mike
   ReceivePort thisRunnerPort = ReceivePort();
+
   /// Send Mike receivePort sendPort via mySendPort
   mySendPort.send(thisRunnerPort.sendPort);
+
   /// Listen to messages sent to Mike's receive port
   await for (var message in thisRunnerPort) {
     if (message is List) {
@@ -35,12 +41,14 @@ void runners(SendPort mySendPort) async {
       DeviceStats server = message[2];
       final SendPort thisRunnerSenderPort = message[3];
 
+      await waitUntilUnitIsFree(ZeroingOperation(), server);
       for (BaseOperation operation in operations) {
         bool? available = await waitUntilUnitIsFree(operation, server);
         if (available != null) {
           thisRunnerSenderPort.send(available);
         }
       }
+      await waitUntilUnitIsFree(ZeroingOperation(), server);
     }
   }
 }
@@ -48,7 +56,7 @@ void runners(SendPort mySendPort) async {
 Future<bool?> waitUntilUnitIsFree(
     BaseOperation operation, DeviceStats server) async {
   RawDatagramSocket? socket =
-      await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
+      await RawDatagramSocket.bind(InternetAddress.anyIPv4, 8889);
 
   String jsonData = '{"operation":100}';
   Timer timer = Timer.periodic(

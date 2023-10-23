@@ -59,13 +59,13 @@ class _CreateRecipePageState extends State<CreateRecipePage>
 
   @override
   void dispose() {
-    udpService?.removeListener(this);
+    udpService?.closeListener();
     super.dispose();
   }
 
   @override
   void initState() {
-    UdpService.instance.addListener(this);
+    UdpService.instance.listen(this);
 
     var instance = DatabaseService.instance;
     connectedDatabase = instance.connectedDatabase;

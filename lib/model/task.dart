@@ -3,6 +3,7 @@ class Task{
   static const String CREATED = "Created";
   static const String STARTED = "Started";
   static const String COMPLETED = "Completed";
+  static const String Failed = "Failed";
 
   int? id;
   int? recipeId;
