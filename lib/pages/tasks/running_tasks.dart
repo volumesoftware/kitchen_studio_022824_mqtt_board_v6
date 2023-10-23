@@ -127,7 +127,6 @@ class _RunningTaskItemState extends State<RunningTaskItem>
 
   @override
   void initState() {
-    temperature.value = _deviceStats?.temperature1 ?? 28 / 200;
     setState(() {
       index = widget.index;
       p = widget.taskPayload;
@@ -155,71 +154,49 @@ class _RunningTaskItemState extends State<RunningTaskItem>
       child: ExpansionTile(
         controller: _controller,
         children: expandedCard(),
-        title: ListTile(
-          leading: Text("${index + 1}"),
-          title: Text("${_deviceStats?.moduleName}"),
-          subtitle: Text(p?.task.taskName ?? 'No task'),
-          trailing: progressGauge(),
+        trailing: Container(
+          width: 80,
+          height: 70,
+          child: Row(
+            children: [
+              Text("${_deviceStats?.temperature1?.toStringAsFixed(2)} °C",
+                  style: Theme.of(context).textTheme.displaySmall?.copyWith(fontSize: 14)),
+              Container(
+                width: 20,
+                child: Thermometer(
+                  temperature: temperature,
+                ),
+              ),
+            ],
+          ),
+        ),
+        leading: Text("${index + 1}"),
+        title: Text("${_deviceStats?.moduleName}"),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(p?.task.taskName ?? 'No task'),
+            LinearProgressIndicator(
+              value: _progress,
+            )
+          ],
         ),
       ),
     );
   }
 
   List<Widget> expandedCard() {
-    return [
-      Container(
-        width: double.infinity,
-        height: 200,
-        child: Stack(
-          alignment: AlignmentDirectional.center,
-          children: [
-            Container(
-              width: 250,
-              height: 250,
-              child: Thermometer(
-                temperature: temperature,
-              ),
-            ),
-            Text("${_deviceStats?.temperature1?.toStringAsFixed(2)} °C",
-                style: Theme.of(context).textTheme.displaySmall),
-            Positioned(
-                child: Transform(
-                  alignment: Alignment.center,
-                  transform: Matrix4.rotationY(math.pi),
-                  child: RotatedBox(quarterTurns: 2, child: progressGauge()),
-                ),
-                bottom: 0),
-          ],
-        ),
-      ),
-      Text(
-        "${_deviceStats?.requestId}",
-        style: Theme.of(context).textTheme.bodyMedium,
-      ),
-      Text(
-        "${_deviceStats?.ipAddress}:${_deviceStats?.port}",
-        style: Theme.of(context).textTheme.titleLarge,
-      ),
-      Text(
-        "${_deviceStats?.type}",
-        style: Theme.of(context).textTheme.titleSmall,
-      ),
-      Text(
-        "${_deviceStats?.memoryUsage} bytes",
-        style: Theme.of(context).textTheme.titleSmall,
-      ),
-      Text(
-        "${(_deviceStats?.machineTime)} up time",
-        style: Theme.of(context).textTheme.titleSmall,
-      )
-    ];
+    if(p == null) return [];
+    return p!.operations.map((e) => ListTile(
+      title: Text("${e.operation}"),
+    )).toList();
   }
 
   Widget progressGauge() {
     return AnimatedRadialGauge(
         duration: const Duration(seconds: 2),
         curve: Curves.elasticOut,
-        radius: 50,
+        radius: 100,
         initialValue: 0,
         value: _progress,
         axis: GaugeAxis(
@@ -321,17 +298,20 @@ class _RunningTaskItemState extends State<RunningTaskItem>
       {required bool busy,
       required DeviceStats deviceStats,
       required double progress}) {
-    widget.itemChanged();
-    temperature.value = _deviceStats?.temperature1 ?? 28 / 200;
+    if (moduleName == deviceStats.moduleName) {
+      widget.itemChanged();
+      temperature.value = (deviceStats.temperature1 ?? 28) / 200;
+      print("${temperature.value} $moduleName");
 
-    if (busy) {
-      _controller.expand();
+      if (busy) {
+        _controller.expand();
+      }
+
+      setState(() {
+        _progress = progress;
+        _deviceStats = deviceStats;
+        p = taskRunner?.getPayload();
+      });
     }
-
-    setState(() {
-      _progress = progress;
-      _deviceStats = deviceStats;
-      p = taskRunner?.getPayload();
-    });
   }
 }

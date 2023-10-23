@@ -58,7 +58,7 @@ class AnimatedMercuryPaintWidget extends StatefulWidget {
 class _AnimatedMercuryPaintWidgetState extends State<AnimatedMercuryPaintWidget>
     with SingleTickerProviderStateMixin {
   late final AnimationController _animationController =
-  AnimationController(vsync: this, duration: const Duration(seconds: 1));
+      AnimationController(vsync: this, duration: const Duration(seconds: 1));
   late final Animation<double> _animation;
 
   @override
@@ -101,13 +101,13 @@ class MercuryPainter extends CustomPainter {
   });
 
   void paintOneWave(
-      Canvas canvas,
-      Size size, {
-        required double temperatureHeight,
-        required double cyclicAnimationValue,
-        required List<double> colorStops,
-        required List<Color> colors,
-      }) {
+    Canvas canvas,
+    Size size, {
+    required double temperatureHeight,
+    required double cyclicAnimationValue,
+    required List<double> colorStops,
+    required List<Color> colors,
+  }) {
     assert(colorStops.length == colors.length);
 
     Path path = Path();
@@ -175,7 +175,7 @@ class MercuryPainter extends CustomPainter {
   @override
   bool shouldRepaint(MercuryPainter oldDelegate) =>
       animation != oldDelegate.animation ||
-          temperatureReduced != oldDelegate.temperatureReduced;
+      temperatureReduced != oldDelegate.temperatureReduced;
 
   @override
   bool shouldRebuildSemantics(MercuryPainter oldDelegate) => false;
