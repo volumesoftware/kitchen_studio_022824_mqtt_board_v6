@@ -25,6 +25,7 @@ class TaskRunnerPool implements UdpListener {
   static TaskRunnerPool get instance => _instance;
 
   List<DeviceStats> getDevices(){
+    _devices.sort((a, b) => a.moduleName!.compareTo(b.moduleName!),);
     return _devices;
   }
 
@@ -55,7 +56,6 @@ class TaskRunnerPool implements UdpListener {
       var containsKey = _taskRunners.containsKey(element.moduleName);
       if (!containsKey) {
         _taskRunners[element.moduleName!] = TaskRunner(element);
-        _taskRunners[element.moduleName!]?.initialize();
       } else {
         _taskRunners[element.moduleName!]?.updateStats(element);
       }
@@ -68,7 +68,9 @@ class TaskRunnerPool implements UdpListener {
 
 
   List<TaskRunner>? getTaskRunners() {
-    return _taskRunners.values.toList();
+    var list = _taskRunners.values.toList();
+    list.sort((a, b) => a.moduleName!.compareTo(b.moduleName!),);
+    return list;
   }
 
   @override

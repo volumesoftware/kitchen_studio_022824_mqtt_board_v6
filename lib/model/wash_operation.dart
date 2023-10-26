@@ -16,6 +16,9 @@ class WashOperation implements BaseOperation {
   int? instructionSize;
   @override
   double? targetTemperature;
+  @override
+  String? requestId = 'Wash';
+
 
   WashOperation(
       {this.id,
@@ -29,7 +32,7 @@ class WashOperation implements BaseOperation {
   @override
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['request_id'] = 'Washing';
+    data['request_id'] = requestId;
     data['operation'] = operation;
     data['recipe_id'] = recipeId;
     data['current_index'] = currentIndex;

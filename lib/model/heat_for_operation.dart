@@ -20,6 +20,8 @@ class HeatForOperation implements BaseOperation {
   double? targetTemperature;
 
   int? duration;
+  @override
+  String? requestId = 'Heating in time';
 
   HeatForOperation(
       {
@@ -33,7 +35,7 @@ class HeatForOperation implements BaseOperation {
   @override
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['request_id'] = 'Heating in time';
+    data['request_id'] = requestId;
     data['operation'] = operation;
     data['recipe_id'] = recipeId;
     data['current_index'] = currentIndex;

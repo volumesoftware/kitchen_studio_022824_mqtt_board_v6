@@ -5,6 +5,7 @@ abstract interface class BaseOperation {
   int? currentIndex;
   int? instructionSize;
   double? targetTemperature;
+  String? requestId;
 
   BaseOperation(
       {this.id,
@@ -31,7 +32,9 @@ abstract interface class BaseOperation {
         target_temperature FLOAT,
         cycle INTEGER,
         interval INTEGER,
-        duration INTEGER
+        duration INTEGER,
+        message INTEGER,
+        title INTEGER
     );
     ''';
   }

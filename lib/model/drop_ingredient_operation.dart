@@ -16,6 +16,9 @@ class DropIngredientOperation implements BaseOperation {
   int? instructionSize;
   @override
   double? targetTemperature;
+  @override
+  String? requestId = 'Dropping Ingredient';
+
 
   DropIngredientOperation(
       {this.id, this.recipeId,

@@ -11,6 +11,8 @@ import 'package:kitchen_studio_10162023/model/pump_oil_operation.dart';
 import 'package:kitchen_studio_10162023/model/pump_water_operation.dart';
 import 'package:kitchen_studio_10162023/model/scan_operation.dart';
 import 'package:kitchen_studio_10162023/model/setup_operation.dart';
+import 'package:kitchen_studio_10162023/model/stir_operation.dart';
+import 'package:kitchen_studio_10162023/model/user_action_operation.dart';
 import 'package:kitchen_studio_10162023/model/wash_operation.dart';
 import 'package:kitchen_studio_10162023/model/zeroing_operation.dart';
 import 'package:kitchen_studio_10162023/service/database_service.dart';
@@ -54,6 +56,10 @@ class BaseOperationDataAccess implements DataAccess<BaseOperation> {
         return WashOperation.fromDatabase(e);
       case ZeroingOperation.CODE:
         return ZeroingOperation.fromDatabase(e);
+      case StirOperation.CODE:
+        return StirOperation.fromDatabase(e);
+     case UserActionOperation.CODE:
+        return UserActionOperation.fromDatabase(e);
     }
 
     return ZeroingOperation.fromDatabase(e);

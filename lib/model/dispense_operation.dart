@@ -15,6 +15,10 @@ class DispenseOperation implements BaseOperation {
   int? instructionSize;
   @override
   double? targetTemperature;
+  @override
+  String? requestId = 'Dispensing';
+
+
 
   DispenseOperation(
       {this.id,
@@ -27,7 +31,7 @@ class DispenseOperation implements BaseOperation {
   @override
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['request_id'] = 'Dispensing';
+    data['request_id'] = requestId;
     data['operation'] = operation;
     data['recipe_id'] = recipeId;
     data['current_index'] = currentIndex;
@@ -46,6 +50,5 @@ class DispenseOperation implements BaseOperation {
     targetTemperature = json["target_temperature"]==null? null: json["target_temperature"] as double;
     cycle = json["cycle"] == null? 0 : json["cycle"] as int;
   }
-
 
 }

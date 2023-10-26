@@ -1,25 +1,27 @@
 import 'package:kitchen_studio_10162023/model/instruction.dart';
 
-class HeatUntilTemperatureOperation implements BaseOperation {
-  static const int CODE = 208;
+class UserActionOperation implements BaseOperation {
+  static const int CODE = 9277;
 
   @override
   int? id;
   @override
   int? recipeId;
   @override
-  int? operation = 208;
+  String? requestId = 'User Action';
+  @override
+  int? operation = UserActionOperation.CODE;
   @override
   int? currentIndex;
   @override
   int? instructionSize;
   @override
   double? targetTemperature;
-  @override
-  String? requestId = 'Heating to temperature';
+  String? title;
+  String? message;
 
 
-  HeatUntilTemperatureOperation(
+  UserActionOperation(
       {this.id, this.recipeId, this.currentIndex, this.instructionSize, this.targetTemperature});
 
   @override
@@ -31,16 +33,20 @@ class HeatUntilTemperatureOperation implements BaseOperation {
     data['current_index'] = currentIndex;
     data['instruction_size'] = instructionSize;
     data['target_temperature'] = targetTemperature;
+    data['message'] = message;
+    data['title'] = title;
     return data;
   }
 
 
-  HeatUntilTemperatureOperation.fromDatabase(Map<String, Object?> json) {
+  UserActionOperation.fromDatabase(Map<String, Object?> json) {
     id = json['id'] as int;
     recipeId = json['recipe_id']==null? null: json['recipe_id'] as int;
     currentIndex = json["current_index"]==null? null: json["current_index"] as int;
     instructionSize =json["instruction_size"]==null? null: json["instruction_size"] as int;
     targetTemperature = json["target_temperature"]==null? null: json["target_temperature"] as double;
+    message = json["message"]==null? null: json["message"] as String;
+    title = json["title"]==null? null: json["title"] as String;
   }
 
 

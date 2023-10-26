@@ -16,6 +16,10 @@ class SetupOperation implements BaseOperation {
   int? instructionSize;
   @override
   double? targetTemperature;
+  @override
+  String? requestId = 'Setup';
+
+
 
   SetupOperation(
       {this.id, this.recipeId, this.currentIndex, this.instructionSize, this.targetTemperature});
@@ -23,7 +27,7 @@ class SetupOperation implements BaseOperation {
   @override
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['request_id'] = 'Setup';
+    data['request_id'] = requestId;
     data['operation'] = operation;
     data['recipe_id'] = recipeId;
     data['current_index'] = currentIndex;

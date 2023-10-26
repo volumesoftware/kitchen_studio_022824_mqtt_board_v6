@@ -55,8 +55,8 @@ class _CookingUnitsPageState extends State<CookingUnitsPage>
           actions: [IconButton(onPressed: () {}, icon: Icon(Icons.refresh))]),
       body: GridView.builder(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            childAspectRatio: .78,
-            crossAxisCount: 4,
+            childAspectRatio: .65,
+            crossAxisCount: 6,
             crossAxisSpacing: 10,
             mainAxisSpacing: 10),
         itemCount: devices.length,

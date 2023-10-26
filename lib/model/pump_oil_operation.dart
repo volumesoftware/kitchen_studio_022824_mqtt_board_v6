@@ -21,6 +21,9 @@ class PumpOilOperation implements BaseOperation {
   double? targetTemperature;
 
   int? duration;
+  @override
+  String? requestId = 'Pump Oil';
+
 
   PumpOilOperation(
       {
@@ -34,7 +37,7 @@ class PumpOilOperation implements BaseOperation {
   @override
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['request_id'] = 'Pumping Oil';
+    data['request_id'] = 'Pump Oil';
     data['operation'] = operation;
     data['recipe_id'] = recipeId;
     data['current_index'] = currentIndex;

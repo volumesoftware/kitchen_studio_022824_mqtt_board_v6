@@ -29,7 +29,7 @@ class DatabaseService {
     database =
         await databaseFactory.openDatabase('/assets/database/kitchenstudio.db',
             options: OpenDatabaseOptions(
-              version: 17,
+              version: 18,
               onUpgrade: (db, oldVersion, newVersion) => createDrop(db, newVersion),
               onCreate: (db, version) => createDrop(db, version),
             ));

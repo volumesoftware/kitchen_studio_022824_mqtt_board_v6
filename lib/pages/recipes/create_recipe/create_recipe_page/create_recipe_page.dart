@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:kitchen_studio_10162023/dao/device_data_access.dart';
 import 'package:kitchen_studio_10162023/dao/operation_data_access.dart';
+import 'package:kitchen_studio_10162023/dao/task_data_access.dart';
 import 'package:kitchen_studio_10162023/model/device_stats.dart';
 import 'package:kitchen_studio_10162023/model/dispense_operation.dart';
 import 'package:kitchen_studio_10162023/model/dock_ingredient_operation.dart';
@@ -15,6 +17,9 @@ import 'package:kitchen_studio_10162023/model/instruction.dart';
 import 'package:kitchen_studio_10162023/model/pump_oil_operation.dart';
 import 'package:kitchen_studio_10162023/model/pump_water_operation.dart';
 import 'package:kitchen_studio_10162023/model/recipe.dart';
+import 'package:kitchen_studio_10162023/model/stir_operation.dart';
+import 'package:kitchen_studio_10162023/model/task.dart';
+import 'package:kitchen_studio_10162023/model/user_action_operation.dart';
 import 'package:kitchen_studio_10162023/model/wash_operation.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/dispense_widget.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/dock_ingredient_widget.dart';
@@ -25,10 +30,13 @@ import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recip
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/pump_oil_widget.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/pump_water_widget.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/recipe_widget_action.dart';
+import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/stirl_widget.dart';
+import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/user_action_widget.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/wash_widget.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/unit_monitoring_card_component.dart';
 import 'package:kitchen_studio_10162023/service/database_service.dart';
-import 'package:kitchen_studio_10162023/service/recipe_runner_service.dart';
+import 'package:kitchen_studio_10162023/service/task_runner_pool.dart';
+import 'package:kitchen_studio_10162023/service/task_runner_service.dart';
 import 'package:kitchen_studio_10162023/service/udp_listener.dart';
 import 'package:kitchen_studio_10162023/service/udp_service.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -45,66 +53,42 @@ class CreateRecipePage extends StatefulWidget {
 class _CreateRecipePageState extends State<CreateRecipePage>
     implements RecipeWidgetActions, UdpListener {
   int activeStep = 0;
-  UdpService? udpService = UdpService.instance;
   DeviceStats? selectedDevice;
-  Database? connectedDatabase;
   List<DeviceStats> devices = [];
   Timer? timer;
   List<BaseOperation>? instructions = [];
   final GlobalKey<ScaffoldState> _key = GlobalKey(); // Create a key
-  BaseOperationDataAccess baseOperationDataAccess = BaseOperationDataAccess
-      .instance;
+
+  BaseOperationDataAccess baseOperationDataAccess =
+      BaseOperationDataAccess.instance;
+  TaskRunnerPool taskRunnerPool = TaskRunnerPool.instance;
+  UdpService? udpService = UdpService.instance;
+  DeviceDataAccess deviceDataAccess = DeviceDataAccess.instance;
+  TaskDataAccess taskDataAccess = TaskDataAccess.instance;
 
   bool manualOpen = false;
 
   @override
   void dispose() {
-    udpService?.closeListener();
+    taskRunnerPool.removeStatsListener(this);
     super.dispose();
   }
 
   @override
   void initState() {
-    UdpService.instance.listen(this);
-
-    var instance = DatabaseService.instance;
-    connectedDatabase = instance.connectedDatabase;
-    try {
-      connectedDatabase?.query('DeviceStats').then(
-            (value) {
-          if (value.isNotEmpty) {
-            for (var mappedUnits in value) {
-              setState(() {
-                devices.add(DeviceStats.fromDatabase(mappedUnits));
-              });
-            }
-          }
-        },
-      );
-    } catch (e) {}
-
-    String jsonData = '{"operation":100}';
-    udpService?.send(
-        jsonData.codeUnits, InternetAddress("192.168.43.255"), 8888);
-    timer = Timer.periodic(
-      Duration(seconds: 3),
-          (timer) {
-        udpService?.send(
-            jsonData.codeUnits, InternetAddress("192.168.43.255"), 8888);
-      },
-    );
-
+    taskRunnerPool.addStatsListener(this);
     populateOperations();
-
     super.initState();
   }
 
   void populateOperations() async {
-    var temp = await baseOperationDataAccess.search(
-        "recipe_id = ?", whereArgs: [widget.recipe.id!]);
-    print(temp);
+    var temp = await baseOperationDataAccess
+        .search("recipe_id = ?", whereArgs: [widget.recipe.id!]);
+    var tempDevices = await taskRunnerPool.getDevices();
+
     setState(() {
       instructions = temp;
+      devices = tempDevices;
     });
   }
 
@@ -137,14 +121,12 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                 selectedDevice = result;
               });
             },
-            itemBuilder: (BuildContext context) =>
-                devices
-                    .map((e) =>
-                    PopupMenuItem<DeviceStats>(
+            itemBuilder: (BuildContext context) => devices
+                .map((e) => PopupMenuItem<DeviceStats>(
                       value: e,
                       child: Text('${e.moduleName}'),
                     ))
-                    .toList(),
+                .toList(),
           ),
           SizedBox(width: 10),
           IconButton(
@@ -159,17 +141,31 @@ class _CreateRecipePageState extends State<CreateRecipePage>
       ),
       endDrawer: selectedDevice != null
           ? Container(
-        width: 400,
-        height: 450,
-        child: UnitMonitoringCardComponent(
-          udpSocket: udpService?.udp,
-          deviceStats: selectedDevice!,
-          onTestRecipe: () async{
-            // @todo recipeRunner
-            await recipeRunner(widget.recipe, instructions!, selectedDevice!);
-          },
-        ),
-      )
+              width: 300,
+              height: 350,
+              child: UnitMonitoringCardComponent(
+                deviceStats: selectedDevice!,
+                onTestRecipe: () async {
+                  var taskRunner = TaskRunnerPool.instance
+                      .getTaskRunner(selectedDevice!.moduleName!);
+                  Task task = Task(
+                      progress: 0,
+                      recipeName: widget.recipe.recipeName,
+                      moduleName: selectedDevice?.moduleName,
+                      recipeId: widget.recipe.id,
+                      taskName: "Recipe doodling test",
+                      status: Task.CREATED);
+                  int? taskId = await taskDataAccess.create(task);
+                  if (taskId != null) {
+                    Task? task = await taskDataAccess.getById(taskId);
+                    if (task != null) {
+                      await taskRunner?.submitTask(TaskPayload(
+                          widget.recipe, instructions!, selectedDevice!, task));
+                    }
+                  }
+                },
+              ),
+            )
           : SizedBox(),
       body: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -177,16 +173,13 @@ class _CreateRecipePageState extends State<CreateRecipePage>
           Card(
             child: Container(
               padding: const EdgeInsets.all(10),
-              width: MediaQuery
-                  .of(context)
-                  .size
-                  .width * 0.2,
+              width: MediaQuery.of(context).size.width * 0.2,
               child: ListView(
                 children: [
                   Container(
                     margin: EdgeInsets.symmetric(vertical: 50),
                     width: double.infinity,
-                    height: 250,
+                    height: 150 ,
                     decoration: BoxDecoration(
                         color: Colors.transparent,
                         borderRadius: BorderRadius.circular(10),
@@ -194,6 +187,24 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                             fit: BoxFit.cover,
                             image: FileImage(File(widget.recipe.imageFilePath ??
                                 "assets/images/img.png")))),
+                  ),
+                  ListTile(
+                    leading: Stack(
+                      children: [
+                        Icon(
+                          Icons.person_search_outlined,
+                        )
+                      ],
+                    ),
+                    title: const Text('User Action'),
+                    onTap: () {
+                      setState(() {
+                        onSave(UserActionOperation(
+                            currentIndex: instructions!.length,
+                            targetTemperature: 20,
+                        ));
+                      });
+                    },
                   ),
                   ListTile(
                     leading: Stack(
@@ -277,6 +288,18 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                     },
                   ),
                   ListTile(
+                    leading: Icon(Icons.ads_click_outlined),
+                    title: const Text('Stir Operation'),
+                    onTap: () {
+                      setState(() {
+                        onSave(StirOperation(
+                            currentIndex: instructions!.length,
+                            duration: 15000,
+                            targetTemperature: 20));
+                      });
+                    },
+                  ),
+                  ListTile(
                     leading: Icon(Icons.water_drop),
                     title: const Text('Pump Oil'),
                     onTap: () {
@@ -328,14 +351,8 @@ class _CreateRecipePageState extends State<CreateRecipePage>
             ),
           ),
           Container(
-            width: MediaQuery
-                .of(context)
-                .size
-                .width * 0.74,
-            height: MediaQuery
-                .of(context)
-                .size
-                .height,
+            width: MediaQuery.of(context).size.width * 0.74,
+            height: MediaQuery.of(context).size.height,
             child: GridView.builder(
               itemCount: instructions!.length,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -420,6 +437,16 @@ class _CreateRecipePageState extends State<CreateRecipePage>
         operation: instruction as DropIngredientOperation,
         recipeWidgetActions: this,
       );
+    }else if (instruction.operation == StirOperation.CODE) {
+      return StirOperationWidget(
+        operation: instruction as StirOperation,
+        recipeWidgetActions: this,
+      );
+    }else if (instruction.operation == UserActionOperation.CODE) {
+      return UserActionWidget(
+        operation: instruction as UserActionOperation,
+        recipeWidgetActions: this,
+      );
     }
     return Container(
       child: Text("Undefined Component"),
@@ -441,12 +468,16 @@ class _CreateRecipePageState extends State<CreateRecipePage>
 
   @override
   void onDelete(BaseOperation operation) {
-    baseOperationDataAccess.delete(operation.id!).then((value) => populateOperations());
+    baseOperationDataAccess
+        .delete(operation.id!)
+        .then((value) => populateOperations());
   }
 
   @override
   void onValueUpdate(BaseOperation operation) {
-    baseOperationDataAccess.updateById(operation.id!, operation).then((value) => populateOperations());
+    baseOperationDataAccess
+        .updateById(operation.id!, operation)
+        .then((value) => populateOperations());
   }
 
   @override
@@ -498,67 +529,23 @@ class _CreateRecipePageState extends State<CreateRecipePage>
   @override
   void udpData(Datagram? dg) {
     if (dg != null) {
-      String result = String.fromCharCodes(dg.data);
-      DeviceStats incomingStats = DeviceStats.fromJson(jsonDecode(result));
-      bool newItem = true;
-      devices.forEach((element) {
-        var indexOf = devices.indexOf(element);
-        if (element.ipAddress == incomingStats.ipAddress) {
-          setState(() {
-            devices[indexOf] = incomingStats;
-          });
-          newItem = false;
-        }
-      });
-      if (selectedDevice != null) {
-        if (selectedDevice?.ipAddress == incomingStats.ipAddress) {
-          setState(() {
-            selectedDevice = incomingStats;
+      populateOperations();
 
-            if (!manualOpen) {
-              if (selectedDevice?.requestId != 'idle') {
-                _key.currentState?.openEndDrawer();
-              } else {
-                _key.currentState?.closeEndDrawer();
+      devices.forEach((device) {
+        if (selectedDevice != null) {
+          if (selectedDevice?.ipAddress == device.ipAddress) {
+            setState(() {
+              selectedDevice = device;
+              if (!manualOpen) {
+                if (selectedDevice?.requestId != 'idle') {
+                  _key.currentState?.openEndDrawer();
+                } else {
+                  _key.currentState?.closeEndDrawer();
+                }
               }
-            }
-          });
-        }
-      }
-
-      if (newItem)
-        setState(() {
-          devices.add(incomingStats);
-        });
-      devices.forEach((unit) async {
-        try {
-          if (connectedDatabase != null) {
-            var list = await connectedDatabase!.query('DeviceStats',
-                where: 'ip_address = ?', whereArgs: [unit.ipAddress]);
-            if (list.isEmpty) {
-              await connectedDatabase!.insert('DeviceStats', {
-                'ip_address': unit.ipAddress,
-                'port': unit.port,
-                'module_name': unit.moduleName,
-                'type': unit.type,
-                'v5': unit.v5,
-                'code': unit.code,
-                'request_id': unit.requestId,
-                'memory_usage': unit.memoryUsage,
-                'progress': unit.progress,
-                'water_valve_open': unit.waterValveOpen == true ? 1 : 0,
-                'water_jet_open': unit.waterJetOpen == true ? 1 : 0,
-                'temperature_1': unit.temperature1,
-                'temperature_2': unit.temperature2,
-                'current_local_time': unit.currentLocalTime,
-                'local_time_max': unit.localTimeMax,
-                'machine_time': unit.machineTime,
-                'target_temperature': unit.targetTemperature,
-                'instruction_size': unit.instructionSize
-              });
-            }
+            });
           }
-        } catch (e) {}
+        }
       });
     }
   }

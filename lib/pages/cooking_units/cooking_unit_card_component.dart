@@ -1,17 +1,21 @@
 import 'dart:io';
 import 'dart:math' as math; // import this
+import 'package:avatar_glow/avatar_glow.dart';
 import 'package:flutter/material.dart';
 import 'package:gauge_indicator/gauge_indicator.dart';
 import 'package:kitchen_studio_10162023/model/device_stats.dart';
 import 'package:kitchen_studio_10162023/service/task_runner_pool.dart';
+import 'package:kitchen_studio_10162023/service/task_runner_service.dart';
 import 'package:kitchen_studio_10162023/service/udp_listener.dart';
 import 'package:kitchen_studio_10162023/service/udp_service.dart';
 import 'package:kitchen_studio_10162023/widgets/thermometers.dart';
 
 class CookingUnitCardComponent extends StatefulWidget {
   final DeviceStats deviceStats;
+  final String? backgroundImage;
 
-  const CookingUnitCardComponent({Key? key, required this.deviceStats})
+  const CookingUnitCardComponent(
+      {Key? key, required this.deviceStats, this.backgroundImage})
       : super(key: key);
 
   @override
@@ -20,20 +24,37 @@ class CookingUnitCardComponent extends StatefulWidget {
 }
 
 class _CookingUnitCardComponentState extends State<CookingUnitCardComponent>
-    implements UdpListener {
+    implements UdpListener, TaskListener {
   UdpService? udpService = UdpService.instance;
   TaskRunnerPool pool = TaskRunnerPool.instance;
   final ValueNotifier<double> temperature = ValueNotifier(0.3);
+  double _progress = 0.0;
+  bool _busy = false;
+  TaskRunner? taskRunner;
+  String? _backgroundImagePath;
 
   @override
   void dispose() {
     temperature.value = widget.deviceStats.temperature1! / 200;
     pool.removeStatsListener(this);
+    taskRunner?.removeListeners(this);
     super.dispose();
   }
 
   @override
   void initState() {
+    taskRunner = pool.getTaskRunner(widget.deviceStats.moduleName!);
+    setState(() {
+      _backgroundImagePath = widget.backgroundImage;
+    });
+    if (taskRunner != null) {
+      taskRunner?.addListeners(this);
+      // if(widget.backgroundImage == null){
+      //   setState(() {
+      //     _backgroundImagePath = taskRunner?.getPayload()?.recipe.imageFilePath;
+      //   });
+      // }
+    }
     pool.addStatsListener(this);
     super.initState();
   }
@@ -47,16 +68,19 @@ class _CookingUnitCardComponentState extends State<CookingUnitCardComponent>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Expanded(
-                child: Row(
+            Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   "${widget.deviceStats.moduleName}",
-                  style: Theme.of(context).textTheme.titleLarge,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                Text(
+                  "${(widget.deviceStats.machineTime)}",
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
                 PopupMenuButton<String>(
-                  enabled: widget.deviceStats.requestId == 'idle',
+                  enabled: !_busy,
                   icon: Icon(Icons.filter_list),
                   onSelected: (String result) {
                     switch (result) {
@@ -114,23 +138,35 @@ class _CookingUnitCardComponentState extends State<CookingUnitCardComponent>
                   ],
                 )
               ],
-            )),
+            ),
             Container(
               width: double.infinity,
-              height: 200,
+              height: 135,
               child: Stack(
                 alignment: AlignmentDirectional.center,
                 children: [
+                  // _backgroundImagePath!=null? Center(
+                  //   child: CircleAvatar(
+                  //     radius: 65,
+                  //     backgroundImage: FileImage(File(_backgroundImagePath!)),
+                  //   ),
+                  // ): SizedBox(),
+                  CircleAvatar(
+                    radius: 65,
+                    backgroundColor: Colors.black12,
+                  ),
                   Container(
-                    width: 250,
-                    height: 250,
+                    width: 130,
+                    height: 130,
                     child: Thermometer(
                       temperature: temperature,
                     ),
                   ),
                   Text(
                       "${widget.deviceStats.temperature1?.toStringAsFixed(2)} °C",
-                      style: Theme.of(context).textTheme.displaySmall),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: Colors.white, fontWeight: FontWeight.bold)),
+
                   Positioned(
                       child: Transform(
                         alignment: Alignment.center,
@@ -148,39 +184,27 @@ class _CookingUnitCardComponentState extends State<CookingUnitCardComponent>
             ),
             Text(
               "${widget.deviceStats.ipAddress}:${widget.deviceStats.port}",
-              style: Theme.of(context).textTheme.titleLarge,
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
             Text(
               "${widget.deviceStats.type}",
-              style: Theme.of(context).textTheme.titleSmall,
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
-            Text(
-              "${widget.deviceStats.memoryUsage} bytes",
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            Text(
-              "${(widget.deviceStats.machineTime)} up time",
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            ButtonBar(
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                ElevatedButton(
-                    onPressed: () {},
-                    child: Row(
-                      children: [Text("Add Task"), Icon(Icons.add)],
-                    )),
-                IconButton(
-                    onPressed: () async {},
-                    icon: Icon(
-                      Icons.play_circle_outlined,
-                      color: Colors.green,
-                    )),
-                IconButton(
-                    onPressed: () {},
-                    icon: Icon(
-                      Icons.stop_circle_outlined,
-                      color: Colors.red,
-                    )),
+                Text(
+                  "Enable Queue",
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                Switch(
+
+                  value: taskRunner?.isChained() ?? false,
+                  onChanged: (value) {
+                    taskRunner?.setChained(value);
+                  },
+                )
+
               ],
             )
           ],
@@ -193,15 +217,15 @@ class _CookingUnitCardComponentState extends State<CookingUnitCardComponent>
     return AnimatedRadialGauge(
         duration: const Duration(seconds: 2),
         curve: Curves.elasticOut,
-        radius: 100,
-        initialValue: 50,
-        value: widget.deviceStats.progress ?? 0.0,
+        radius: 66,
+        initialValue: 0,
+        value: _progress ?? 0.0,
         axis: GaugeAxis(
             min: 0,
-            max: 100,
-            degrees: 90,
+            max: 1,
+            degrees: 280,
             style: const GaugeAxisStyle(
-              thickness: 10,
+              thickness: 3,
               background: Color(0xFFDFE2EC),
               segmentSpacing: 4,
             ),
@@ -211,88 +235,45 @@ class _CookingUnitCardComponentState extends State<CookingUnitCardComponent>
             segments: [
               const GaugeSegment(
                 from: 0,
-                to: 33.3,
+                to: 0.33,
                 color: Colors.grey,
                 cornerRadius: Radius.zero,
               ),
               const GaugeSegment(
-                from: 33.3,
-                to: 50,
+                from: 0.33,
+                to: 0.5,
                 color: Colors.blueGrey,
                 cornerRadius: Radius.zero,
               ),
               const GaugeSegment(
-                from: 50,
-                to: 80,
+                from: 0.5,
+                to: 0.8,
                 color: Colors.blueAccent,
                 cornerRadius: Radius.zero,
               ),
               const GaugeSegment(
-                from: 80,
-                to: 100,
+                from: 0.8,
+                to: 1,
                 color: Colors.blue,
                 cornerRadius: Radius.zero,
               ),
             ]));
   }
 
-  Widget temperatureGauge() {
-    double? temperature =
-        double.tryParse(widget.deviceStats.temperature1!.toStringAsFixed(2));
-    return AnimatedRadialGauge(
-        duration: const Duration(seconds: 2),
-        curve: Curves.elasticOut,
-        radius: 100,
-        value: temperature ?? 0.0,
-        initialValue: 50,
-        axis: GaugeAxis(
-            min: 0,
-            max: 400,
-            degrees: 180,
-            style: const GaugeAxisStyle(
-              thickness: 20,
-              background: Color(0xFFDFE2EC),
-              segmentSpacing: 4,
-            ),
-            progressBar: const GaugeProgressBar.rounded(
-              color: Colors.transparent,
-            ),
-            segments: [
-              const GaugeSegment(
-                from: 0,
-                to: 33.3,
-                color: Colors.green,
-                cornerRadius: Radius.zero,
-              ),
-              const GaugeSegment(
-                from: 33.3,
-                to: 66.6,
-                color: Colors.yellow,
-                cornerRadius: Radius.zero,
-              ),
-              const GaugeSegment(
-                from: 66.6,
-                to: 100,
-                color: Colors.orange,
-                cornerRadius: Radius.zero,
-              ),
-              const GaugeSegment(
-                from: 100,
-                to: 300,
-                color: Colors.deepOrange,
-                cornerRadius: Radius.zero,
-              ),
-              const GaugeSegment(
-                from: 300,
-                to: 400,
-                color: Colors.red,
-                cornerRadius: Radius.zero,
-              )
-            ]));
-  }
-
   @override
   void udpData(Datagram? dg) {
     if (dg != null) temperature.value = widget.deviceStats.temperature1! / 200;
+  }
+
+  @override
+  void onEvent(String moduleName, message,
+      {required bool busy,
+      required DeviceStats deviceStats,
+      required double progress,
+      required int index, UserAction? userAction}) {
+    setState(() {
+      _progress = progress;
+      _busy = busy;
+    });
   }
 }

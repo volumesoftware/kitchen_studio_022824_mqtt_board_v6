@@ -21,6 +21,8 @@ class PumpWaterOperation implements BaseOperation {
   double? targetTemperature;
 
   int? duration;
+  @override
+  String? requestId = 'Pump Water';
 
   PumpWaterOperation(
       {this.id,
@@ -33,7 +35,7 @@ class PumpWaterOperation implements BaseOperation {
   @override
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['request_id'] = 'Pumping Water';
+    data['request_id'] = requestId;
     data['operation'] = operation;
     data['recipe_id'] = recipeId;
     data['current_index'] = currentIndex;

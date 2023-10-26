@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'dart:math' as math; // import this
+import 'package:avatar_glow/avatar_glow.dart';
 import 'package:flutter/material.dart';
 import 'package:gauge_indicator/gauge_indicator.dart';
 import 'package:kitchen_studio_10162023/model/device_stats.dart';
+import 'package:kitchen_studio_10162023/model/user_action_operation.dart';
 import 'package:kitchen_studio_10162023/service/task_runner_pool.dart';
 import 'package:kitchen_studio_10162023/service/task_runner_service.dart';
 import 'package:kitchen_studio_10162023/service/udp_listener.dart';
@@ -24,6 +26,13 @@ class _RunningTasksState extends State<RunningTasks> implements UdpListener {
   @override
   void initState() {
     populateTask();
+    var taskRunners = _taskRunnerPool.getTaskRunners();
+    if (taskRunners != null) {
+      setState(() {
+        _taskRunners = taskRunners;
+      });
+    }
+
     super.initState();
   }
 
@@ -44,15 +53,15 @@ class _RunningTasksState extends State<RunningTasks> implements UdpListener {
         leading: Icon(Icons.play_for_work_outlined),
         automaticallyImplyLeading: false,
         title: Text("Running Task"),
-        bottom: PreferredSize(
-          preferredSize: Size(double.infinity, 50),
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 10),
-            child: SearchBar(
-              trailing: [Icon(Icons.search)],
-            ),
-          ),
-        ),
+        // bottom: PreferredSize(
+        //   preferredSize: Size(double.infinity, 50),
+        //   child: Padding(
+        //     padding: EdgeInsets.symmetric(horizontal: 10),
+        //     child: SearchBar(
+        //       trailing: [Icon(Icons.search)],
+        //     ),
+        //   ),
+        // ),
       ),
       body: listViewBuilder(),
     );
@@ -124,6 +133,8 @@ class _RunningTaskItemState extends State<RunningTaskItem>
   ExpansionTileController _controller = ExpansionTileController();
   final ValueNotifier<double> temperature = ValueNotifier(0.3);
   bool manualOpen = false;
+  int _instructionIndex = 0;
+  UserAction? _userAction;
 
   @override
   void initState() {
@@ -154,31 +165,26 @@ class _RunningTaskItemState extends State<RunningTaskItem>
       child: ExpansionTile(
         controller: _controller,
         children: expandedCard(),
-        trailing: Container(
+        leading: SizedBox(
           width: 80,
-          height: 70,
-          child: Row(
+          child: Stack(
             children: [
-              Text("${_deviceStats?.temperature1?.toStringAsFixed(2)} °C",
-                  style: Theme.of(context).textTheme.displaySmall?.copyWith(fontSize: 14)),
-              Container(
-                width: 20,
-                child: Thermometer(
-                  temperature: temperature,
-                ),
+              Center(
+                child: Text("${index + 1}"),
               ),
+              Center(
+                child: CircularProgressIndicator(
+                  value: _progress,
+                ),
+              )
             ],
           ),
         ),
-        leading: Text("${index + 1}"),
         title: Text("${_deviceStats?.moduleName}"),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(p?.task.taskName ?? 'No task'),
-            LinearProgressIndicator(
-              value: _progress,
-            )
           ],
         ),
       ),
@@ -186,25 +192,84 @@ class _RunningTaskItemState extends State<RunningTaskItem>
   }
 
   List<Widget> expandedCard() {
-    if(p == null) return [];
-    return p!.operations.map((e) => ListTile(
-      title: Text("${e.operation}"),
-    )).toList();
+    if (p == null) return [];
+
+    return [
+      Stepper(
+        stepIconBuilder: (stepIndex, stepState) {
+          if (stepIndex == _instructionIndex) {
+            return AvatarGlow(
+              child: CircleAvatar(
+                child: Text("${stepIndex + 1}"),
+              ),
+              endRadius: 50,
+              glowColor: Colors.red,
+            );
+          } else
+            CircleAvatar(
+              child: Text("${stepIndex + 1}"),
+            );
+          return null;
+        },
+        controlsBuilder: (BuildContext ctx, ControlsDetails dtl) {
+          return Row();
+        },
+        currentStep: _instructionIndex,
+        steps: p!.operations.map((e) {
+          var list = e.toJson().entries.map((e) {
+            if (e.key == 'request_id') {
+              return SizedBox();
+            }
+            if (e.key == 'operation') {
+              return SizedBox();
+            }
+            if (e.key == 'recipe_id') {
+              return SizedBox();
+            }
+            if (e.key == 'current_index') {
+              return SizedBox();
+            }
+            if (e.key == 'instruction_size') {
+              return SizedBox();
+            }
+            return Text("${e.key.replaceAll("_", " ")} ${e.value}");
+          }).toList();
+          return Step(
+            title: Text("${e.requestId}"),
+            subtitle: e is UserActionOperation
+                ? ElevatedButton(
+                    onPressed: () {
+                      if (_userAction != null) {
+                        taskRunner?.submitUserRespond(
+                            true, _userAction!.currentIndex!);
+                      }
+                    },
+                    child: Text("Continue"),
+                  )
+                : SizedBox(),
+            content: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: list,
+            ),
+          );
+        }).toList(),
+      )
+    ];
   }
 
   Widget progressGauge() {
     return AnimatedRadialGauge(
         duration: const Duration(seconds: 2),
         curve: Curves.elasticOut,
-        radius: 100,
+        radius: 30,
         initialValue: 0,
         value: _progress,
         axis: GaugeAxis(
             min: 0,
             max: 1,
-            degrees: 90,
+            degrees: 300,
             style: const GaugeAxisStyle(
-              thickness: 10,
+              thickness: 5,
               background: Color(0xFFDFE2EC),
               segmentSpacing: 4,
             ),
@@ -239,75 +304,30 @@ class _RunningTaskItemState extends State<RunningTaskItem>
             ]));
   }
 
-  Widget temperatureGauge() {
-    double? temperature = _deviceStats?.temperature1 ?? 23.00;
-    return AnimatedRadialGauge(
-        duration: const Duration(seconds: 2),
-        curve: Curves.elasticOut,
-        radius: 100,
-        value: temperature ?? 0.0,
-        initialValue: 50,
-        axis: GaugeAxis(
-            min: 0,
-            max: 400,
-            degrees: 180,
-            style: const GaugeAxisStyle(
-              thickness: 20,
-              background: Color(0xFFDFE2EC),
-              segmentSpacing: 4,
-            ),
-            progressBar: const GaugeProgressBar.rounded(
-              color: Colors.transparent,
-            ),
-            segments: [
-              const GaugeSegment(
-                from: 0,
-                to: 33.3,
-                color: Colors.green,
-                cornerRadius: Radius.zero,
-              ),
-              const GaugeSegment(
-                from: 33.3,
-                to: 66.6,
-                color: Colors.yellow,
-                cornerRadius: Radius.zero,
-              ),
-              const GaugeSegment(
-                from: 66.6,
-                to: 100,
-                color: Colors.orange,
-                cornerRadius: Radius.zero,
-              ),
-              const GaugeSegment(
-                from: 100,
-                to: 300,
-                color: Colors.deepOrange,
-                cornerRadius: Radius.zero,
-              ),
-              const GaugeSegment(
-                from: 300,
-                to: 400,
-                color: Colors.red,
-                cornerRadius: Radius.zero,
-              )
-            ]));
-  }
-
   @override
   void onEvent(String moduleName, message,
       {required bool busy,
       required DeviceStats deviceStats,
-      required double progress}) {
+      required double progress,
+      required int index,
+      UserAction? userAction}) {
     if (moduleName == deviceStats.moduleName) {
       widget.itemChanged();
       temperature.value = (deviceStats.temperature1 ?? 28) / 200;
-      print("${temperature.value} $moduleName");
 
       if (busy) {
+        // _controller.expand();
+      }
+
+      if (userAction != null) {
+        setState(() {
+          _userAction = userAction;
+        });
         _controller.expand();
       }
 
       setState(() {
+        _instructionIndex = index;
         _progress = progress;
         _deviceStats = deviceStats;
         p = taskRunner?.getPayload();

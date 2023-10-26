@@ -30,7 +30,7 @@ class _CompletedTasksState extends State<CompletedTasks> implements TaskChangedL
   }
 
   void populateTask() {
-    taskDataAccess.search('status like ? or status like?', whereArgs: ['%Completed%', '%Failed%']).then((value) {
+    taskDataAccess.search('status like ? and task_name like ?', whereArgs: ['%Completed%', '%$query%']).then((value) {
       setState(() {
         tasks = value;
       });
@@ -54,6 +54,7 @@ class _CompletedTasksState extends State<CompletedTasks> implements TaskChangedL
                 setState(() {
                   query = value;
                 });
+                populateTask();
               },
               trailing: [
                 query == ""
@@ -64,6 +65,8 @@ class _CompletedTasksState extends State<CompletedTasks> implements TaskChangedL
                             query = '';
                           });
                           _searchController.clear();
+
+                          populateTask();
                         },
                         icon: Icon(Icons.close))
               ],

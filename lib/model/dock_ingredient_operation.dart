@@ -17,6 +17,8 @@ class DockIngredientOperation implements BaseOperation {
   @override
   double? targetTemperature;
   List<IngredientItem> ingredientItems = [];
+  @override
+  String? requestId = 'Docking Ingredient';
 
 
   DockIngredientOperation(
