@@ -70,6 +70,7 @@ class _PumpWaterWidgetState extends State<PumpWaterWidget> {
                 child: TextField(
                   controller: _targetTemperatureController,
                   decoration: InputDecoration(
+                      suffixText: "celsius",
                       isDense: true,
                       border: OutlineInputBorder(),
                       hintText: 'Target Temperature',
@@ -86,6 +87,7 @@ class _PumpWaterWidgetState extends State<PumpWaterWidget> {
                 child: TextField(
                   controller: _durationController,
                   decoration: InputDecoration(
+                      suffixText: "seconds",
                       isDense: true,
                       border: OutlineInputBorder(),
                       hintText: 'Duration',
@@ -106,16 +108,11 @@ class _PumpWaterWidgetState extends State<PumpWaterWidget> {
                   recipeWidgetActions?.onDelete(operation!);
                 },
                 child: Text("Delete")),
-            ElevatedButton(
-                onPressed: () async {
-                  recipeWidgetActions?.onTest(operation!);
-                },
-                child: Text("Run Test")),
             inEditMode
                 ? FilledButton(
                 onPressed: () {
-                  operation?.targetTemperature =
-                      double.tryParse(_targetTemperatureController!.text);
+                  operation?.targetTemperature = double.tryParse(_targetTemperatureController!.text);
+                  operation?.duration = int.tryParse(_durationController!.text);
                   recipeWidgetActions?.onValueUpdate(operation!);
                   setState(() {
                     inEditMode = false;

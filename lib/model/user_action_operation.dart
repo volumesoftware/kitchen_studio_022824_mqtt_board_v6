@@ -19,10 +19,17 @@ class UserActionOperation implements BaseOperation {
   double? targetTemperature;
   String? title;
   String? message;
+  bool? isClosing;
 
-
-  UserActionOperation(
-      {this.id, this.recipeId, this.currentIndex, this.instructionSize, this.targetTemperature});
+  UserActionOperation({
+    this.recipeId,
+    this.currentIndex,
+    this.instructionSize,
+    this.targetTemperature,
+    this.title,
+    this.message,
+    this.isClosing
+  });
 
   @override
   Map<String, dynamic> toJson() {
@@ -35,19 +42,25 @@ class UserActionOperation implements BaseOperation {
     data['target_temperature'] = targetTemperature;
     data['message'] = message;
     data['title'] = title;
+    data['is_closing'] = isClosing == true? 1 : 0;
     return data;
   }
 
-
   UserActionOperation.fromDatabase(Map<String, Object?> json) {
     id = json['id'] as int;
-    recipeId = json['recipe_id']==null? null: json['recipe_id'] as int;
-    currentIndex = json["current_index"]==null? null: json["current_index"] as int;
-    instructionSize =json["instruction_size"]==null? null: json["instruction_size"] as int;
-    targetTemperature = json["target_temperature"]==null? null: json["target_temperature"] as double;
-    message = json["message"]==null? null: json["message"] as String;
-    title = json["title"]==null? null: json["title"] as String;
+    requestId =
+        json['request_id'] == null ? null : json['request_id'] as String;
+    recipeId = json['recipe_id'] == null ? null : json['recipe_id'] as int;
+    currentIndex =
+        json["current_index"] == null ? null : json["current_index"] as int;
+    instructionSize = json["instruction_size"] == null
+        ? null
+        : json["instruction_size"] as int;
+    targetTemperature = json["target_temperature"] == null
+        ? null
+        : json["target_temperature"] as double;
+    message = json["message"] == null ? null : json["message"] as String;
+    title = json["title"] == null ? null : json["title"] as String;
+    isClosing = json["is_closing"] == 0 ? false : true;
   }
-
-
 }

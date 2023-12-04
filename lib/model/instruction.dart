@@ -34,7 +34,8 @@ abstract interface class BaseOperation {
         interval INTEGER,
         duration INTEGER,
         message INTEGER,
-        title INTEGER
+        title INTEGER,
+        is_closing BOOLEAN
     );
     ''';
   }

@@ -1,15 +1,15 @@
 import 'package:kitchen_studio_10162023/model/instruction.dart';
 
-class SetupOperation implements BaseOperation {
+class MotorOperation implements BaseOperation {
+  static const int CODE = 7777;
 
-  static const int CODE = 1000;
 
   @override
   int? id;
   @override
   int? recipeId;
   @override
-  int? operation = SetupOperation.CODE;
+  int? operation = MotorOperation.CODE;
   @override
   int? currentIndex;
   @override
@@ -17,12 +17,13 @@ class SetupOperation implements BaseOperation {
   @override
   double? targetTemperature;
   @override
-  String? requestId = 'Setup';
+  String? requestId = 'Motor Operation';
+  int? relativeTiltAngle;
+  int? relativeRotateAngle;
 
 
-
-  SetupOperation(
-      {this.id, this.recipeId, this.currentIndex, this.instructionSize, this.targetTemperature});
+  MotorOperation(
+      this.targetTemperature, this.relativeTiltAngle, this.relativeRotateAngle);
 
   @override
   Map<String, dynamic> toJson() {
@@ -33,11 +34,12 @@ class SetupOperation implements BaseOperation {
     data['current_index'] = currentIndex;
     data['instruction_size'] = instructionSize;
     data['target_temperature'] = targetTemperature;
+    data['relative_tilt_angle'] = relativeTiltAngle;
+    data['relative_rotate_angle'] = relativeRotateAngle;
     return data;
   }
 
-
-  SetupOperation.fromDatabase(Map<String, Object?> json) {
+  MotorOperation.fromDatabase(Map<String, Object?> json) {
     id = json['id'] as int;
     requestId =json['request_id']==null? null: json['request_id'] as String;
     recipeId = json['recipe_id']==null? null: json['recipe_id'] as int;
@@ -46,8 +48,6 @@ class SetupOperation implements BaseOperation {
     instructionSize =json["instruction_size"]==null? null: json["instruction_size"] as int;
     targetTemperature = json["target_temperature"]==null? null: json["target_temperature"] as double;
   }
-
-
 
 
 }

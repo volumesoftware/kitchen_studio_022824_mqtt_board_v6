@@ -3,10 +3,10 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
-class Thermometer extends StatelessWidget {
+class RotatingCylinder extends StatelessWidget {
   final ValueNotifier<double> temperature;
 
-  const Thermometer({super.key, required this.temperature});
+  const RotatingCylinder({super.key, required this.temperature});
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +25,7 @@ class Thermometer extends StatelessWidget {
           width: maxContainedMercuryWidth,
           decoration: ShapeDecoration(
             color: Colors.transparent,
-            shape: const StadiumBorder(),
+            shape: const ContinuousRectangleBorder(),
           ),
           clipBehavior: Clip.antiAlias,
           child: ValueListenableBuilder(
@@ -58,7 +58,7 @@ class AnimatedMercuryPaintWidget extends StatefulWidget {
 class _AnimatedMercuryPaintWidgetState extends State<AnimatedMercuryPaintWidget>
     with SingleTickerProviderStateMixin {
   late final AnimationController _animationController =
-      AnimationController(vsync: this, duration: const Duration(seconds: 1));
+  AnimationController(vsync: this, duration: const Duration(seconds: 1));
   late final Animation<double> _animation;
 
   @override
@@ -101,13 +101,13 @@ class MercuryPainter extends CustomPainter {
   });
 
   void paintOneWave(
-    Canvas canvas,
-    Size size, {
-    required double temperatureHeight,
-    required double cyclicAnimationValue,
-    required List<double> colorStops,
-    required List<Color> colors,
-  }) {
+      Canvas canvas,
+      Size size, {
+        required double temperatureHeight,
+        required double cyclicAnimationValue,
+        required List<double> colorStops,
+        required List<Color> colors,
+      }) {
     assert(colorStops.length == colors.length);
 
     Path path = Path();
@@ -118,8 +118,8 @@ class MercuryPainter extends CustomPainter {
       path.lineTo(
         i,
         temperatureHeight +
-            sin((i / size.width * 2 * pi) + (cyclicAnimationValue * 2 * pi)) *
-                5,
+            sin((i / size.width * 1 * pi) + (cyclicAnimationValue * 3 * pi)) *
+                2,
       );
     }
     path.lineTo(size.width, size.height);
@@ -149,11 +149,11 @@ class MercuryPainter extends CustomPainter {
       cyclicAnimationValue: (1 - animation),
       colorStops: paintColorStops,
       colors: [
-        Colors.redAccent.shade100,
-        Colors.red.shade200,
-        Colors.orange.shade200,
-        Colors.yellow.shade200,
-        Colors.blue.shade200,
+        Colors.grey,
+        Colors.grey,
+        Colors.grey,
+        Colors.grey,
+        Colors.grey,
       ],
     );
     paintOneWave(
@@ -163,11 +163,11 @@ class MercuryPainter extends CustomPainter {
       cyclicAnimationValue: animation,
       colorStops: paintColorStops,
       colors: [
-        Colors.redAccent.shade400,
-        Colors.red.shade400,
-        Colors.orange.shade400,
-        Colors.yellow.shade400,
-        Colors.blue.shade400,
+        Colors.grey.shade400,
+        Colors.grey.shade400,
+        Colors.grey.shade400,
+        Colors.grey.shade400,
+        Colors.grey.shade400,
       ],
     );
   }
@@ -175,7 +175,7 @@ class MercuryPainter extends CustomPainter {
   @override
   bool shouldRepaint(MercuryPainter oldDelegate) =>
       animation != oldDelegate.animation ||
-      temperatureReduced != oldDelegate.temperatureReduced;
+          temperatureReduced != oldDelegate.temperatureReduced;
 
   @override
   bool shouldRebuildSemantics(MercuryPainter oldDelegate) => false;

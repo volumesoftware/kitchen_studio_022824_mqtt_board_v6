@@ -1,31 +1,27 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:kitchen_studio_10162023/model/flip_operation.dart';
+import 'package:kitchen_studio_10162023/model/cold_mix_operation.dart';
+import 'package:kitchen_studio_10162023/model/hot_mix_operation.dart';
+import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/painters/cold_wok_painter.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/recipe_widget_action.dart';
 
-class FlipWidget extends StatefulWidget {
-  final FlipOperation operation;
+class ColdMixOperationWidget extends StatefulWidget {
+  final ColdMixOperation operation;
   final RecipeWidgetActions recipeWidgetActions;
 
-  const FlipWidget({
+  const ColdMixOperationWidget({
     Key? key,
-    required this.operation,
-    required this.recipeWidgetActions,
+    required this.operation, required this.recipeWidgetActions,
   }) : super(key: key);
 
   @override
-  State<FlipWidget> createState() => _FlipWidgetState();
+  State<ColdMixOperationWidget> createState() => _ColdMixOperationWidgetState();
 }
 
-class _FlipWidgetState extends State<FlipWidget> {
-  FlipOperation? operation;
+class _ColdMixOperationWidgetState extends State<ColdMixOperationWidget> {
+  ColdMixOperation? operation;
   bool inEditMode = false;
-
   TextEditingController? _targetTemperatureController;
-  TextEditingController? _cycleController;
-  TextEditingController? _intervalDelayController;
+  TextEditingController? _durationController;
   RecipeWidgetActions? recipeWidgetActions;
 
   @override
@@ -34,9 +30,7 @@ class _FlipWidgetState extends State<FlipWidget> {
     operation = widget.operation;
     _targetTemperatureController =
         TextEditingController(text: "${operation?.targetTemperature}");
-    _intervalDelayController =
-        TextEditingController(text: "${operation?.interval}");
-    _cycleController = TextEditingController(text: "${operation?.cycle}");
+    _durationController = TextEditingController(text: "${operation?.duration}");
     super.initState();
   }
 
@@ -45,9 +39,11 @@ class _FlipWidgetState extends State<FlipWidget> {
     return Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          leading: Icon(Icons.flip_camera_android),
+          leading: CustomPaint(
+            painter: ColdWokPainter(),
+          ),
           title: Text(
-            "Flip",
+            "Cold Mix Operation",
             style: Theme.of(context).textTheme.titleSmall,
           ),
           automaticallyImplyLeading: false,
@@ -67,12 +63,11 @@ class _FlipWidgetState extends State<FlipWidget> {
                       child: TextField(
                         controller: _targetTemperatureController,
                         decoration: InputDecoration(
-                          suffixText: "celsius",
-                          isDense: true,
-                          border: OutlineInputBorder(),
-                          label: Text('Target Temperature'),
-                          hintText: 'Target Temperature',
-                        ),
+                            isDense: true,
+                            suffixText: "celsius",
+                            border: OutlineInputBorder(),
+                            hintText: 'Target Temperature',
+                            label: Text("Target Temperature")),
                       ),
                     )
                   : ListTile(
@@ -83,35 +78,19 @@ class _FlipWidgetState extends State<FlipWidget> {
                   ? Padding(
                       padding: EdgeInsets.symmetric(vertical: 3),
                       child: TextField(
-                        controller: _intervalDelayController,
+                        controller: _durationController,
                         decoration: InputDecoration(
                             isDense: true,
                             suffixText: "seconds",
                             border: OutlineInputBorder(),
-                            hintText: 'Interval Delay',
-                            label: Text("Interval Delay")),
+                            hintText: 'Duration',
+                            label: Text("Duration")),
                       ),
                     )
                   : ListTile(
-                      title: Text('Interval Delay'),
-                      trailing: Text("${_intervalDelayController?.text}"),
-                    ),
-              inEditMode
-                  ? Padding(
-                      padding: EdgeInsets.symmetric(vertical: 3),
-                      child: TextField(
-                        controller: _cycleController,
-                        decoration: InputDecoration(
-                            isDense: true,
-                            border: OutlineInputBorder(),
-                            hintText: 'Cycle count',
-                            label: Text("Cycle count")),
-                      ),
+                      title: Text('Duration'),
+                      trailing: Text("${_durationController?.text}"),
                     )
-                  : ListTile(
-                      title: Text('Cycle Count'),
-                      trailing: Text("${_cycleController?.text}"),
-                    ),
             ],
           ),
         ),
@@ -125,11 +104,8 @@ class _FlipWidgetState extends State<FlipWidget> {
             inEditMode
                 ? FilledButton(
                     onPressed: () {
-                      operation?.targetTemperature =
-                          double.tryParse(_targetTemperatureController!.text);
-                      operation?.cycle = int.tryParse(_cycleController!.text);
-                      operation?.interval =
-                          int.tryParse(_intervalDelayController!.text);
+                      operation?.targetTemperature = double.tryParse(_targetTemperatureController!.text);
+                      operation?.duration = int.tryParse(_durationController!.text);
                       recipeWidgetActions?.onValueUpdate(operation!);
                       setState(() {
                         inEditMode = false;

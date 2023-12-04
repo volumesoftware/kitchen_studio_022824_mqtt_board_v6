@@ -65,6 +65,7 @@ class _DropIngredientWidgetState extends State<DropIngredientWidget> {
               child: TextField(
                 controller: _targetTemperatureController,
                 decoration: InputDecoration(
+                  suffixText: "celsius",
                   isDense: true,
                   border: OutlineInputBorder(),
                   label: Text('Target Temperature'),
@@ -102,11 +103,6 @@ class _DropIngredientWidgetState extends State<DropIngredientWidget> {
                 recipeWidgetActions?.onDelete(operation!);
               },
               child: Text("Delete")),
-          ElevatedButton(
-              onPressed: () {
-                operation?.toJson();
-              },
-              child: Text("Test")),
           inEditMode
               ? FilledButton(
               onPressed: () {

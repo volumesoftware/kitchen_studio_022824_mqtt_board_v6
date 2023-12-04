@@ -65,6 +65,7 @@ class _PumpOilWidgetState extends State<PumpOilWidget> {
                       child: TextField(
                         controller: _targetTemperatureController,
                         decoration: InputDecoration(
+                            suffixText: "celsius",
                             isDense: true,
                             border: OutlineInputBorder(),
                             hintText: 'Target Temperature',
@@ -83,6 +84,7 @@ class _PumpOilWidgetState extends State<PumpOilWidget> {
                         decoration: InputDecoration(
                             isDense: true,
                             border: OutlineInputBorder(),
+                            suffixText: "seconds",
                             hintText: 'Duration',
                             label: Text("Duration")),
                       ),
@@ -101,16 +103,11 @@ class _PumpOilWidgetState extends State<PumpOilWidget> {
                   recipeWidgetActions?.onDelete(operation!);
                 },
                 child: Text("Delete")),
-            ElevatedButton(
-                onPressed: () async {
-                  recipeWidgetActions?.onTest(operation!);
-                },
-                child: Text("Run Test")),
             inEditMode
                 ? FilledButton(
                     onPressed: () {
-                      operation?.targetTemperature =
-                          double.tryParse(_targetTemperatureController!.text);
+                      operation?.targetTemperature = double.tryParse(_targetTemperatureController!.text);
+                      operation?.duration = int.tryParse(_durationController!.text);
                       recipeWidgetActions?.onValueUpdate(operation!);
                       setState(() {
                         inEditMode = false;

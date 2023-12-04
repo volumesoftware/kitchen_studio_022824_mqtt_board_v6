@@ -106,7 +106,7 @@ class _CreatedTasksState extends State<CreatedTasks>
             itemBuilder: (context, index) {
               var taskRunner = TaskRunnerPool.instance
                   .getTaskRunner(tasks![index].moduleName!);
-              if (taskRunner == null) return null;
+              if (taskRunner == null) return Row();
               return ListTile(
                 leading: CircleAvatar(child: Text("${index + 1}")),
                 title: Text(
@@ -135,7 +135,7 @@ class _CreatedTasksState extends State<CreatedTasks>
                                     .search("recipe_id = ?",
                                         whereArgs: [tasks![index].recipeId!]);
                                 var selectedDevice = (await deviceDataAccess
-                                        .search('module_name = ?', whereArgs: [
+                                        .search('name = ?', whereArgs: [
                                   tasks![index].moduleName!
                                 ]))
                                     ?.first;

@@ -55,8 +55,10 @@ class _AppShellScreenState extends State<AppShellScreen>{
                     },
                   ),
                   ListTile(
+                    enabled: false,
                     leading: Icon(Icons.transform_outlined),
                     title: const Text('Transporter Units'),
+                    subtitle: const Text('Coming soon'),
                     onTap: () {
                       setState(() {
                         selectedIndex = 1;
@@ -76,15 +78,17 @@ class _AppShellScreenState extends State<AppShellScreen>{
                     leading: Icon(Icons.list),
                     title: const Text('Tasks'),
                     onTap: () {
-                      setState(() {
-                        selectedIndex = 3;
-                      });
+                      // setState(() {
+                      //   selectedIndex = 3;
+                      // });
                       Navigator.of(context).pushNamed(AppRouter.taskScreen);
                     },
                   ),
                   ListTile(
+                    enabled: false,
                     leading: Icon(Icons.data_object),
                     title: const Text('Ingredients'),
+                    subtitle: const Text('Coming Soon'),
                     onTap: () {
                       setState(() {
                         selectedIndex = 4;

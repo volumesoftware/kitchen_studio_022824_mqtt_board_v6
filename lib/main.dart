@@ -41,7 +41,6 @@ class _MyAppState extends State<MyApp> implements TaskListener {
     taskRunnerPool.getTaskRunners()!.forEach((element) {
       element.addListeners(this);
     });
-
     super.initState();
   }
 
@@ -71,5 +70,10 @@ class _MyAppState extends State<MyApp> implements TaskListener {
       required int index,
       UserAction? userAction}) async {
     print(userAction);
+  }
+
+  @override
+  void onError(ModuleError error) {
+    // TODO: implement onError
   }
 }

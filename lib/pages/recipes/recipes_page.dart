@@ -79,9 +79,13 @@ class _RecipesPageState extends State<RecipesPage> {
                             child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              "${recipes?[index].recipeName}",
-                              style: Theme.of(context).textTheme.titleSmall,
+                            SizedBox(
+                              child: Text(
+                                "${recipes?[index].recipeName}",
+                                style: Theme.of(context).textTheme.titleSmall,
+                                overflow: TextOverflow.clip,
+                              ),
+                              width: 140,
                             ),
                             PopupMenuButton<String>(
                               icon: Icon(Icons.filter_list),

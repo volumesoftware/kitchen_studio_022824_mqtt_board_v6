@@ -66,6 +66,7 @@ class _HeatUntilTemperatureWidgetState
                         controller: _targetTemperatureController,
                         decoration: InputDecoration(
                           isDense: true,
+                          suffixText: "celsius",
                           border: OutlineInputBorder(),
                           label: Text('Target Temperature'),
                           hintText: 'Target Temperature',
@@ -86,11 +87,7 @@ class _HeatUntilTemperatureWidgetState
                   recipeWidgetActions?.onDelete(operation!);
                 },
                 child: Text("Delete")),
-            ElevatedButton(
-                onPressed: () async {
-                  recipeWidgetActions?.onTest(operation!);
-                },
-                child: Text("Run Test")),
+
             inEditMode
                 ? FilledButton(
                     onPressed: () {

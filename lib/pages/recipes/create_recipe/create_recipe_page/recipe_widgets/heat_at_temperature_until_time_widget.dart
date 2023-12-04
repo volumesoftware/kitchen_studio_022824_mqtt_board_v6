@@ -65,6 +65,7 @@ class _HeatAtTemperatureUntilTimeWidgetState
                       child: TextField(
                         controller: _targetTemperatureController,
                         decoration: InputDecoration(
+                            suffixText: "celsius",
                             isDense: true,
                             border: OutlineInputBorder(),
                             hintText: 'Target Temperature',
@@ -81,6 +82,7 @@ class _HeatAtTemperatureUntilTimeWidgetState
                       child: TextField(
                         controller: _durationController,
                         decoration: InputDecoration(
+                            suffixText: "seconds",
                             isDense: true,
                             border: OutlineInputBorder(),
                             hintText: 'Duration',
@@ -101,11 +103,6 @@ class _HeatAtTemperatureUntilTimeWidgetState
                   recipeWidgetActions?.onDelete(operation!);
                 },
                 child: Text("Delete")),
-            ElevatedButton(
-                onPressed: () async {
-                  recipeWidgetActions?.onTest(operation!);
-                },
-                child: Text("Run Test")),
             inEditMode
                 ? FilledButton(
                     onPressed: () {

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:kitchen_studio_10162023/dao/device_data_access.dart';
 import 'package:kitchen_studio_10162023/model/device_stats.dart';
@@ -41,10 +42,9 @@ class TaskRunnerPool implements UdpListener {
   void initialize() {
     _udpService.listen(this);
     String jsonData = '{"operation":100}';
-    UdpService.instance.listen(this);
     _udpService.send(
         jsonData.codeUnits, InternetAddress("192.168.43.255"), 8888);
-    Timer.periodic(Duration(seconds: 3),
+    Timer.periodic(Duration(seconds: 5),
           (timer) {
         _udpService.send(jsonData.codeUnits, InternetAddress("192.168.43.255"), 8888);
       },
@@ -56,6 +56,7 @@ class TaskRunnerPool implements UdpListener {
       var containsKey = _taskRunners.containsKey(element.moduleName);
       if (!containsKey) {
         _taskRunners[element.moduleName!] = TaskRunner(element);
+        _taskRunners[element.moduleName!]?.initialize(0);
       } else {
         _taskRunners[element.moduleName!]?.updateStats(element);
       }
@@ -74,9 +75,9 @@ class TaskRunnerPool implements UdpListener {
   }
 
   @override
-  void udpData(Datagram? dg) {
+  Future<void> udpData(Datagram dg) async {
 
-    if (dg != null) {
+    try {
       String result = String.fromCharCodes(dg.data);
       DeviceStats incomingStats = DeviceStats.fromJson(jsonDecode(result));
       bool newItem = true;
@@ -87,23 +88,27 @@ class TaskRunnerPool implements UdpListener {
           newItem = false;
         }
       }
-      if (newItem) _devices.add(incomingStats);
-      _devices.forEach((unit) async {
-        try {
-          var list = await deviceDataAccess
-              .search('ip_address = ?', whereArgs: [unit.ipAddress!]);
-          if (list != null) {
-            if (list.isEmpty) {
-              await deviceDataAccess.create(unit);
-            }
+      if (newItem) {
+        _devices.add(incomingStats);
+        var list = await deviceDataAccess.search('ip = ?', whereArgs: [incomingStats.ipAddress!]);
+        if (list != null) {
+          if (list.isEmpty) {
+            print(list);
+            int? id =  await deviceDataAccess.create(incomingStats);
+            print(id);
           }
-        } catch (e) {}
-      });
+        }
+      };
       _populateDevices();
 
       _statsListener.forEach((listener) {
         listener.udpData(dg);
       });
+
+
+
+    } catch (e) {
+      print(e);
     }
-  }
+    }
 }

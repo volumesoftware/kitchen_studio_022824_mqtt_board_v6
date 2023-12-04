@@ -7,6 +7,7 @@ import 'package:kitchen_studio_10162023/dao/task_data_access.dart';
 import 'package:kitchen_studio_10162023/model/device_stats.dart';
 import 'package:kitchen_studio_10162023/model/recipe.dart';
 import 'package:kitchen_studio_10162023/model/task.dart';
+import 'package:kitchen_studio_10162023/service/task_runner_pool.dart';
 
 class RecipeSearchResult extends StatefulWidget {
   final String query;
@@ -23,6 +24,7 @@ class _RecipeSearchResultState extends State<RecipeSearchResult> {
   RecipeDataAccess? recipeDataAccess;
   TaskDataAccess? taskDataAccess;
   DeviceDataAccess? deviceDataAccess;
+  TaskRunnerPool runnerPool = TaskRunnerPool.instance;
 
   File? file;
   String? fileName = "";
@@ -48,13 +50,13 @@ class _RecipeSearchResultState extends State<RecipeSearchResult> {
       }
     });
 
-    deviceDataAccess?.findAll().then((value) {
-      setState(() {
-        if(value!=null){
-          devices = value;
-        }
-      });
+
+    var tempDevices = runnerPool.getDevices();
+    setState(() {
+      devices = tempDevices;
     });
+
+
   }
 
   @override
@@ -98,6 +100,9 @@ class _RecipeItemSearchState extends State<RecipeItemSearch> {
      setState(() {
        recipe = widget.recipe;
        devices = widget.devices;
+       if(devices!=null){
+         _moduleName = devices![0].moduleName;
+       }
 
      });
     super.initState();
@@ -142,6 +147,7 @@ class _RecipeItemSearchState extends State<RecipeItemSearch> {
               isExpanded: true,
               focusColor: Colors.transparent,
               isDense: true,
+              value: _moduleName,
               padding: EdgeInsets.all(10),
               items:devices!
                   .map(( value) {

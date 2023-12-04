@@ -1,5 +1,8 @@
+import 'dart:typed_data';
+
 class DeviceStats {
   int? id;
+  int? currentIndex;
   String? ipAddress;
   int? port;
   String? moduleName;
@@ -10,121 +13,98 @@ class DeviceStats {
   String? requestId;
   double? memoryUsage;
   double? progress;
+  bool? oilValveOpen;
   bool? waterValveOpen;
   bool? waterJetOpen;
-  double? temperature1;
-  double? temperature2;
+  double? temperature;
   int? currentLocalTime;
   int? localTimeMax;
   int? machineTime;
   double? targetTemperature;
   int? instructionSize;
+  double? rotaryMotorAngle;
+  double? tiltingMotorAngle;
 
   List<double> temperatureArray = [];
 
-  DeviceStats({this.id,
-    this.ipAddress,
-    this.port,
-    this.moduleName,
-    this.type,
-    this.group,
-    this.v5,
-    this.code,
-    this.requestId,
-    this.memoryUsage,
-    this.progress,
-    this.waterValveOpen,
-    this.waterJetOpen,
-    this.temperature1,
-    this.temperature2,
-    this.currentLocalTime,
-    this.localTimeMax,
-    this.machineTime,
-    this.targetTemperature,
-    this.instructionSize
-  });
-
   DeviceStats.fromJson(Map<String, dynamic> json) {
-    instructionSize = json['instruction_size'];
-    ipAddress = json['ip_address'];
+    ipAddress = json['ip'];
     port = json['port'];
-    moduleName = json['module_name'];
+    moduleName = json['name'];
     type = json['type'];
     group = json['group'];
     v5 = json['v5'] == null ? 0.0 : json['v5'].toDouble();
     code = json['code'];
-    requestId = json['request_id'];
-    memoryUsage =
-    json['memory_usage'] == null ? 0.0 : json['memory_usage'].toDouble();
-    progress = json['progress'] == null ? 0.0 : json['progress'].toDouble();
-    waterValveOpen = json['water_valve_open'] == 1 ? true : false;
-    waterJetOpen = json['water_jet_open'] == 1 ? true : false;
-    temperature1 = json['temperature_1'].toDouble();
-    temperature2 = json['temperature_2'].toDouble();
-    currentLocalTime = json['current_local_time'].toInt();
-    localTimeMax = json['local_time_max'].toInt();
-    machineTime = json['machine_time'].toInt();
-    targetTemperature =
-    json['target_temperature'] == null || json['target_temperature'] == 0
+    requestId = json['rid'];
+    memoryUsage = json['mem'] == null ? 0.0 : json['mem'].toDouble();
+    progress = json['prog'] == null ? 0.0 : json['prog'].toDouble();
+    currentIndex = json['ci'].toInt();
+    instructionSize = json['i_s'].toInt();
+    temperature = json['temp'] == null || json['temp'] == 0
         ? 0.0
-        : json['target_temperature']?.toDouble();
-
-    temperatureArray = json['temperature_array'] == null
-        ? []
-        : json['temperature_array'].cast<double>();
+        : json['temp']?.toDouble();
+    currentLocalTime = json['clt'].toInt();
+    localTimeMax = json['ltm'].toInt();
+    machineTime = json['mt'].toInt();
+    targetTemperature = json['ttemp'] == null || json['ttemp'] == 0
+        ? 0.0
+        : json['ttemp']?.toDouble();
+    oilValveOpen = json['ovo'] == 1 ? true : false;
+    waterValveOpen = json['wvo'] == 1 ? true : false;
+    waterJetOpen = json['wjo'] == 1 ? true : false;
+    rotaryMotorAngle = json['rmotor'] == null ? 0.0 : json['rmotor'].toDouble();
+    tiltingMotorAngle =
+        json['tmotor'] == null ? 0.0 : json['tmotor'].toDouble();
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'ip_address': ipAddress,
+    var map = {
+      'ip': ipAddress,
+      'c_i': currentIndex,
       'port': port,
-      'module_name': moduleName,
+      'name': moduleName,
       'type': type,
       'v5': v5,
       'code': code,
-      'request_id': requestId,
-      'memory_usage': memoryUsage,
-      'progress': progress,
-      'water_valve_open': waterValveOpen == true ? 1 : 0,
-      'water_jet_open': waterJetOpen == true ? 1 : 0,
-      'temperature_1': temperature1,
-      'temperature_2': temperature2,
-      'current_local_time': currentLocalTime,
-      'local_time_max': localTimeMax,
-      'machine_time': machineTime,
-      'target_temperature': targetTemperature,
-      'instruction_size': instructionSize
+      'rid': requestId,
+      'mem': memoryUsage,
+      'prog': progress,
+      'wvo': waterValveOpen == true ? 1 : 0,
+      'wjo': waterJetOpen == true ? 1 : 0,
+      'temp': temperature,
+      'clt': currentLocalTime,
+      'ltm': localTimeMax,
+      'mt': machineTime,
+      'ttemp': targetTemperature,
+      'i_s': instructionSize,
+      'rmotor': rotaryMotorAngle,
+      'tmotor': tiltingMotorAngle,
     };
+    // map.removeWhere((key, value) => value == null);
+
+    return map;
   }
 
   DeviceStats.fromDatabase(Map<String, Object?> json) {
     id = json['id'] as int;
-    ipAddress = json['ip_address'] as String;
+    ipAddress = json['ip'] as String;
     port = json["port"] as int;
-    moduleName = json["module_name"] as String;
+    moduleName = json["name"] as String;
     type = json["type"] as String;
     code = json["code"] as String;
-    requestId = json["request_id"] as String;
-    memoryUsage = json["memory_usage"] as double;
-    progress = json["progress"] as double;
-    waterValveOpen = json["water_valve_open"] == 1 ? true : false;
-    waterJetOpen = json["water_jet_open"] == 1 ? true : false;
-
-    temperature1 =
-    json['temperature_1'] == null ? 0.0 : json['temperature_1'] as double;
-    temperature2 =
-    json['temperature_2'] == null ? 0.0 : json['temperature_2'] as double;
-    currentLocalTime =
-    json['current_local_time'] == null ? 0 : json['current_local_time'] as int;
-    localTimeMax =
-    json['local_time_max'] == null ? 0 : json['local_time_max'] as int;
-    machineTime =
-    json['machine_time'] == null ? 0 : json['machine_time'] as int;
-    targetTemperature = json['target_temperature'] == null
-        ? 0
-        : json['target_temperature'] as double;
-    instructionSize =
-    json['instruction_size'] == null ? 0 : json['instruction_size'] as int;
+    requestId = json["rid"] as String;
+    memoryUsage = json["mem"] as double;
+    progress = json["prog"] as double;
+    waterValveOpen = json["wvo"] == 1 ? true : false;
+    waterJetOpen = json["wjo"] == 1 ? true : false;
+    temperature = json['temp'] == null ? 0.0 : json['temp'] as double;
+    currentLocalTime = json['clt'] == null ? 0 : json['clt'] as int;
+    localTimeMax = json['ltm'] == null ? 0 : json['ltm'] as int;
+    machineTime = json['mt'] == null ? 0 : json['mt'] as int;
+    targetTemperature = json['ttemp'] == null ? 0 : json['ttemp'] as double;
+    instructionSize = json['i_s'] == null ? 0 : json['i_s'] as int;
+    rotaryMotorAngle = json["rmotor"] as double;
+    tiltingMotorAngle = json["tmotor"] as double;
   }
 
   static String tableName() {
@@ -136,24 +116,27 @@ class DeviceStats {
     DROP TABLE IF EXISTS ${DeviceStats.tableName()};
     CREATE TABLE ${DeviceStats.tableName()}(
         id INTEGER PRIMARY KEY,
-        ip_address TEXT,
+        ip TEXT,
         port INTEGER,
-        module_name TEXT,
+        name TEXT,
         type TEXT,
         v5 INTEGER,
         code TEXT,
-        request_id TEXT,
-        memory_usage FLOAT,
-        progress FLOAT,
-        water_valve_open BOOLEAN,
-        water_jet_open BOOLEAN,
-        temperature_1 FLOAT,
-        temperature_2 FLOAT,
-        current_local_time INTEGER,
-        local_time_max INTEGER,
-        machine_time INTEGER,
-        target_temperature FLOAT,
-        instruction_size INTEGER
+        rid TEXT,
+        mem FLOAT,
+        prog FLOAT,
+        wvo BOOLEAN,
+        wjo BOOLEAN,
+        temp FLOAT,
+        clt INTEGER,
+        ltm INTEGER,
+        mt INTEGER,
+        ttemp FLOAT,
+        i_s INTEGER,
+        c_i INTEGER,
+        rmotor FLOAT,
+        tmotor FLOAT
+
     );
     ''';
   }

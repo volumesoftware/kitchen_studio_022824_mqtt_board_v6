@@ -48,6 +48,7 @@ class PumpWaterOperation implements BaseOperation {
 
   PumpWaterOperation.fromDatabase(Map<String, Object?> json) {
     id = json['id'] as int;
+    requestId =json['request_id']==null? null: json['request_id'] as String;
     recipeId = json['recipe_id']==null? null: json['recipe_id'] as int;
     operation = json["operation"] == null ? null : json["operation"] as int;
     currentIndex = json["current_index"]==null? null: json["current_index"] as int;

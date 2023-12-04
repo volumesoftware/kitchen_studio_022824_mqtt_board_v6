@@ -1,9 +1,4 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:kitchen_studio_10162023/model/device_stats.dart';
-import 'package:kitchen_studio_10162023/model/instruction.dart';
-import 'package:kitchen_studio_10162023/model/pump_oil_operation.dart';
 import 'package:kitchen_studio_10162023/model/stir_operation.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/recipe_widget_action.dart';
 
@@ -66,6 +61,7 @@ class _StirOperationWidgetState extends State<StirOperationWidget> {
                       child: TextField(
                         controller: _targetTemperatureController,
                         decoration: InputDecoration(
+                            suffixText: "celsius",
                             isDense: true,
                             border: OutlineInputBorder(),
                             hintText: 'Target Temperature',
@@ -82,6 +78,7 @@ class _StirOperationWidgetState extends State<StirOperationWidget> {
                       child: TextField(
                         controller: _durationController,
                         decoration: InputDecoration(
+                            suffixText: "seconds",
                             isDense: true,
                             border: OutlineInputBorder(),
                             hintText: 'Duration',
@@ -102,16 +99,11 @@ class _StirOperationWidgetState extends State<StirOperationWidget> {
                   recipeWidgetActions?.onDelete(operation!);
                 },
                 child: Text("Delete")),
-            ElevatedButton(
-                onPressed: () async {
-                  recipeWidgetActions?.onTest(operation!);
-                },
-                child: Text("Run Test")),
             inEditMode
                 ? FilledButton(
                     onPressed: () {
-                      operation?.targetTemperature =
-                          double.tryParse(_targetTemperatureController!.text);
+                      operation?.targetTemperature = double.tryParse(_targetTemperatureController!.text);
+                      operation?.duration = int.tryParse(_durationController!.text);
                       recipeWidgetActions?.onValueUpdate(operation!);
                       setState(() {
                         inEditMode = false;

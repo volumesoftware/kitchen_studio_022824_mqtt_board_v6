@@ -53,15 +53,6 @@ class _RunningTasksState extends State<RunningTasks> implements UdpListener {
         leading: Icon(Icons.play_for_work_outlined),
         automaticallyImplyLeading: false,
         title: Text("Running Task"),
-        // bottom: PreferredSize(
-        //   preferredSize: Size(double.infinity, 50),
-        //   child: Padding(
-        //     padding: EdgeInsets.symmetric(horizontal: 10),
-        //     child: SearchBar(
-        //       trailing: [Icon(Icons.search)],
-        //     ),
-        //   ),
-        // ),
       ),
       body: listViewBuilder(),
     );
@@ -212,7 +203,17 @@ class _RunningTaskItemState extends State<RunningTaskItem>
           return null;
         },
         controlsBuilder: (BuildContext ctx, ControlsDetails dtl) {
-          return Row();
+          return p!.operations[dtl.currentStep] is UserActionOperation
+              ? ElevatedButton(
+            onPressed: () {
+              if (_userAction != null) {
+                taskRunner?.submitUserRespond(
+                    true, _userAction!.currentIndex!);
+              }
+            },
+            child: Text("Continue"),
+          )
+              : SizedBox();
         },
         currentStep: _instructionIndex,
         steps: p!.operations.map((e) {
@@ -236,17 +237,6 @@ class _RunningTaskItemState extends State<RunningTaskItem>
           }).toList();
           return Step(
             title: Text("${e.requestId}"),
-            subtitle: e is UserActionOperation
-                ? ElevatedButton(
-                    onPressed: () {
-                      if (_userAction != null) {
-                        taskRunner?.submitUserRespond(
-                            true, _userAction!.currentIndex!);
-                      }
-                    },
-                    child: Text("Continue"),
-                  )
-                : SizedBox(),
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: list,
@@ -313,7 +303,7 @@ class _RunningTaskItemState extends State<RunningTaskItem>
       UserAction? userAction}) {
     if (moduleName == deviceStats.moduleName) {
       widget.itemChanged();
-      temperature.value = (deviceStats.temperature1 ?? 28) / 200;
+      temperature.value = (deviceStats.temperature ?? 28) / 200;
 
       if (busy) {
         // _controller.expand();
@@ -333,5 +323,10 @@ class _RunningTaskItemState extends State<RunningTaskItem>
         p = taskRunner?.getPayload();
       });
     }
+  }
+
+  @override
+  void onError(ModuleError error) {
+    print(error.error);
   }
 }

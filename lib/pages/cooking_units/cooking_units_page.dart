@@ -6,6 +6,7 @@ import 'package:kitchen_studio_10162023/dao/device_data_access.dart';
 import 'package:kitchen_studio_10162023/model/device_stats.dart';
 import 'package:kitchen_studio_10162023/pages/cooking_units/cooking_unit_card_component.dart';
 import 'package:kitchen_studio_10162023/service/task_runner_pool.dart';
+import 'package:kitchen_studio_10162023/service/task_runner_service.dart';
 import 'package:kitchen_studio_10162023/service/udp_listener.dart';
 import 'package:kitchen_studio_10162023/service/udp_service.dart';
 
@@ -22,8 +23,7 @@ class _CookingUnitsPageState extends State<CookingUnitsPage>
   UdpService? udpService = UdpService.instance;
   TaskRunnerPool taskRunnerPool = TaskRunnerPool.instance;
   DeviceDataAccess deviceDataAccess = DeviceDataAccess.instance;
-
-  List<DeviceStats> devices = [];
+  List<TaskRunner>? taskRunners = [];
 
   @override
   void dispose() {
@@ -34,15 +34,8 @@ class _CookingUnitsPageState extends State<CookingUnitsPage>
 
   @override
   void initState() {
-    deviceDataAccess.findAll().then(
-      (value) {
-        if (value != null) {
-          devices = value;
-        }
-      },
-    );
     this.taskRunnerPool.addStatsListener(this);
-
+    taskRunners = this.taskRunnerPool.getTaskRunners();
     super.initState();
   }
 
@@ -59,9 +52,9 @@ class _CookingUnitsPageState extends State<CookingUnitsPage>
             crossAxisCount: 6,
             crossAxisSpacing: 10,
             mainAxisSpacing: 10),
-        itemCount: devices.length,
+        itemCount: taskRunners?.length,
         itemBuilder: (context, index) {
-          return CookingUnitCardComponent(deviceStats: devices[index]);
+          return CookingUnitCardComponent(deviceStats: taskRunners![index].getDeviceStats());
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -105,10 +98,7 @@ class _CookingUnitsPageState extends State<CookingUnitsPage>
   @override
   void udpData(Datagram? dg) {
     if (dg != null) {
-      var incomingDevices = taskRunnerPool.getDevices();
-      setState(() {
-        devices = incomingDevices;
-      });
+      taskRunners = taskRunnerPool.getTaskRunners();
     }
   }
 }

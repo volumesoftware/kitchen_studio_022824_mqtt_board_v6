@@ -26,26 +26,73 @@ class _TransporterUnitsPageState extends State<TransporterUnitsPage> {
         children: [
           Container(
             width: MediaQuery.of(context).size.width * 0.15,
-            height: MediaQuery.of(context).size.height * 0.2,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   "192.168.14.186",
-                  style: Theme.of(context).textTheme.displaySmall,
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
                 Text(
                   "2C:54:91:88:C9:E3",
-                  style: Theme.of(context).textTheme.displaySmall,
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
                 Text(
                   "Connected",
-                  style: Theme.of(context).textTheme.headlineMedium,
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
                 Text(
                   "Busy",
-                  style: Theme.of(context).textTheme.headlineMedium,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                SizedBox(
+                  height: 100,
+                ),
+                ListTile(
+                  tileColor: Theme.of(context).secondaryHeaderColor,
+                  onTap: () {},
+                  title: Text("Start"),
+                  trailing: Icon(
+                    Icons.play_circle,
+                    color: Colors.green,
+                  ),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                ListTile(
+                  tileColor: Theme.of(context).secondaryHeaderColor,
+                  onTap: () {},
+                  title: Text("Stop"),
+                  trailing: Icon(
+                    Icons.stop_circle_outlined,
+                    color: Colors.red,
+                  ),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                ListTile(
+                  tileColor: Theme.of(context).secondaryHeaderColor,
+                  onTap: () {},
+                  title: Text("Disable Transporter"),
+                  trailing: Icon(
+                    Icons.disabled_by_default,
+                    color: Theme.of(context).hintColor,
+                  ),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                ListTile(
+                  tileColor: Theme.of(context).secondaryHeaderColor,
+                  onTap: () {},
+                  title: Text("Zero Transporter"),
+                  trailing:                           Icon(
+                    Icons.restart_alt,
+                    color: Theme.of(context).hintColor,
+                  )
+                  ,
                 ),
               ],
             ),
@@ -71,63 +118,6 @@ class _TransporterUnitsPageState extends State<TransporterUnitsPage> {
             ),
           )
         ],
-      ),
-      bottomSheet: Container(
-        width: double.infinity,
-        child: ButtonBar(
-          overflowDirection: VerticalDirection.down,
-          alignment: MainAxisAlignment.start,
-          children: [
-            ElevatedButton(
-                onPressed: () {},
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text("Start"),
-                    Icon(
-                      Icons.play_circle,
-                      color: Colors.green,
-                    )
-                  ],
-                )),
-            ElevatedButton(
-                onPressed: () {},
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text("Stop"),
-                    Icon(
-                      Icons.stop_circle_outlined,
-                      color: Colors.red,
-                    )
-                  ],
-                )),
-            ElevatedButton(
-                onPressed: () {},
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text("Disable Transporter"),
-                    Icon(
-                      Icons.disabled_by_default,
-                      color: Theme.of(context).hintColor,
-                    )
-                  ],
-                )),
-            ElevatedButton(
-                onPressed: () {},
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text("Zero Transporter"),
-                    Icon(
-                      Icons.restart_alt,
-                      color: Theme.of(context).hintColor,
-                    )
-                  ],
-                ))
-          ],
-        ),
       ),
     );
   }

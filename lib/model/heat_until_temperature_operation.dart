@@ -37,6 +37,7 @@ class HeatUntilTemperatureOperation implements BaseOperation {
 
   HeatUntilTemperatureOperation.fromDatabase(Map<String, Object?> json) {
     id = json['id'] as int;
+    requestId =json['request_id']==null? null: json['request_id'] as String;
     recipeId = json['recipe_id']==null? null: json['recipe_id'] as int;
     currentIndex = json["current_index"]==null? null: json["current_index"] as int;
     instructionSize =json["instruction_size"]==null? null: json["instruction_size"] as int;

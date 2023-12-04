@@ -64,6 +64,7 @@ class _DispenseWidgetState extends State<DispenseWidget> {
                       decoration: InputDecoration(
                         isDense: true,
                         border: OutlineInputBorder(),
+                        suffixText: "celsius",
                         label: Text('Target Temperature'),
                         hintText: 'Target Temperature',
                       ),
@@ -99,11 +100,6 @@ class _DispenseWidgetState extends State<DispenseWidget> {
                 recipeWidgetActions?.onDelete(operation!);
               },
               child: Text("Delete")),
-          ElevatedButton(
-              onPressed: () {
-                operation?.toJson();
-              },
-              child: Text("Test")),
           inEditMode
               ? FilledButton(
                   onPressed: () {

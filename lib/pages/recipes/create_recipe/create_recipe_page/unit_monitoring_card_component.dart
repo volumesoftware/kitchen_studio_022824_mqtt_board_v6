@@ -137,7 +137,7 @@ class _UnitMonitoringCardComponentState
                     ),
                   ),
                   Text(
-                      "${widget.deviceStats.temperature1?.toStringAsFixed(2)} °C",
+                      "${widget.deviceStats.temperature?.toStringAsFixed(2)} °C",
                       style: Theme.of(context).textTheme.titleMedium),
                   Positioned(
                       child: Transform(
@@ -239,5 +239,9 @@ class _UnitMonitoringCardComponentState
       _busy = busy;
       _progress = progress;
     });
+  }
+
+  @override
+  void onError(ModuleError error) {
   }
 }

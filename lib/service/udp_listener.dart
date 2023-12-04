@@ -1,5 +1,5 @@
 import 'dart:io';
 
 abstract interface class UdpListener {
-  void udpData(Datagram? dg);
+  void udpData(Datagram dg);
 }

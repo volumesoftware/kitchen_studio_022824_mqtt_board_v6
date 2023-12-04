@@ -1,11 +1,12 @@
-
 import 'package:kitchen_studio_10162023/dao/data_access.dart';
+import 'package:kitchen_studio_10162023/model/cold_mix_operation.dart';
 import 'package:kitchen_studio_10162023/model/dispense_operation.dart';
 import 'package:kitchen_studio_10162023/model/dock_ingredient_operation.dart';
 import 'package:kitchen_studio_10162023/model/drop_ingredient_operation.dart';
 import 'package:kitchen_studio_10162023/model/flip_operation.dart';
 import 'package:kitchen_studio_10162023/model/heat_for_operation.dart';
 import 'package:kitchen_studio_10162023/model/heat_until_temperature_operation.dart';
+import 'package:kitchen_studio_10162023/model/hot_mix_operation.dart';
 import 'package:kitchen_studio_10162023/model/instruction.dart';
 import 'package:kitchen_studio_10162023/model/pump_oil_operation.dart';
 import 'package:kitchen_studio_10162023/model/pump_water_operation.dart';
@@ -58,8 +59,12 @@ class BaseOperationDataAccess implements DataAccess<BaseOperation> {
         return ZeroingOperation.fromDatabase(e);
       case StirOperation.CODE:
         return StirOperation.fromDatabase(e);
-     case UserActionOperation.CODE:
+      case UserActionOperation.CODE:
         return UserActionOperation.fromDatabase(e);
+      case HotMixOperation.CODE:
+        return HotMixOperation.fromDatabase(e);
+      case ColdMixOperation.CODE:
+        return ColdMixOperation.fromDatabase(e);
     }
 
     return ZeroingOperation.fromDatabase(e);

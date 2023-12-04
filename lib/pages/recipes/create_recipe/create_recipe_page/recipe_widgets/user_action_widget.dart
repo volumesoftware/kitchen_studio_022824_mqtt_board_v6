@@ -21,15 +21,33 @@ class _UserActionWidgetState extends State<UserActionWidget> {
   TextEditingController? _targetTemperatureController;
   TextEditingController? _titleController;
   TextEditingController? _messageController;
+  bool isEnd = false;
 
   @override
   void initState() {
+    initialize();
+    super.initState();
+  }
+
+  void initialize() {
     recipeWidgetActions = widget.recipeWidgetActions;
     operation = widget.operation;
-    _targetTemperatureController = TextEditingController(text: "${operation?.targetTemperature}");
+    _targetTemperatureController =
+        TextEditingController(text: "${operation?.targetTemperature}");
     _titleController = TextEditingController(text: "${operation?.title}");
     _messageController = TextEditingController(text: "${operation?.message}");
-    super.initState();
+
+    if (operation != null) {
+      if (operation!.isClosing!) {
+        setState(() {
+          isEnd = true;
+        });
+      } else {
+        setState(() {
+          isEnd = false;
+        });
+      }
+    }
   }
 
   @override
@@ -38,10 +56,10 @@ class _UserActionWidgetState extends State<UserActionWidget> {
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           leading: Icon(
-            Icons.person_search_outlined,
+            isEnd ? Icons.stop_circle_outlined : Icons.person_search_outlined,
           ),
           title: Text(
-            "User Action",
+            isEnd ? "Recipe's End" : "User Action",
             style: Theme.of(context).textTheme.titleSmall,
           ),
           automaticallyImplyLeading: false,
@@ -61,6 +79,7 @@ class _UserActionWidgetState extends State<UserActionWidget> {
                       child: TextField(
                         controller: _targetTemperatureController,
                         decoration: InputDecoration(
+                          suffixText: "celsius",
                           isDense: true,
                           border: OutlineInputBorder(),
                           label: Text('Target Temperature'),
@@ -87,13 +106,18 @@ class _UserActionWidgetState extends State<UserActionWidget> {
                     )
                   : ListTile(
                       title: Text('Title'),
-                      trailing: Text("${_titleController?.text}"),
+                      subtitle: Text(
+                        '"${_titleController?.text}"',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
                     ),
               inEditMode
                   ? Padding(
                       padding: EdgeInsets.symmetric(vertical: 3),
                       child: TextField(
                         controller: _messageController,
+                        minLines: 4,
+                        maxLines: 4,
                         decoration: InputDecoration(
                           isDense: true,
                           border: OutlineInputBorder(),
@@ -104,44 +128,51 @@ class _UserActionWidgetState extends State<UserActionWidget> {
                     )
                   : ListTile(
                       title: Text('Message'),
-                      trailing: Text("${_messageController?.text}"),
+                      subtitle: Text('"${_messageController?.text}"'),
                     )
             ],
           ),
         ),
-        bottomSheet: ButtonBar(
-          children: [
-            ElevatedButton(
-                onPressed: () {
-                  recipeWidgetActions?.onDelete(operation!);
-                },
-                child: Text("Delete")),
-            ElevatedButton(
-                onPressed: () async {
-                  recipeWidgetActions?.onTest(operation!);
-                },
-                child: Text("Run Test")),
-            inEditMode
-                ? FilledButton(
-                    onPressed: () {
-                      operation?.targetTemperature = double.tryParse(_targetTemperatureController!.text);
-                      operation?.title = _titleController!.text;
-                      operation?.message = _messageController!.text;
+        bottomSheet: isEnd
+            ? SizedBox()
+            : ButtonBar(
+                children: [
+                  inEditMode
+                      ? FilledButton(
+                          onPressed: () async {
+                            setState(() {
+                              inEditMode = false;
+                              initialize();
+                            });
+                          },
+                          child: Text("Cancel"))
+                      : ElevatedButton(
+                          onPressed: () {
+                            recipeWidgetActions?.onDelete(operation!);
+                          },
+                          child: Text("Delete")),
+                  inEditMode
+                      ? FilledButton(
+                          onPressed: () {
+                            operation?.targetTemperature = double.tryParse(
+                                _targetTemperatureController!.text);
+                            operation?.title = _titleController!.text;
+                            operation?.message = _messageController!.text;
 
-                      recipeWidgetActions?.onValueUpdate(operation!);
-                      setState(() {
-                        inEditMode = false;
-                      });
-                    },
-                    child: Text(
-                      "Update",
-                    ))
-                : FilledButton(
-                    onPressed: () => setState(() {
-                          inEditMode = true;
-                        }),
-                    child: Text("Edit")),
-          ],
-        ));
+                            recipeWidgetActions?.onValueUpdate(operation!);
+                            setState(() {
+                              inEditMode = false;
+                            });
+                          },
+                          child: Text(
+                            "Update",
+                          ))
+                      : FilledButton(
+                          onPressed: () => setState(() {
+                                inEditMode = true;
+                              }),
+                          child: Text("Edit")),
+                ],
+              ));
   }
 }

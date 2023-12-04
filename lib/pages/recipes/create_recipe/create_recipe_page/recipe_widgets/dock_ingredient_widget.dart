@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:kitchen_studio_10162023/dao/ingredient_data_access.dart';
+import 'package:kitchen_studio_10162023/dao/ingredient_item_data_access.dart';
 import 'package:kitchen_studio_10162023/model/dock_ingredient_operation.dart';
 import 'package:kitchen_studio_10162023/model/ingredient.dart';
 import 'package:kitchen_studio_10162023/model/pump_water_operation.dart';
@@ -23,6 +25,9 @@ class DockIngredientWidget extends StatefulWidget {
 }
 
 class _DockIngredientWidgetState extends State<DockIngredientWidget> {
+  IngredientItemDataAccess ingredientItemDataAccess =
+      IngredientItemDataAccess.instance;
+  IngredientDataAccess ingredientDataAccess = IngredientDataAccess.instance;
   List<IngredientItem> ingredientItems = [];
   DockIngredientOperation? operation;
   bool inEditMode = false;
@@ -36,7 +41,29 @@ class _DockIngredientWidgetState extends State<DockIngredientWidget> {
     operation = widget.operation;
     _targetTemperatureController =
         TextEditingController(text: "${operation?.targetTemperature}");
+
+    populateIngredientItems();
     super.initState();
+  }
+
+  void populateIngredientItems() {
+    ingredientItemDataAccess
+        .search('operation_id = ?', whereArgs: [operation!.id!]).then((value) {
+      if (value != null) {
+        setState(() {
+          ingredientItems = value;
+          ingredientItems.forEach((element) {
+            ingredientDataAccess
+                .getById(element.ingredientId!)
+                .then((value) => setState(
+                      () {
+                        element.ingredient = value;
+                      },
+                    ));
+          });
+        });
+      }
+    });
   }
 
   @override
@@ -68,6 +95,7 @@ class _DockIngredientWidgetState extends State<DockIngredientWidget> {
                       child: TextField(
                         controller: _targetTemperatureController,
                         decoration: InputDecoration(
+                            suffixText: "celsius",
                             isDense: true,
                             border: OutlineInputBorder(),
                             hintText: 'Target Temperature',
@@ -89,9 +117,9 @@ class _DockIngredientWidgetState extends State<DockIngredientWidget> {
                           );
 
                           if (result != null) {
-                            setState(() {
-                              ingredientItems.add(result);
-                            });
+                            result.operationId = operation!.id;
+                            ingredientItemDataAccess.create(result);
+                            populateIngredientItems();
                           }
                         },
                         icon: Icon(Icons.add),
@@ -125,12 +153,18 @@ class _DockIngredientWidgetState extends State<DockIngredientWidget> {
                                         "assets/images/img.png")),
                               ),
                             ),
-                            inEditMode ? Positioned(
-                              child: IconButton(
-                                  onPressed: () {}, icon: Icon(Icons.close, color: Colors.red,)),
-                              top: 0,
-                              right: 0,
-                            ) : SizedBox()
+                            inEditMode
+                                ? Positioned(
+                                    child: IconButton(
+                                        onPressed: () {},
+                                        icon: Icon(
+                                          Icons.close,
+                                          color: Colors.red,
+                                        )),
+                                    top: 0,
+                                    right: 0,
+                                  )
+                                : SizedBox()
                           ],
                         ),
                       );
@@ -148,11 +182,6 @@ class _DockIngredientWidgetState extends State<DockIngredientWidget> {
                   recipeWidgetActions?.onDelete(operation!);
                 },
                 child: Text("Delete")),
-            ElevatedButton(
-                onPressed: () async {
-                  recipeWidgetActions?.onTest(operation!);
-                },
-                child: Text("Run Test")),
             inEditMode
                 ? FilledButton(
                     onPressed: () {

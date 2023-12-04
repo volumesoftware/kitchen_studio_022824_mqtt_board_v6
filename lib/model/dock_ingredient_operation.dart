@@ -38,6 +38,7 @@ class DockIngredientOperation implements BaseOperation {
 
   DockIngredientOperation.fromDatabase(Map<String, Object?> json, this.ingredientItems) {
     id = json['id'] as int;
+    requestId =json['request_id']==null? null: json['request_id'] as String;
     recipeId = json['recipe_id'] as int;
     operation = json['operation']== null? 0: json['operation'] as int;
     currentIndex = json['current_index'] == null? 0 : json['current_index'] as int;

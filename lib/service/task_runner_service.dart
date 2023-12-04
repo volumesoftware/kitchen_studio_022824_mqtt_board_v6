@@ -2,6 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:math';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:dart_ping/dart_ping.dart';
 import 'package:kitchen_studio_10162023/dao/operation_data_access.dart';
 import 'package:kitchen_studio_10162023/dao/recipe_data_access.dart';
 import 'package:kitchen_studio_10162023/dao/task_data_access.dart';
@@ -18,6 +21,8 @@ abstract interface class TaskListener {
       required double progress,
       required int index,
       UserAction? userAction});
+
+  void onError(ModuleError error);
 }
 
 class UserAction {
@@ -28,7 +33,9 @@ class UserAction {
   UserAction(this._title, this._message, this._currentIndex);
 
   String? get title => _title;
+
   String? get message => _message;
+
   int? get currentIndex => _currentIndex;
 
   @override
@@ -36,9 +43,16 @@ class UserAction {
     return '{'
         '"title" : $title,'
         '"message" : $message,'
-          '"currentIndex" : $currentIndex'
+        '"currentIndex" : $currentIndex'
         '}';
   }
+}
+
+class ModuleError {
+  final DeviceStats? deviceStats;
+  final String? error;
+
+  ModuleError({required this.error, required this.deviceStats});
 }
 
 class UserResponse {
@@ -86,7 +100,7 @@ class TaskRunner {
   late List<SendPort> _userActionPort;
   final List<TaskListener> _eventListeners = [];
 
-  final ReceivePort _eventPort = ReceivePort();
+  ReceivePort _eventPort = ReceivePort();
 
   TaskPayload? _payload;
   double _progress = 0.0;
@@ -151,15 +165,23 @@ class TaskRunner {
     return _deviceStats;
   }
 
+  Future<void> playNotificationSound() async {
+    AudioCache audioCache = AudioCache();
+    // Replace 'notification_sound.mp3' with the path to your audio file
+    const notificationSound = 'audio/attention.mp3';
+
+    // Use the audio cache to play the notification sound
+    await audioCache.play(notificationSound);
+  }
+
   Future<void> initialize(int userActionSize) async {
+    _eventPort = ReceivePort();
     ReceivePort receivePort = ReceivePort();
-    Isolate.spawn<RunnerModel>(runner, RunnerModel(receivePort.sendPort, userActionSize));
+    Isolate.spawn<RunnerModel>(
+        runner, RunnerModel(receivePort.sendPort, userActionSize));
     List<SendPort> __sendPorts = await receivePort.first;
-    print("Send Port Size ${__sendPorts.length}");
     _sendPort = __sendPorts[0];
-    print("Send Port Size ${__sendPorts.length}");
     _userActionPort = __sendPorts.getRange(1, __sendPorts.length).toList();
-    print("User Action Port Size ${_userActionPort.length}");
 
     _eventPort.listen((message) async {
       if (message == "completed") {
@@ -177,8 +199,7 @@ class TaskRunner {
         });
 
         if (_chain) {
-          var tasks = await taskDataAccess.search(
-              'status = ? and module_name = ?',
+          var tasks = await taskDataAccess.search('status = ? and name = ?',
               whereArgs: [Task.CREATED, _deviceStats.moduleName!]);
           if (tasks != null) {
             if (tasks.isNotEmpty) {
@@ -194,13 +215,11 @@ class TaskRunner {
               }
             }
           }
-        }else{
+        } else {
           receivePort.close();
           _eventPort.close();
         }
-      }
-
-      else if (message == "started") {
+      } else if (message == "started") {
         _busy = true;
         if (_payload != null) {
           _payload!.task.status = Task.STARTED;
@@ -241,7 +260,7 @@ class TaskRunner {
               index: _index,
               userAction: message);
         });
-      }else if (message is UserResponse) {
+      } else if (message is UserResponse) {
         print(message);
         _eventListeners.forEach((element) {
           element.onEvent(_deviceStats.moduleName!, message,
@@ -249,6 +268,12 @@ class TaskRunner {
               deviceStats: _deviceStats,
               progress: _progress,
               index: _index);
+        });
+      } else if (message is ModuleError) {
+        _payload = null;
+        _busy = false;
+        _eventListeners.forEach((element) {
+          element.onError(message);
         });
       }
     });
@@ -268,16 +293,28 @@ class TaskRunner {
   }
 
   Future<void> submitTask(TaskPayload p) async {
+    // final results = await Ping(p.deviceStats.ipAddress!, count: 1).stream.toList();
+    // results.forEach((element) {
+    //   if (element.summary?.received == 0) {
+    //     _payload = null;
+    //     _eventListeners.forEach((element) {
+    //       element.onError(ModuleError(
+    //           error: 'Module not connected', deviceStats: p.deviceStats));
+    //     });
+    //
+    //     return;
+    //   }
+    // });
 
-
+    // [PingResponse(seq:null, ip:192.168.43.168, ttl:128, time:1.0 ms), PingSummary(transmitted:1, received:1)] connected
+    //[PingError(response:PingResponse(seq:null), error:requestTimedOut), PingSummary(transmitted:1, received:0), Errors: [requestTimedOut, unknown: Ping process exited with code: 1]]
     _payload = p;
 
     if (!_busy) {
-
       int userActionSize = 0;
 
       p.operations.forEach((element) {
-        if(element is UserActionOperation){
+        if (element is UserActionOperation) {
           userActionSize = userActionSize + 1;
         }
       });
@@ -310,15 +347,17 @@ class RunnerModel {
   final int _totalUserAction;
 
   RunnerModel(this._sendPort, this._totalUserAction);
+
   SendPort get sendPort => _sendPort;
+
   int get totalUserAction => _totalUserAction;
 }
 
 Future<void> runner(RunnerModel initialPayload) async {
   ReceivePort receivePort = ReceivePort();
-  List<SendPort> receivePorts  = [receivePort.sendPort] ;
+  List<SendPort> receivePorts = [receivePort.sendPort];
   List<ReceivePort> userReceivePorts = [];
-  for(var i = 0; i < initialPayload.totalUserAction; i++){
+  for (var i = 0; i < initialPayload.totalUserAction; i++) {
     ReceivePort userReceivePort = ReceivePort();
     userReceivePorts.add(userReceivePort);
   }
@@ -336,20 +375,39 @@ Future<void> runner(RunnerModel initialPayload) async {
       eventSenderPort.send("started");
 
       int userRequestIndex = 0;
-
+      // Stopwatch stopwatch = new Stopwatch()..start();
       for (var i = 0; i < payload.operations.length; i++) {
+        // final results = await Ping(payload.deviceStats.ipAddress!, count: 1)
+        //     .stream
+        //     .toList();
+        // results.forEach((element) {
+        //   if (element.summary?.received == 0) {
+        //     eventSenderPort.send(ModuleError(
+        //         error: "Module Not Connected",
+        //         deviceStats: payload.deviceStats));
+        //     return;
+        //   }
+        // });
+
+        BaseOperation operation = payload.operations[i];
+        bool? isIdle = await clearIdle(operation, payload.deviceStats);
         eventSenderPort.send(TaskProgress((i + 1) / totalProgress));
         eventSenderPort.send(IndexProgress(i));
-        BaseOperation operation = payload.operations[i];
-        if (operation is UserActionOperation) {
-          eventSenderPort.send(UserAction(operation.title, operation.message, userRequestIndex));
-          bool? userAction = await waitForUserAction(operation, payload.deviceStats, userReceivePorts[userRequestIndex]);
-          eventSenderPort.send(UserResponse(userAction));
-          userRequestIndex++;
-        } else {
-          bool? available = await waitForArduino(operation, payload.deviceStats);
+        if (operation.operation == UserActionOperation.CODE) {
+          eventSenderPort.send(UserAction("", "", operation.currentIndex));
         }
+        bool? available = await waitForIdle(operation, payload.deviceStats);
       }
+
+      bool? available = await waitForIdle(
+          UserActionOperation(
+              message: "",
+              title: "",
+              currentIndex: 0,
+              targetTemperature: 28,
+              isClosing: true),
+          payload.deviceStats);
+
       eventSenderPort.send(TaskProgress(1));
       // await waitForArduino(ZeroingOperation(), payload.deviceStats);
       eventSenderPort.send("completed");
@@ -357,25 +415,77 @@ Future<void> runner(RunnerModel initialPayload) async {
   }
 }
 
-Future<bool?> waitForUserAction(BaseOperation operation, DeviceStats server, ReceivePort userReceivePort) async {
+Future<bool?> waitForUserAction(BaseOperation operation, DeviceStats server,
+    ReceivePort userReceivePort) async {
   ReceivePort _userReceivePort = userReceivePort;
   stderr.writeln("waiting for user action");
   Completer<bool?> completer = Completer();
-  var sub = _userReceivePort.listen((message) {
-    if(message is List){
-      stderr.writeln('User Respond ${message[0]}');
-      completer.complete(message[0]);
-    }
-  },);
+  var sub = _userReceivePort.listen(
+    (message) {
+      if (message is List) {
+        stderr.writeln('User Respond ${message[0]}');
+        completer.complete(message[0]);
+      }
+    },
+  );
   return completer.future;
 }
 
+Future<bool?> waitForIdle(BaseOperation operation, DeviceStats server) async {
 
+  if (operation.operation == UserActionOperation.CODE) {
+    // playNotificationSound();
+  }
 
-Future<bool?> waitForArduino(
-    BaseOperation operation, DeviceStats server) async {
+  int maX = 9000;
+  int miN = 8000;
+  int randomPort = Random().nextInt(maX - miN) + miN;
   RawDatagramSocket? socket =
-      await RawDatagramSocket.bind(InternetAddress.anyIPv4, 8882);
+      await RawDatagramSocket.bind(InternetAddress.anyIPv4, randomPort);
+
+  String jsonData = '{"operation":100}';
+  Timer timer = Timer.periodic(
+    Duration(seconds: 3),
+    (timer) {
+      socket.send(
+          jsonData.codeUnits, InternetAddress(server.ipAddress!), server.port!);
+    },
+  );
+
+  var json = operation.toJson();
+  socket.send(jsonEncode(json).codeUnits, InternetAddress(server.ipAddress!),
+      server.port!);
+
+  Completer<bool?> completer = Completer();
+  // Listen for incoming data and complete the Future when data is received
+  var sub = socket.listen((RawSocketEvent event) {
+    if (event == RawSocketEvent.read) {
+      Datagram? datagram = socket.receive();
+      if (datagram != null) {
+        try {
+          String result = String.fromCharCodes(datagram.data);
+          DeviceStats incomingStats = DeviceStats.fromJson(jsonDecode(result));
+          if (incomingStats.requestId == 'idle') {
+            socket.close();
+            timer.cancel();
+            completer.complete(true);
+          }
+        } catch (e) {
+          print(e);
+        }
+      }
+    }
+  });
+  return completer.future;
+}
+
+Future<bool?> clearIdle(BaseOperation operation, DeviceStats server) async {
+  int maX = 5000;
+  int miN = 4000;
+  int randomPort = Random().nextInt(maX - miN) + miN;
+
+  RawDatagramSocket? socket =
+      await RawDatagramSocket.bind(InternetAddress.anyIPv4, randomPort);
 
   String jsonData = '{"operation":100}';
   Timer timer = Timer.periodic(
@@ -395,11 +505,16 @@ Future<bool?> waitForArduino(
     if (event == RawSocketEvent.read) {
       Datagram? datagram = socket.receive();
       if (datagram != null) {
-        String result = String.fromCharCodes(datagram.data);
-        DeviceStats incomingStats = DeviceStats.fromJson(jsonDecode(result));
-        if (incomingStats.requestId == 'idle') {
-          completer.complete(true);
-          socket.close();
+        try {
+          String result = String.fromCharCodes(datagram.data);
+          DeviceStats incomingStats = DeviceStats.fromJson(jsonDecode(result));
+          if (incomingStats.requestId != 'idle') {
+            socket.close();
+            timer.cancel();
+            completer.complete(true);
+          }
+        } catch (e) {
+          print(e);
         }
       }
     }
