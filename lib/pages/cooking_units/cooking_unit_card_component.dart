@@ -5,7 +5,10 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:gauge_indicator/gauge_indicator.dart';
 import 'package:kitchen_studio_10162023/model/device_stats.dart';
+import 'package:kitchen_studio_10162023/model/dispense_operation.dart';
 import 'package:kitchen_studio_10162023/model/motor_operation.dart';
+import 'package:kitchen_studio_10162023/model/user_action_operation.dart';
+import 'package:kitchen_studio_10162023/model/wash_operation.dart';
 import 'package:kitchen_studio_10162023/widgets/rotating_cylinder.dart';
 import 'package:kitchen_studio_10162023/service/task_runner_pool.dart';
 import 'package:kitchen_studio_10162023/service/task_runner_service.dart';
@@ -199,19 +202,52 @@ class _CookingUnitCardComponentState extends State<CookingUnitCardComponent>
                                   8888);
                               break;
                             case 'heat_until':
-                              String jsonData =
-                                  '{"operation":"212","target_temperature":40,"duration":120000,"request_id":"heat_until"}';
+                              break;
+                            case 'dispense':
+                              String dispense = jsonEncode(DispenseOperation(
+                                      targetTemperature: 0,
+                                      currentIndex: 0,
+                                      recipeId: 0,
+                                      cycle: 1,
+                                      id: 0,
+                                      instructionSize: 0)
+                                  .toJson());
                               udpService?.send(
-                                  jsonData.codeUnits,
+                                  dispense.codeUnits,
                                   InternetAddress(
                                       widget.deviceStats.ipAddress!),
                                   8888);
                               break;
-                            case 'filter2':
-                              print('filter 2 clicked');
+                            case 'wash':
+                              String wash = jsonEncode(WashOperation(
+                                      duration: 60,
+                                      targetTemperature: 80,
+                                      currentIndex: 0,
+                                      recipeId: 0,
+                                      cycle: 1,
+                                      id: 0,
+                                      instructionSize: 0)
+                                  .toJson());
+                              udpService?.send(
+                                  wash.codeUnits,
+                                  InternetAddress(
+                                      widget.deviceStats.ipAddress!),
+                                  8888);
+                              String userAction = jsonEncode(UserActionOperation(
+                                  targetTemperature: 0,
+                                  currentIndex: 0,
+                                  recipeId: 0,
+                                  instructionSize: 0)
+                                  .toJson());
+                              udpService?.send(
+                                  userAction.codeUnits,
+                                  InternetAddress(
+                                      widget.deviceStats.ipAddress!),
+                                  8888);
                               break;
-                            case 'clearFilters':
-                              print('Clear filters');
+
+                              break;
+
                               break;
                             default:
                           }
@@ -373,9 +409,6 @@ class _CookingUnitCardComponentState extends State<CookingUnitCardComponent>
     if (dg != null) temperature.value = widget.deviceStats.temperature! / 200;
   }
 
-
-
-
   @override
   void onEvent(String moduleName, message,
       {required bool busy,
@@ -394,5 +427,3 @@ class _CookingUnitCardComponentState extends State<CookingUnitCardComponent>
     // TODO: implement onError
   }
 }
-
-

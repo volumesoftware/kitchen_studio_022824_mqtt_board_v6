@@ -1,0 +1,22 @@
+name: database_service
+description: Dart package which manages the database for kitchen.
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  sqflite_common_ffi: ^2.3.0+2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  mocktail: ^1.0.0
+  plugin_platform_interface: ^2.1.7
+
+flutter:
+  assets:
+    - assets/database/kitchenstudio.db

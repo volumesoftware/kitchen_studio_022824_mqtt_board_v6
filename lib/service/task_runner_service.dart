@@ -4,7 +4,6 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:dart_ping/dart_ping.dart';
 import 'package:kitchen_studio_10162023/dao/operation_data_access.dart';
 import 'package:kitchen_studio_10162023/dao/recipe_data_access.dart';
 import 'package:kitchen_studio_10162023/dao/task_data_access.dart';
@@ -177,8 +176,7 @@ class TaskRunner {
   Future<void> initialize(int userActionSize) async {
     _eventPort = ReceivePort();
     ReceivePort receivePort = ReceivePort();
-    Isolate.spawn<RunnerModel>(
-        runner, RunnerModel(receivePort.sendPort, userActionSize));
+    Isolate.spawn<RunnerModel>(runner, RunnerModel(receivePort.sendPort, userActionSize));
     List<SendPort> __sendPorts = await receivePort.first;
     _sendPort = __sendPorts[0];
     _userActionPort = __sendPorts.getRange(1, __sendPorts.length).toList();
@@ -293,22 +291,7 @@ class TaskRunner {
   }
 
   Future<void> submitTask(TaskPayload p) async {
-    // final results = await Ping(p.deviceStats.ipAddress!, count: 1).stream.toList();
-    // results.forEach((element) {
-    //   if (element.summary?.received == 0) {
-    //     _payload = null;
-    //     _eventListeners.forEach((element) {
-    //       element.onError(ModuleError(
-    //           error: 'Module not connected', deviceStats: p.deviceStats));
-    //     });
-    //
-    //     return;
-    //   }
-    // });
-
-    // [PingResponse(seq:null, ip:192.168.43.168, ttl:128, time:1.0 ms), PingSummary(transmitted:1, received:1)] connected
-    //[PingError(response:PingResponse(seq:null), error:requestTimedOut), PingSummary(transmitted:1, received:0), Errors: [requestTimedOut, unknown: Ping process exited with code: 1]]
-    _payload = p;
+     _payload = p;
 
     if (!_busy) {
       int userActionSize = 0;
@@ -496,8 +479,7 @@ Future<bool?> clearIdle(BaseOperation operation, DeviceStats server) async {
     },
   );
 
-  socket.send(jsonEncode(operation.toJson()).codeUnits,
-      InternetAddress(server.ipAddress!), server.port!);
+  socket.send(jsonEncode(operation.toJson()).codeUnits, InternetAddress(server.ipAddress!), server.port!);
 
   Completer<bool?> completer = Completer();
   // Listen for incoming data and complete the Future when data is received

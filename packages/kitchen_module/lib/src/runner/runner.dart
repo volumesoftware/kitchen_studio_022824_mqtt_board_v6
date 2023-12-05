@@ -1,0 +1,148 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+import 'dart:isolate';
+import 'dart:math';
+import 'package:kitchen_module/kitchen_module.dart';
+import 'package:database_service/database_service.dart';
+
+Future<void> recipeIsolateEntryPoint(SendPort sendPort) async {
+  final receivePort = ReceivePort();
+  sendPort.send(receivePort.sendPort);
+
+  await for (var message in receivePort) {
+    if (message is List) {
+      final SendPort eventSenderPort = message[0];
+      final TaskPayload payload = message[1];
+      int totalProgress = payload.operations.length + 1;
+      eventSenderPort.send("started");
+
+      for (var i = 0; i < payload.operations.length; i++) {
+        BaseOperation operation = payload.operations[i];
+        bool? isIdle = await clearIdle(operation, payload.deviceStats);
+        eventSenderPort.send(TaskProgress((i + 1) / totalProgress));
+        eventSenderPort.send(IndexProgress(i));
+        if (operation.operation == UserActionOperation.CODE) {
+          eventSenderPort.send(UserAction("", "", operation.currentIndex));
+        }
+        bool? available = await waitForIdle(operation, payload.deviceStats);
+      }
+      bool? available = await waitForIdle(
+          UserActionOperation(
+              message: "",
+              title: "",
+              currentIndex: 0,
+              targetTemperature: 28,
+              isClosing: true),
+          payload.deviceStats);
+      eventSenderPort.send(TaskProgress(1));
+      eventSenderPort.send("completed");
+    }
+  }
+}
+
+Future<bool?> waitForUserAction(BaseOperation operation, DeviceStats server,
+    ReceivePort userReceivePort) async {
+  ReceivePort _userReceivePort = userReceivePort;
+  stderr.writeln("waiting for user action");
+  Completer<bool?> completer = Completer();
+  var sub = _userReceivePort.listen(
+    (message) {
+      if (message is List) {
+        stderr.writeln('User Respond ${message[0]}');
+        completer.complete(message[0]);
+      }
+    },
+  );
+  return completer.future;
+}
+
+Future<bool?> waitForIdle(BaseOperation operation, DeviceStats server) async {
+  if (operation.operation == UserActionOperation.CODE) {
+    // playNotificationSound();
+  }
+
+  int maX = 9000;
+  int miN = 8000;
+  int randomPort = Random().nextInt(maX - miN) + miN;
+  RawDatagramSocket? socket =
+      await RawDatagramSocket.bind(InternetAddress.anyIPv4, randomPort);
+
+  String jsonData = '{"operation":100}';
+  Timer timer = Timer.periodic(
+    Duration(seconds: 3),
+    (timer) {
+      socket.send(
+          jsonData.codeUnits, InternetAddress(server.ipAddress!), server.port!);
+    },
+  );
+
+  var json = operation.toJson();
+  socket.send(jsonEncode(json).codeUnits, InternetAddress(server.ipAddress!),
+      server.port!);
+
+  Completer<bool?> completer = Completer();
+  // Listen for incoming data and complete the Future when data is received
+  var sub = socket.listen((RawSocketEvent event) {
+    if (event == RawSocketEvent.read) {
+      Datagram? datagram = socket.receive();
+      if (datagram != null) {
+        try {
+          String result = String.fromCharCodes(datagram.data);
+          DeviceStats incomingStats = DeviceStats.fromJson(jsonDecode(result));
+          if (incomingStats.requestId == 'idle') {
+            socket.close();
+            timer.cancel();
+            completer.complete(true);
+          }
+        } catch (e) {
+          print(e);
+        }
+      }
+    }
+  });
+  return completer.future;
+}
+
+Future<bool?> clearIdle(BaseOperation operation, DeviceStats server) async {
+  int maX = 5000;
+  int miN = 4000;
+  int randomPort = Random().nextInt(maX - miN) + miN;
+
+  RawDatagramSocket? socket =
+      await RawDatagramSocket.bind(InternetAddress.anyIPv4, randomPort);
+
+  String jsonData = '{"operation":100}';
+  Timer timer = Timer.periodic(
+    Duration(seconds: 3),
+    (timer) {
+      socket.send(
+          jsonData.codeUnits, InternetAddress(server.ipAddress!), server.port!);
+    },
+  );
+
+  socket.send(jsonEncode(operation.toJson()).codeUnits,
+      InternetAddress(server.ipAddress!), server.port!);
+
+  Completer<bool?> completer = Completer();
+  // Listen for incoming data and complete the Future when data is received
+  var sub = socket.listen((RawSocketEvent event) {
+    if (event == RawSocketEvent.read) {
+      Datagram? datagram = socket.receive();
+      if (datagram != null) {
+        try {
+          String result = String.fromCharCodes(datagram.data);
+          DeviceStats incomingStats = DeviceStats.fromJson(jsonDecode(result));
+          if (incomingStats.requestId != 'idle') {
+            socket.close();
+            timer.cancel();
+            completer.complete(true);
+          }
+        } catch (e) {
+          print(e);
+        }
+      }
+    }
+  });
+  return completer.future;
+}

@@ -49,6 +49,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.1"
+  cache:
+    dependency: transitive
+    description:
+      path: "packages/cache"
+      relative: true
+    source: path
+    version: "1.0.0"
   carousel_slider:
     dependency: "direct main"
     description:
@@ -113,6 +120,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "9.0.1"
+  database_service:
+    dependency: transitive
+    description:
+      path: "packages/database_service"
+      relative: true
+    source: path
+    version: "1.0.0"
   decimal:
     dependency: transitive
     description:
@@ -248,6 +262,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.6.7"
+  kitchen_module:
+    dependency: "direct main"
+    description:
+      path: "packages/kitchen_module"
+      relative: true
+    source: path
+    version: "1.0.0"
   lints:
     dependency: transitive
     description:

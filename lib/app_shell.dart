@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kitchen_module/kitchen_module.dart';
 import 'package:kitchen_studio_10162023/app_router.dart';
 import 'package:kitchen_studio_10162023/model/device_stats.dart';
 import 'package:kitchen_studio_10162023/pages/cooking_units/cooking_units_page.dart';
@@ -15,12 +16,41 @@ class AppShellScreen extends StatefulWidget {
 }
 
 class _AppShellScreenState extends State<AppShellScreen>{
+
+
+  ThreadPool threadPool = ThreadPool.instance;
+  List<RecipeProcessor> _recipeProcessors = [];
+
+
   int selectedIndex = 0;
+
+  @override
+  void initState() {
+    threadPool.stateChanges.listen((List<RecipeProcessor> recipeProcessor) {
+      setState(() {
+        _recipeProcessors = recipeProcessor;
+      });
+    });
+    super.initState();
+  }
 
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomSheet: StreamBuilder<List<RecipeProcessor>>(
+        stream: threadPool.stateChanges,
+        builder: (context, snapshot) {
+          return snapshot.data!=null? Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: snapshot.data!.map((e) => Column(
+              children: [Text("${e.moduleName}"), StreamBuilder(stream: e.stateChanges, builder: (context2, snapshot2) {
+                return snapshot2.data!=null? Text("${snapshot2.data?.temperature}") : Text("Loading...");
+              },)],
+            ) ).toList(),
+          ) : Row();
+        },
+      ),
       body: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [

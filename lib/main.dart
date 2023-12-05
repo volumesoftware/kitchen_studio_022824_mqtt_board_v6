@@ -5,12 +5,16 @@ import 'package:kitchen_studio_10162023/service/task_runner_service.dart';
 import 'package:kitchen_studio_10162023/service/udp_service.dart';
 import 'app_router.dart';
 import 'service/task_runner_pool.dart';
+import 'package:kitchen_module/kitchen_module.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await DatabaseService.instance.initialize();
-  await UdpService.instance.initialize();
+  await DatabasePackage.instance.initialize();
+
+  // await UdpService.instance.initialize();
   TaskRunnerPool.instance.initialize();
+
   runApp(MyApp());
 }
 
@@ -21,26 +25,14 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class UserActionSets {
-  final DeviceStats _deviceStats;
-  final UserAction _userAction;
-
-  UserActionSets(this._deviceStats, this._userAction);
-
-  DeviceStats get deviceStats => _deviceStats;
-
-  UserAction get userAction => _userAction;
-}
-
-class _MyAppState extends State<MyApp> implements TaskListener {
+class _MyAppState extends State<MyApp> {
   final _navigatorKey = GlobalKey<NavigatorState>();
   final TaskRunnerPool taskRunnerPool = TaskRunnerPool.instance;
 
+
   @override
   void initState() {
-    taskRunnerPool.getTaskRunners()!.forEach((element) {
-      element.addListeners(this);
-    });
+
     super.initState();
   }
 
@@ -59,21 +51,5 @@ class _MyAppState extends State<MyApp> implements TaskListener {
       onGenerateRoute: AppRouter.allRoutes,
       initialRoute: AppRouter.appShellScreen,
     );
-  }
-
-
-  @override
-  Future<void> onEvent(String moduleName, message,
-      {required bool busy,
-      required DeviceStats deviceStats,
-      required double progress,
-      required int index,
-      UserAction? userAction}) async {
-    print(userAction);
-  }
-
-  @override
-  void onError(ModuleError error) {
-    // TODO: implement onError
   }
 }
