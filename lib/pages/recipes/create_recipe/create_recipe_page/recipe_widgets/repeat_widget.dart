@@ -2,25 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:kitchen_module/kitchen_module.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/recipe_widget_action.dart';
 
-class UserActionWidget extends StatefulWidget {
-  final UserActionOperation operation;
+class RepeatWidget extends StatefulWidget {
+  final RepeatOperation operation;
   final RecipeWidgetActions recipeWidgetActions;
 
-  const UserActionWidget(
+  const RepeatWidget(
       {Key? key, required this.operation, required this.recipeWidgetActions})
       : super(key: key);
 
   @override
-  State<UserActionWidget> createState() => _UserActionWidgetState();
+  State<RepeatWidget> createState() => _RepeatWidgetState();
 }
 
-class _UserActionWidgetState extends State<UserActionWidget> {
-  UserActionOperation? operation;
+class _RepeatWidgetState extends State<RepeatWidget> {
+  RepeatOperation? operation;
   bool inEditMode = false;
   RecipeWidgetActions? recipeWidgetActions;
   TextEditingController? _targetTemperatureController;
-  TextEditingController? _titleController;
-  TextEditingController? _messageController;
+  TextEditingController? _repeatIndexController;
+  TextEditingController? _repeatCountController;
   bool isEnd = false;
 
   @override
@@ -34,20 +34,9 @@ class _UserActionWidgetState extends State<UserActionWidget> {
     operation = widget.operation;
     _targetTemperatureController =
         TextEditingController(text: "${operation?.targetTemperature}");
-    _titleController = TextEditingController(text: "${operation?.title}");
-    _messageController = TextEditingController(text: "${operation?.message}");
+    _repeatCountController = TextEditingController(text: "${operation?.repeatCount}");
+    _repeatIndexController = TextEditingController(text: "${operation?.repeatIndex}");
 
-    if (operation != null) {
-      if (operation!.isClosing!) {
-        setState(() {
-          isEnd = true;
-        });
-      } else {
-        setState(() {
-          isEnd = false;
-        });
-      }
-    }
   }
 
   @override
@@ -59,7 +48,7 @@ class _UserActionWidgetState extends State<UserActionWidget> {
             isEnd ? Icons.stop_circle_outlined : Icons.person_search_outlined,
           ),
           title: Text(
-            isEnd ? "Recipe's End" : "User Action",
+            "Repeat Loop",
             style: Theme.of(context).textTheme.titleSmall,
           ),
           automaticallyImplyLeading: false,
@@ -95,19 +84,19 @@ class _UserActionWidgetState extends State<UserActionWidget> {
                   ? Padding(
                       padding: EdgeInsets.symmetric(vertical: 3),
                       child: TextField(
-                        controller: _titleController,
+                        controller: _repeatIndexController,
                         decoration: InputDecoration(
                           isDense: true,
                           border: OutlineInputBorder(),
-                          label: Text('Title'),
-                          hintText: 'Title',
+                          label: Text('Repeat From Index'),
+                          hintText: 'Repeat From Index',
                         ),
                       ),
                     )
                   : ListTile(
-                      title: Text('Title'),
+                      title: Text('Repeat From Index'),
                       subtitle: Text(
-                        '"${_titleController?.text}"',
+                        '${_repeatIndexController?.text}',
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ),
@@ -115,20 +104,20 @@ class _UserActionWidgetState extends State<UserActionWidget> {
                   ? Padding(
                       padding: EdgeInsets.symmetric(vertical: 3),
                       child: TextField(
-                        controller: _messageController,
+                        controller: _repeatCountController,
                         minLines: 4,
                         maxLines: 4,
                         decoration: InputDecoration(
                           isDense: true,
                           border: OutlineInputBorder(),
-                          label: Text('Message'),
-                          hintText: 'Message',
+                          label: Text('Repeat Count'),
+                          hintText: 'Repeat Count',
                         ),
                       ),
                     )
                   : ListTile(
-                      title: Text('Message'),
-                      subtitle: Text('"${_messageController?.text}"'),
+                      title: Text('Repeat Count'),
+                      subtitle: Text('${_repeatCountController?.text}'),
                     )
             ],
           ),
@@ -156,9 +145,8 @@ class _UserActionWidgetState extends State<UserActionWidget> {
                           onPressed: () {
                             operation?.targetTemperature = double.tryParse(
                                 _targetTemperatureController!.text);
-                            operation?.title = _titleController!.text;
-                            operation?.message = _messageController!.text;
-
+                            operation?.repeatIndex = int.tryParse(_repeatIndexController!.text);
+                            operation?.repeatCount = int.tryParse(_repeatCountController!.text);
                             recipeWidgetActions?.onValueUpdate(operation!);
                             setState(() {
                               inEditMode = false;

@@ -40,7 +40,7 @@ class KitchenModulePool implements UdpListener {
     Timer.periodic(
       Duration(seconds: 5),
       (timer) {
-        print('sending ${jsonData}');
+        // print('sending ${jsonData}');
         _udpService.send(
             jsonData.codeUnits, InternetAddress("192.168.43.255"), 8888);
       },

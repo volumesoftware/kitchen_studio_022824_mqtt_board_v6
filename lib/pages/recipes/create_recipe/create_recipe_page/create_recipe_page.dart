@@ -2,27 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:kitchen_module/kitchen_module.dart';
 import 'package:flutter/material.dart';
-import 'package:kitchen_studio_10162023/dao/device_data_access.dart';
-import 'package:kitchen_studio_10162023/dao/operation_data_access.dart';
-import 'package:kitchen_studio_10162023/dao/task_data_access.dart';
-import 'package:kitchen_studio_10162023/model/cold_mix_operation.dart';
-import 'package:kitchen_studio_10162023/model/device_stats.dart';
-import 'package:kitchen_studio_10162023/model/dispense_operation.dart';
-import 'package:kitchen_studio_10162023/model/dock_ingredient_operation.dart';
-import 'package:kitchen_studio_10162023/model/drop_ingredient_operation.dart';
-import 'package:kitchen_studio_10162023/model/flip_operation.dart';
-import 'package:kitchen_studio_10162023/model/heat_for_operation.dart';
-import 'package:kitchen_studio_10162023/model/heat_until_temperature_operation.dart';
-import 'package:kitchen_studio_10162023/model/hot_mix_operation.dart';
-import 'package:kitchen_studio_10162023/model/instruction.dart';
-import 'package:kitchen_studio_10162023/model/pump_oil_operation.dart';
-import 'package:kitchen_studio_10162023/model/pump_water_operation.dart';
-import 'package:kitchen_studio_10162023/model/recipe.dart';
-import 'package:kitchen_studio_10162023/model/stir_operation.dart';
-import 'package:kitchen_studio_10162023/model/task.dart';
-import 'package:kitchen_studio_10162023/model/user_action_operation.dart';
-import 'package:kitchen_studio_10162023/model/wash_operation.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/painters/cold_wok_painter.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/painters/hot_wok_painter.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/dispense_widget.dart';
@@ -34,14 +15,11 @@ import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recip
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/pump_oil_widget.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/pump_water_widget.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/recipe_widget_action.dart';
+import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/repeat_widget.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/stirl_widget.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/user_action_widget.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/wash_widget.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/unit_monitoring_card_component.dart';
-import 'package:kitchen_studio_10162023/service/task_runner_pool.dart';
-import 'package:kitchen_studio_10162023/service/task_runner_service.dart';
-import 'package:kitchen_studio_10162023/service/udp_listener.dart';
-import 'package:kitchen_studio_10162023/service/udp_service.dart';
 
 import 'recipe_widgets/cold_mix_widget.dart';
 import 'recipe_widgets/hot_mix_widget.dart';
@@ -56,17 +34,18 @@ class CreateRecipePage extends StatefulWidget {
 }
 
 class _CreateRecipePageState extends State<CreateRecipePage>
-    implements RecipeWidgetActions, UdpListener {
+    implements RecipeWidgetActions {
   int activeStep = 0;
-  DeviceStats? selectedDevice;
-  List<DeviceStats> devices = [];
+  RecipeProcessor? recipeProcessor;
+  List<RecipeProcessor> recipeProcessors = [];
   Timer? timer;
   List<BaseOperation>? instructions = [];
   final GlobalKey<ScaffoldState> _key = GlobalKey(); // Create a key
 
   BaseOperationDataAccess baseOperationDataAccess =
       BaseOperationDataAccess.instance;
-  TaskRunnerPool taskRunnerPool = TaskRunnerPool.instance;
+  ThreadPool threadPool = ThreadPool.instance;
+
   UdpService? udpService = UdpService.instance;
   DeviceDataAccess deviceDataAccess = DeviceDataAccess.instance;
   TaskDataAccess taskDataAccess = TaskDataAccess.instance;
@@ -75,28 +54,29 @@ class _CreateRecipePageState extends State<CreateRecipePage>
 
   @override
   void dispose() {
-    taskRunnerPool.removeStatsListener(this);
     super.dispose();
   }
 
   @override
   void initState() {
-    taskRunnerPool.addStatsListener(this);
     populateOperations();
     super.initState();
   }
 
   void populateOperations() async {
-    var temp = await baseOperationDataAccess
+    threadPool.stateChanges.listen((List<RecipeProcessor> recipeProcessors) {
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        setState(() {
+          recipeProcessors = threadPool.pool;
+        });
+      });
+    });
+    var tempOperations = await baseOperationDataAccess
         .search("recipe_id = ?", whereArgs: [widget.recipe.id!]);
 
-    var tempDevices = await taskRunnerPool.getDevices();
-
     setState(() {
-      instructions = temp;
-
-      // instructions.sort((a, b) => a.currentIndex < b.currentIndex,)
-      devices = tempDevices;
+      recipeProcessors = threadPool.pool;
+      instructions = tempOperations;
     });
   }
 
@@ -114,52 +94,57 @@ class _CreateRecipePageState extends State<CreateRecipePage>
       appBar: AppBar(
         title: Text("Doodle Recipe (${widget.recipe.recipeName})"),
         actions: [
-          PopupMenuButton<DeviceStats>(
+          PopupMenuButton<RecipeProcessor>(
             child: Row(
               children: [
-                selectedDevice != null
-                    ? Text("${selectedDevice!.moduleName}")
-                    : Text("Choose module"),
+                recipeProcessor != null
+                    ? Text("${recipeProcessor!.moduleName}")
+                    : Text(recipeProcessors.isNotEmpty
+                        ? "Choose module"
+                        : "No module available"),
                 SizedBox(width: 10),
                 Icon(Icons.account_tree_outlined)
               ],
             ),
-            onSelected: (DeviceStats result) {
+            onSelected: (RecipeProcessor result) {
               setState(() {
-                selectedDevice = result;
+                recipeProcessor = result;
               });
             },
-            itemBuilder: (BuildContext context) => devices
-                .map((e) => PopupMenuItem<DeviceStats>(
+            itemBuilder: (BuildContext context) => recipeProcessors
+                .map((e) => PopupMenuItem<RecipeProcessor>(
                       value: e,
                       child: Text('${e.moduleName}'),
                     ))
                 .toList(),
           ),
           SizedBox(width: 10),
-          IconButton(
-              onPressed: () {
-                setState(() {
-                  manualOpen = true;
-                });
-                _key.currentState?.openEndDrawer();
-              },
-              icon: Icon(Icons.menu_open))
+          recipeProcessors.isNotEmpty
+              ? IconButton(
+                  onPressed: () {
+                    setState(() {
+                      manualOpen = true;
+                    });
+                    _key.currentState?.openEndDrawer();
+                  },
+                  icon: Icon(Icons.menu_open))
+              : Icon(
+                  Icons.warning,
+                  color: Theme.of(context).colorScheme.error,
+                )
         ],
       ),
-      endDrawer: selectedDevice != null
+      endDrawer: recipeProcessor != null
           ? Container(
               width: 300,
               height: 350,
               child: UnitMonitoringCardComponent(
-                deviceStats: selectedDevice!,
+                recipeProcessor: recipeProcessor!,
                 onTestRecipe: () async {
-                  var taskRunner = TaskRunnerPool.instance
-                      .getTaskRunner(selectedDevice!.moduleName!);
                   Task task = Task(
                       progress: 0,
                       recipeName: widget.recipe.recipeName,
-                      moduleName: selectedDevice?.moduleName,
+                      moduleName: recipeProcessor?.moduleName,
                       recipeId: widget.recipe.id,
                       taskName: "Recipe doodling test",
                       status: Task.CREATED);
@@ -167,8 +152,8 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                   if (taskId != null) {
                     Task? task = await taskDataAccess.getById(taskId);
                     if (task != null) {
-                      await taskRunner?.submitTask(TaskPayload(
-                          widget.recipe, instructions!, selectedDevice!, task));
+                      recipeProcessor?.processRecipe(
+                          TaskPayload(widget.recipe, instructions!, task));
                     }
                   }
                 },
@@ -372,6 +357,18 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                       },
                     ),
                     ListTile(
+                      leading: Icon(Icons.water_drop_outlined),
+                      title: const Text('Repeat'),
+                      onTap: () {
+                        setState(() {
+                          onSave(RepeatOperation(
+                              currentIndex: instructions!.length,
+                              repeatIndex: 0,
+                              repeatCount: 0));
+                        });
+                      },
+                    ),
+                    ListTile(
                       leading: Icon(Icons.dock_sharp),
                       enabled: false,
                       subtitle: const Text('Coming soon'),
@@ -513,6 +510,11 @@ class _CreateRecipePageState extends State<CreateRecipePage>
         operation: instruction as UserActionOperation,
         recipeWidgetActions: this,
       );
+    } else if (instruction.operation == RepeatOperation.CODE) {
+      return RepeatWidget(
+        operation: instruction as RepeatOperation,
+        recipeWidgetActions: this,
+      );
     }
     return Container(
       child: Text("Undefined Component"),
@@ -545,7 +547,7 @@ class _CreateRecipePageState extends State<CreateRecipePage>
 
   @override
   Future<void> onTest(BaseOperation operation) async {
-    if (selectedDevice == null) {
+    if (recipeProcessor == null) {
       await showDialog(
         context: context,
         builder: (context) {
@@ -586,30 +588,6 @@ class _CreateRecipePageState extends State<CreateRecipePage>
     }
 
     udpService?.send(jsonEncode(operation.toJson()).codeUnits,
-        InternetAddress(selectedDevice!.ipAddress!), 8888);
-  }
-
-  @override
-  void udpData(Datagram? dg) {
-    if (dg != null) {
-      populateOperations();
-
-      devices.forEach((device) {
-        if (selectedDevice != null) {
-          if (selectedDevice?.ipAddress == device.ipAddress) {
-            setState(() {
-              selectedDevice = device;
-              if (!manualOpen) {
-                if (selectedDevice?.requestId != 'idle') {
-                  _key.currentState?.openEndDrawer();
-                } else {
-                  _key.currentState?.closeEndDrawer();
-                }
-              }
-            });
-          }
-        }
-      });
-    }
+        InternetAddress(recipeProcessor!.getDeviceStats().ipAddress!), 8888);
   }
 }

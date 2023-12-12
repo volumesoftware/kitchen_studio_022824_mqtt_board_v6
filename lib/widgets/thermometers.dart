@@ -24,7 +24,7 @@ class Thermometer extends StatelessWidget {
           height: maxContainedMercuryHeight,
           width: maxContainedMercuryWidth,
           decoration: ShapeDecoration(
-            color: Colors.transparent,
+            color: Colors.black38,
             shape: const StadiumBorder(),
           ),
           clipBehavior: Clip.antiAlias,

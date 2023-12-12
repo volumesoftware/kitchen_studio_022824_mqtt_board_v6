@@ -2,19 +2,15 @@ import 'dart:io';
 import 'dart:math' as math; // import this
 import 'package:flutter/material.dart';
 import 'package:gauge_indicator/gauge_indicator.dart';
-import 'package:kitchen_studio_10162023/model/device_stats.dart';
-import 'package:kitchen_studio_10162023/service/task_runner_pool.dart';
-import 'package:kitchen_studio_10162023/service/task_runner_service.dart';
-import 'package:kitchen_studio_10162023/service/udp_listener.dart';
-import 'package:kitchen_studio_10162023/service/udp_service.dart';
 import 'package:kitchen_studio_10162023/widgets/thermometers.dart';
+import 'package:kitchen_module/kitchen_module.dart';
 
 class UnitMonitoringCardComponent extends StatefulWidget {
-  final DeviceStats deviceStats;
+  final RecipeProcessor recipeProcessor;
   final Function onTestRecipe;
 
   const UnitMonitoringCardComponent(
-      {Key? key, required this.deviceStats, required this.onTestRecipe})
+      {Key? key, required this.recipeProcessor, required this.onTestRecipe})
       : super(key: key);
 
   @override
@@ -23,159 +19,161 @@ class UnitMonitoringCardComponent extends StatefulWidget {
 }
 
 class _UnitMonitoringCardComponentState
-    extends State<UnitMonitoringCardComponent> implements TaskListener {
+    extends State<UnitMonitoringCardComponent> {
   UdpService udpService = UdpService.instance;
-  TaskRunnerPool taskRunnerPool = TaskRunnerPool.instance;
+
+  ThreadPool threadPool = ThreadPool.instance;
   final ValueNotifier<double> temperature = ValueNotifier(0.3);
-  TaskRunner? taskRunner;
   double _progress = 0.0;
   bool _busy = false;
 
   @override
   void dispose() {
-    taskRunner?.removeListeners(this);
     super.dispose();
   }
 
   @override
   void initState() {
-    taskRunner = taskRunnerPool.getTaskRunner(widget.deviceStats.moduleName!);
-    setState(() {
-      _busy = taskRunner!.isBusy();
-    });
-    taskRunner?.addListeners(this);
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      child: Container(
-        padding: EdgeInsets.all(20),
-        width: double.infinity,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: StreamBuilder(
+        stream: widget.recipeProcessor.hearBeat,
+        builder: (BuildContext context, AsyncSnapshot<DeviceStats> snapshot) {
+
+          DeviceStats deviceStats = snapshot.data ?? widget.recipeProcessor.getDeviceStats();
+
+          return Container(
+            padding: EdgeInsets.all(20),
+            width: double.infinity,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                Text(
-                  "${widget.deviceStats.moduleName}",
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                PopupMenuButton<String>(
-                  enabled: widget.deviceStats.requestId == 'idle',
-                  icon: Icon(Icons.filter_list),
-                  onSelected: (String result) {
-                    switch (result) {
-                      case 'zero':
-                        String jsonData =
-                            '{"operation":"199","request_id":"zeroing"}';
-                        udpService.send(
-                            jsonData.codeUnits,
-                            InternetAddress(widget.deviceStats.ipAddress!),
-                            8888);
-                        break;
-                      case 'heat_until':
-                        String jsonData =
-                            '{"operation":"212","target_temperature":40,"duration":120000,"request_id":"heat_until"}';
-                        udpService.send(
-                            jsonData.codeUnits,
-                            InternetAddress(widget.deviceStats.ipAddress!),
-                            8888);
-                        break;
-                      case 'filter2':
-                        print('filter 2 clicked');
-                        break;
-                      case 'clearFilters':
-                        print('Clear filters');
-                        break;
-                      default:
-                    }
-                  },
-                  itemBuilder: (BuildContext context) =>
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "${deviceStats.moduleName}",
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    PopupMenuButton<String>(
+                      enabled: deviceStats.requestId == 'idle',
+                      icon: Icon(Icons.filter_list),
+                      onSelected: (String result) {
+                        switch (result) {
+                          case 'zero':
+                            String jsonData =
+                                '{"operation":"199","request_id":"zeroing"}';
+                            udpService.send(
+                                jsonData.codeUnits,
+                                InternetAddress(deviceStats.ipAddress!),
+                                8888);
+                            break;
+                          case 'heat_until':
+                            String jsonData =
+                                '{"operation":"212","target_temperature":40,"duration":120000,"request_id":"heat_until"}';
+                            udpService.send(
+                                jsonData.codeUnits,
+                                InternetAddress(deviceStats.ipAddress!),
+                                8888);
+                            break;
+                          case 'filter2':
+                            print('filter 2 clicked');
+                            break;
+                          case 'clearFilters':
+                            print('Clear filters');
+                            break;
+                          default:
+                        }
+                      },
+                      itemBuilder: (BuildContext context) =>
                       <PopupMenuEntry<String>>[
-                    const PopupMenuItem<String>(
-                      value: 'zero',
-                      child: Text('Reset (Zero)'),
-                    ),
-                    const PopupMenuItem<String>(
-                      value: 'wash',
-                      child: Text('Wash'),
-                    ),
-                    const PopupMenuItem<String>(
-                      value: 'dispense',
-                      child: Text('Dispense'),
-                    ),
-                    const PopupMenuItem<String>(
-                      value: 'cooling',
-                      child: Text('Cooling'),
-                    ),
-                    const PopupMenuItem<String>(
-                      value: 'heat_until',
-                      child: Text('Heat Until'),
-                    ),
-                    const PopupMenuItem<String>(
-                      value: 'shutdown',
-                      child: Text('Shutdown'),
+                        const PopupMenuItem<String>(
+                          value: 'zero',
+                          child: Text('Reset (Zero)'),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'wash',
+                          child: Text('Wash'),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'dispense',
+                          child: Text('Dispense'),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'cooling',
+                          child: Text('Cooling'),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'heat_until',
+                          child: Text('Heat Until'),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'shutdown',
+                          child: Text('Shutdown'),
+                        )
+                      ],
                     )
                   ],
-                )
+                ),
+                Container(
+                  width: double.infinity,
+                  height: 135,
+                  child: Stack(
+                    alignment: AlignmentDirectional.center,
+                    children: [
+                      Container(
+                        width: 130,
+                        height: 130,
+                        child: Thermometer(
+                          temperature: temperature,
+                        ),
+                      ),
+                      Text(
+                          "${deviceStats.temperature?.toStringAsFixed(2)} °C",
+                          style: Theme.of(context).textTheme.titleMedium),
+                      Positioned(
+                          child: Transform(
+                            alignment: Alignment.center,
+                            transform: Matrix4.rotationY(math.pi),
+                            child:
+                            RotatedBox(quarterTurns: 2, child: progressGauge()),
+                          ),
+                          bottom: 0),
+                    ],
+                  ),
+                ),
+                Text(
+                  "${deviceStats.requestId}",
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                Text(
+                  "${deviceStats.ipAddress}:${deviceStats.port}",
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                Text(
+                  "${deviceStats.type}",
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                Text(
+                  "${(deviceStats.machineTime)} up time",
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                ElevatedButton(
+                    onPressed: () {
+                      widget.onTestRecipe();
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [Text("Run Test"), Icon(Icons.play_circle)],
+                    ))
               ],
             ),
-            Container(
-              width: double.infinity,
-              height: 135,
-              child: Stack(
-                alignment: AlignmentDirectional.center,
-                children: [
-                  Container(
-                    width: 130,
-                    height: 130,
-                    child: Thermometer(
-                      temperature: temperature,
-                    ),
-                  ),
-                  Text(
-                      "${widget.deviceStats.temperature?.toStringAsFixed(2)} °C",
-                      style: Theme.of(context).textTheme.titleMedium),
-                  Positioned(
-                      child: Transform(
-                        alignment: Alignment.center,
-                        transform: Matrix4.rotationY(math.pi),
-                        child:
-                            RotatedBox(quarterTurns: 2, child: progressGauge()),
-                      ),
-                      bottom: 0),
-                ],
-              ),
-            ),
-            Text(
-              "${widget.deviceStats.requestId}",
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            Text(
-              "${widget.deviceStats.ipAddress}:${widget.deviceStats.port}",
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            Text(
-              "${widget.deviceStats.type}",
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            Text(
-              "${(widget.deviceStats.machineTime)} up time",
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            ElevatedButton(
-                onPressed: () {
-                  widget.onTestRecipe();
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [Text("Run Test"), Icon(Icons.play_circle)],
-                ))
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -225,23 +223,5 @@ class _UnitMonitoringCardComponentState
                 cornerRadius: Radius.zero,
               ),
             ]));
-  }
-
-  @override
-  void onEvent(String moduleName, message,
-      {required bool busy,
-      required DeviceStats deviceStats,
-      required double progress,
-      required int index, UserAction? userAction}) {
-    print(busy);
-
-    setState(() {
-      _busy = busy;
-      _progress = progress;
-    });
-  }
-
-  @override
-  void onError(ModuleError error) {
   }
 }

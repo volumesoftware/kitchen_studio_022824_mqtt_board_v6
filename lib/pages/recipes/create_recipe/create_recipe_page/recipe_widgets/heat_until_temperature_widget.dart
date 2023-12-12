@@ -1,9 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:kitchen_studio_10162023/model/device_stats.dart';
-import 'package:kitchen_studio_10162023/model/heat_until_temperature_operation.dart';
-import 'package:kitchen_studio_10162023/model/instruction.dart';
+import 'package:kitchen_module/kitchen_module.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/recipe_widget_action.dart';
 
 class HeatUntilTemperatureWidget extends StatefulWidget {

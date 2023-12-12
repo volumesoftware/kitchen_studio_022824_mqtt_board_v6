@@ -24,12 +24,14 @@ class DeviceStats {
   int? instructionSize;
   double? rotaryMotorAngle;
   double? tiltingMotorAngle;
+  String? lastError;
 
   List<double> temperatureArray = [];
 
   DeviceStats.fromJson(Map<String, dynamic> json) {
     ipAddress = json['ip'];
     port = json['port'];
+    lastError = json['le'];
     moduleName = json['name'];
     type = json['type'];
     group = json['group'];

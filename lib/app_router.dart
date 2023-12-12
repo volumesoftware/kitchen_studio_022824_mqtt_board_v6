@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:kitchen_studio_10162023/app_shell.dart';
-import 'package:kitchen_studio_10162023/model/recipe.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/create_recipe_page.dart';
-import 'package:kitchen_studio_10162023/pages/tasks/tasks_page.dart';
+import 'package:kitchen_studio_10162023/pages/taskv2/tasks_pagev2.dart';
+import 'package:kitchen_module/kitchen_module.dart';
 
 class AppRouter {
   static const String appShellScreen = "/appShellScreen";
@@ -28,7 +28,7 @@ class AppRouter {
         }
       case taskScreen:
         {
-          return MaterialPageRoute(builder: (_) => TasksPage());
+          return MaterialPageRoute(builder: (_) => TasksPageV2());
         }
     }
 

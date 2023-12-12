@@ -4,8 +4,7 @@ import 'dart:math';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:kitchen_studio_10162023/app_router.dart';
-import 'package:kitchen_studio_10162023/dao/recipe_data_access.dart';
-import 'package:kitchen_studio_10162023/model/recipe.dart';
+import 'package:kitchen_module/kitchen_module.dart';
 
 class RecipesPage extends StatefulWidget {
   const RecipesPage({Key? key}) : super(key: key);
@@ -146,14 +145,12 @@ class _RecipesPageState extends State<RecipesPage> {
                                   Navigator.of(context).pushNamed(AppRouter.createRecipePage, arguments: recipes![index]);
 
                                 },
-                                child: Row(
-                                  children: [Text("Edit")],
-                                )),
-                            ElevatedButton(
-                                onPressed: () {},
-                                child: Row(
-                                  children: [Text("Cook")],
-                                ))
+                                child: Text("Edit")),
+                            // ElevatedButton(
+                            //     onPressed: () {},
+                            //     child: Row(
+                            //       children: [Text("Cook")],
+                            //     ))
                           ],
                         ),
                       ],

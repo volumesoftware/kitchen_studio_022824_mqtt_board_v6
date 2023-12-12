@@ -7,11 +7,17 @@ class RecipeProcessor {
   bool _isInitialized = false;
   String? moduleName;
   bool _busy = false;
+  late DateTime lastStateChangeTime;
+  Set<String?> lastErrors = Set();
+
   TaskDataAccess taskDataAccess = TaskDataAccess.instance;
   RecipeDataAccess recipeDataAccess = RecipeDataAccess.instance;
   BaseOperationDataAccess baseOperationDataAccess =
       BaseOperationDataAccess.instance;
-  StreamController<DeviceStats> _deviceStateChange = StreamController<DeviceStats>.broadcast();
+  StreamController<DeviceStats> _deviceStateChange =
+      StreamController<DeviceStats>.broadcast();
+  StreamController<DeviceStats> _heartBeatChange =
+      StreamController<DeviceStats>.broadcast();
 
   DeviceStats _device;
   late Isolate _isolate;
@@ -24,9 +30,38 @@ class RecipeProcessor {
   double _progress = 0.0;
   int _index = 0;
   bool _chain = false;
+  bool _notStateChangeOccured = false;
 
   RecipeProcessor(this._device) {
     moduleName = _device.moduleName;
+    lastStateChangeTime = DateTime.now();
+
+    _stateChanges.listen((deviceStats) {
+      DateTime currentTime = DateTime.now();
+      if (currentTime.difference(lastStateChangeTime) >= Duration(seconds: 5)) {
+        _notStateChangeOccured = true;
+      } else {
+        _notStateChangeOccured = false;
+      }
+      if (deviceStats.lastError != null) {
+        if(deviceStats.lastError!.isNotEmpty){
+          lastErrors.add(deviceStats.lastError);
+        }
+      }
+      lastStateChangeTime = DateTime.now();
+      _heartBeatChange.sink.add(deviceStats);
+    });
+
+    Timer.periodic(Duration(seconds: 2), (_) {
+      DateTime currentTime = DateTime.now();
+      if (currentTime.difference(lastStateChangeTime) >= Duration(seconds: 5)) {
+        print('No state change in the last 10 seconds');
+        _notStateChangeOccured = true;
+      } else {
+        _notStateChangeOccured = false;
+      }
+      _heartBeatChange.sink.add(_device);
+    });
 
     if (!_isInitialized) {
       _initIsolate();
@@ -34,78 +69,48 @@ class RecipeProcessor {
     }
   }
 
+  //listen to the state change of the thread pool
+  Stream<DeviceStats> get _stateChanges => _deviceStateChange.stream;
+
+  Stream<DeviceStats> get hearBeat => _heartBeatChange.stream;
 
   //listen to the state change of the thread pool
-  Stream<DeviceStats> get stateChanges =>
-      _deviceStateChange.stream;
-
+  bool get noStateChange => _notStateChangeOccured;
 
   void _initIsolate() async {
     _receivePort = ReceivePort();
     _receivePort.listen((message) async {
-      if (message == "completed") {
-        _busy = false;
-        _payload!.task.status = Task.COMPLETED;
-        await taskDataAccess.updateById(_payload!.task.id!, _payload!.task);
-        _payload = null;
+      print(message);
 
-        _eventListeners.forEach((element) {
-          element.onEvent(_device.moduleName!, message,
-              busy: _busy,
-              deviceStats: _device,
-              progress: _progress,
-              index: _index);
-        });
-      } else if (message == "started") {
-        _busy = true;
-        if (_payload != null) {
-          _payload!.task.status = Task.STARTED;
+      if (message is String) {
+        if (message == "completed") {
+          _busy = false;
+          _payload!.task.status = Task.COMPLETED;
           await taskDataAccess.updateById(_payload!.task.id!, _payload!.task);
+          _payload = null;
+
+          _eventListeners.forEach((element) {
+            element.onEvent(_device.moduleName!, message,
+                busy: _busy,
+                deviceStats: _device,
+                progress: _progress,
+                index: _index);
+          });
+        } else if (message == "started") {
+          _busy = true;
+          if (_payload != null) {
+            _payload!.task.status = Task.STARTED;
+            await taskDataAccess.updateById(_payload!.task.id!, _payload!.task);
+          }
         }
-        _eventListeners.forEach((element) {
-          element.onEvent(_device.moduleName!, message,
-              busy: _busy,
-              deviceStats: _device,
-              progress: _progress,
-              index: _index);
-        });
       } else if (message is TaskProgress) {
         _progress = message.progress;
-        _eventListeners.forEach((element) {
-          element.onEvent(_device.moduleName!, message,
-              busy: _busy,
-              deviceStats: _device,
-              progress: _progress,
-              index: _index);
-        });
       } else if (message is IndexProgress) {
         _index = message.progress;
-        _eventListeners.forEach((element) {
-          element.onEvent(_device.moduleName!, message,
-              busy: _busy,
-              deviceStats: _device,
-              progress: _progress,
-              index: _index);
-        });
       } else if (message is UserAction) {
         print(message);
-        _eventListeners.forEach((element) {
-          element.onEvent(_device.moduleName!, message,
-              busy: _busy,
-              deviceStats: _device,
-              progress: _progress,
-              index: _index,
-              userAction: message);
-        });
       } else if (message is UserResponse) {
         print(message);
-        _eventListeners.forEach((element) {
-          element.onEvent(_device.moduleName!, message,
-              busy: _busy,
-              deviceStats: _device,
-              progress: _progress,
-              index: _index);
-        });
       } else if (message is Exception) {
         _payload = null;
         _busy = false;
@@ -114,18 +119,19 @@ class RecipeProcessor {
         });
       } else if (message is KillIsolate) {
         // Isolate.kill(priority: Isolate.immediate);
-      } else if(message is SendPort){
+      } else if (message is SendPort) {
         _sendPort = message;
         print('_sendPort assigned');
       }
     });
 
-    _isolate = await Isolate.spawn(recipeIsolateEntryPoint, _receivePort.sendPort);
-
+    _isolate =
+        await Isolate.spawn(recipeIsolateEntryPoint, _receivePort.sendPort);
   }
 
   Future<void> processRecipe(TaskPayload p) async {
-    _sendPort.send([_receivePort.sendPort, p]);
+    _payload = p;
+    _sendPort.send([_receivePort.sendPort, p, _device]);
   }
 
   void updateStats(DeviceStats deviceStats) {
@@ -177,6 +183,10 @@ class RecipeProcessor {
 
   int getIndexProgress() {
     return _index;
+  }
+
+  BaseOperation? getCurrentOperation() {
+    return _payload?.operations[_index];
   }
 
   DeviceStats getDeviceStats() {

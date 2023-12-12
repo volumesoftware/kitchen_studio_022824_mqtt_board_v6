@@ -1,11 +1,10 @@
 import 'package:database_service/database_service.dart';
+import 'package:flutter/cupertino.dart';
 
 class TaskPayload {
   final Recipe recipe;
   final List<BaseOperation> operations;
-  final DeviceStats deviceStats;
   final Task task;
-  final bool randomAssign;
 
-  TaskPayload(this.recipe, this.operations, this.deviceStats, this.task, this.randomAssign);
+  TaskPayload(this.recipe, this.operations, this.task);
 }

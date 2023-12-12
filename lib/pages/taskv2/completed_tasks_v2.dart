@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:kitchen_module/kitchen_module.dart';
 
-class CompletedTasks extends StatefulWidget {
-  const CompletedTasks({Key? key}) : super(key: key);
+class CompletedTasksV2 extends StatefulWidget {
+  const CompletedTasksV2({Key? key}) : super(key: key);
 
   @override
-  State<CompletedTasks> createState() => _CompletedTasksState();
+  State<CompletedTasksV2> createState() => _CompletedTasksV2State();
 }
 
-class _CompletedTasksState extends State<CompletedTasks> implements TaskChangedListener{
+class _CompletedTasksV2State extends State<CompletedTasksV2> implements TaskChangedListener{
   TaskDataAccess taskDataAccess = TaskDataAccess.instance;
   final TextEditingController _searchController = TextEditingController();
   String query = '';

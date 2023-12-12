@@ -3,9 +3,7 @@ import 'dart:io';
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_charts/flutter_charts.dart';
-import 'package:kitchen_studio_10162023/dao/ingredient_data_access.dart';
-import 'package:kitchen_studio_10162023/model/ingredient.dart';
+import 'package:kitchen_module/kitchen_module.dart';
 
 class IngredientsPage extends StatefulWidget {
   const IngredientsPage({Key? key}) : super(key: key);

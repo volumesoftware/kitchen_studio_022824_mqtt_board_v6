@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:kitchen_studio_10162023/dao/ingredient_data_access.dart';
-import 'package:kitchen_studio_10162023/model/dock_ingredient_operation.dart';
-import 'package:kitchen_studio_10162023/model/ingredient.dart';
+import 'package:kitchen_module/kitchen_module.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/ingredient_search_result_page.dart';
 
 class IngredientSearchDelegate extends SearchDelegate<IngredientItem?> {

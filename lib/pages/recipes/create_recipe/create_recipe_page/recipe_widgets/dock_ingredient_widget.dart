@@ -2,11 +2,7 @@ import 'dart:io';
 
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
-import 'package:kitchen_studio_10162023/dao/ingredient_data_access.dart';
-import 'package:kitchen_studio_10162023/dao/ingredient_item_data_access.dart';
-import 'package:kitchen_studio_10162023/model/dock_ingredient_operation.dart';
-import 'package:kitchen_studio_10162023/model/ingredient.dart';
-import 'package:kitchen_studio_10162023/model/pump_water_operation.dart';
+import 'package:kitchen_module/kitchen_module.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/ingredient_search_delegate.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/recipe_widget_action.dart';
 

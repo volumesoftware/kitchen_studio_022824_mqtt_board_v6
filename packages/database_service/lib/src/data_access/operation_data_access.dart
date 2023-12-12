@@ -47,6 +47,8 @@ class BaseOperationDataAccess implements DataAccess<BaseOperation> {
         return HotMixOperation.fromDatabase(e);
       case ColdMixOperation.CODE:
         return ColdMixOperation.fromDatabase(e);
+      case RepeatOperation.CODE:
+        return RepeatOperation.fromDatabase(e);
     }
 
     return ZeroingOperation.fromDatabase(e);

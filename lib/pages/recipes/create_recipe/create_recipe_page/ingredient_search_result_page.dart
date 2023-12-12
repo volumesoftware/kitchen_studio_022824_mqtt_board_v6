@@ -2,9 +2,7 @@ import 'dart:io';
 
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:flutter/material.dart';
-import 'package:kitchen_studio_10162023/dao/ingredient_data_access.dart';
-import 'package:kitchen_studio_10162023/model/dock_ingredient_operation.dart';
-import 'package:kitchen_studio_10162023/model/ingredient.dart';
+import 'package:kitchen_module/kitchen_module.dart';
 
 class IngredientSearchResult extends StatefulWidget {
   final String query;

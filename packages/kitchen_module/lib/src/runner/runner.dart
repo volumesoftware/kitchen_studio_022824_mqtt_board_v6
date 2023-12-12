@@ -14,19 +14,38 @@ Future<void> recipeIsolateEntryPoint(SendPort sendPort) async {
     if (message is List) {
       final SendPort eventSenderPort = message[0];
       final TaskPayload payload = message[1];
+      final DeviceStats _device = message[2];
       int totalProgress = payload.operations.length + 1;
       eventSenderPort.send("started");
+      List<BaseOperation> operations = payload.operations;
 
-      for (var i = 0; i < payload.operations.length; i++) {
-        BaseOperation operation = payload.operations[i];
-        bool? isIdle = await clearIdle(operation, payload.deviceStats);
+      for (var i = 0; i < operations.length; i++) {
+        BaseOperation operation = operations[i];
+
         eventSenderPort.send(TaskProgress((i + 1) / totalProgress));
-        eventSenderPort.send(IndexProgress(i));
+        eventSenderPort.send(IndexProgress(operation.currentIndex!));
+
         if (operation.operation == UserActionOperation.CODE) {
           eventSenderPort.send(UserAction("", "", operation.currentIndex));
         }
-        bool? available = await waitForIdle(operation, payload.deviceStats);
+        if (operation.operation == RepeatOperation.CODE) {
+          RepeatOperation repeater = (operation as RepeatOperation);
+          Iterable<BaseOperation> _repeatSequence =
+              operations.getRange((repeater.repeatIndex!) > 0 ? (repeater.repeatIndex! - 1) : 0, i);
+
+          for (var j = 0; j < repeater.repeatCount!; j++) {
+            print("REPEAT ${j + 1}");
+            for (BaseOperation _operation in _repeatSequence) {
+              print("REPEAT ${_operation.toJson()}");
+              eventSenderPort.send(IndexProgress(_operation.currentIndex!));
+              await waitForIdle(_operation, _device);
+            }
+          }
+        } else {
+          bool? available = await waitForIdle(operation, _device);
+        }
       }
+
       bool? available = await waitForIdle(
           UserActionOperation(
               message: "",
@@ -34,7 +53,7 @@ Future<void> recipeIsolateEntryPoint(SendPort sendPort) async {
               currentIndex: 0,
               targetTemperature: 28,
               isClosing: true),
-          payload.deviceStats);
+          _device);
       eventSenderPort.send(TaskProgress(1));
       eventSenderPort.send("completed");
     }
