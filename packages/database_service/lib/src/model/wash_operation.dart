@@ -1,6 +1,6 @@
 import 'models.dart';
 
-class WashOperation implements BaseOperation {
+class WashOperation extends TimedOperation {
   static const int CODE = 202;
   @override
   int? id;

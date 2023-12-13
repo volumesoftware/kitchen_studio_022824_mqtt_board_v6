@@ -66,7 +66,9 @@ class ThreadPool {
 
   void pop(RecipeProcessor recipeProcessor) {
     recipeProcessor.dispose();
-    _pool.remove(recipeProcessor);
+    _pool.removeWhere((rp)=>rp.moduleName == recipeProcessor.moduleName);
+    print(_pool);
+    _poolChangeController.sink.add(_pool);
     print('removing ${recipeProcessor.moduleName}');
 
   }

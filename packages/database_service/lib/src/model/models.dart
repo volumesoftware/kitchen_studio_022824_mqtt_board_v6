@@ -23,3 +23,4 @@ export 'wash_operation.dart';
 export 'stir_operation.dart';
 export 'zeroing_operation.dart';
 export 'repeat_operation.dart';
+export 'timed_operation.dart';

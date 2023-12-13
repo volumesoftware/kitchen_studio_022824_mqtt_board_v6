@@ -1,6 +1,6 @@
 
 import 'models.dart';
-class HeatForOperation implements BaseOperation {
+class HeatForOperation extends TimedOperation {
   static const int CODE = 212;
   @override
   int? id;

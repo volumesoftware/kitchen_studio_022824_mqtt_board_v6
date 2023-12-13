@@ -8,6 +8,10 @@ class RecipeProcessor {
   String? moduleName;
   bool _busy = false;
   late DateTime lastStateChangeTime;
+  late DateTime taskStarted;
+  int etaInSeconds = 0;
+  Timer? timer;
+
   Set<String?> lastErrors = Set();
 
   TaskDataAccess taskDataAccess = TaskDataAccess.instance;
@@ -44,7 +48,7 @@ class RecipeProcessor {
         _notStateChangeOccured = false;
       }
       if (deviceStats.lastError != null) {
-        if(deviceStats.lastError!.isNotEmpty){
+        if (deviceStats.lastError!.isNotEmpty) {
           lastErrors.add(deviceStats.lastError);
         }
       }
@@ -55,7 +59,6 @@ class RecipeProcessor {
     Timer.periodic(Duration(seconds: 2), (_) {
       DateTime currentTime = DateTime.now();
       if (currentTime.difference(lastStateChangeTime) >= Duration(seconds: 5)) {
-        print('No state change in the last 10 seconds');
         _notStateChangeOccured = true;
       } else {
         _notStateChangeOccured = false;
@@ -99,6 +102,20 @@ class RecipeProcessor {
         } else if (message == "started") {
           _busy = true;
           if (_payload != null) {
+            taskStarted = DateTime.now();
+            const oneSec = const Duration(seconds: 1);
+            timer = new Timer.periodic(
+              oneSec,
+                  (Timer timer) {
+                if (etaInSeconds == 0) {
+                  timer.cancel();
+                } else {
+                  etaInSeconds = etaInSeconds - 1;
+                }
+                print(etaInSeconds);
+
+              },
+            );
             _payload!.task.status = Task.STARTED;
             await taskDataAccess.updateById(_payload!.task.id!, _payload!.task);
           }
@@ -130,6 +147,34 @@ class RecipeProcessor {
   }
 
   Future<void> processRecipe(TaskPayload p) async {
+    int duration = 0;
+    for (var i = 0; i < p.operations.length; i++) {
+      BaseOperation operation = p.operations[i];
+
+      if (operation is TimedOperation) {
+        TimedOperation op = (operation) as TimedOperation;
+        duration = duration + op.duration!;
+      }
+
+      if (operation.operation == RepeatOperation.CODE) {
+        RepeatOperation repeater = (operation as RepeatOperation);
+        Iterable<BaseOperation> _repeatSequence = p.operations.getRange(
+            (repeater.repeatIndex!) > 0 ? (repeater.repeatIndex! - 1) : 0, i);
+
+        for (var j = 0; j < repeater.repeatCount!; j++) {
+          print("REPEAT ${j + 1}");
+          for (BaseOperation _operation in _repeatSequence) {
+            if (_operation is TimedOperation) {
+              TimedOperation _op = (_operation) as TimedOperation;
+              duration = duration + _op.duration!;
+            }
+          }
+        }
+      }
+    }
+
+    etaInSeconds = duration + 120;
+
     _payload = p;
     _sendPort.send([_receivePort.sendPort, p, _device]);
   }
@@ -202,8 +247,15 @@ class RecipeProcessor {
   }
 
   void dispose() {
+    lastErrors.clear();
     _receivePort.close();
     _isolate.kill();
+    timer?.cancel();
+  }
+
+  @override
+  String toString() {
+    return moduleName ?? 'Unknown';
   }
 }
 

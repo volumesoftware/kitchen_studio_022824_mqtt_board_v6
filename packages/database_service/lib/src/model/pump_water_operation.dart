@@ -1,6 +1,6 @@
 import 'models.dart';
 
-class PumpWaterOperation implements BaseOperation {
+class PumpWaterOperation extends TimedOperation {
   static const int CODE = 210;
 
   @override

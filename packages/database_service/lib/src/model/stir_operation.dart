@@ -1,6 +1,6 @@
 import 'models.dart';
 
-class StirOperation implements BaseOperation {
+class StirOperation extends TimedOperation {
   static const int CODE = 9945;
 
   @override

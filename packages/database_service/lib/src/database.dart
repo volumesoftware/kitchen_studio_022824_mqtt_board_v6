@@ -10,18 +10,15 @@ class DatabasePackage {
 
   DatabasePackage._privateConstructor();
 
-  static final DatabasePackage _instance =
-  DatabasePackage._privateConstructor();
+  static final DatabasePackage _instance = DatabasePackage._privateConstructor();
 
   static DatabasePackage get instance => _instance;
 
   Database get connectedDatabase => database!;
 
   Future<void> initialize() async {
-
     fl.applyWorkaroundToOpenSqlite3OnOldAndroidVersions();
-
-    if (Platform.isWindows || Platform.isLinux) {
+    if (Platform.isWindows || Platform.isLinux) { 
       print("initializing");
       sqfliteFfiInit();
     }
