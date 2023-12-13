@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:kitchen_studio_10162023/app_router.dart';
 import 'package:kitchen_module/kitchen_module.dart';
+import 'package:path_provider/path_provider.dart';
 
 class RecipesPage extends StatefulWidget {
   const RecipesPage({Key? key}) : super(key: key);
@@ -271,8 +272,14 @@ class _RecipesPageState extends State<RecipesPage> {
                 ElevatedButton(
                   child: Text('OK'),
                   onPressed: () async {
+                    final Directory tempDir = await getTemporaryDirectory();
+                    String path = "${tempDir.path}\\kitchen\\assets\\images";
+                    Directory myNewDir = await Directory('$path').create(recursive: true);
                     File? copiedFile =
-                        await file?.copy("assets/images/${fileName}");
+                        await file?.copy("${tempDir.path}\\kitchen\\assets\\images\\${fileName}");
+
+
+
                     Recipe recipe = Recipe(
                         author: _authorController.text,
                         recipeName: _recipeNameController.text,

@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:path_provider/path_provider.dart';
+
 import 'model/models.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqlite3_flutter_libs/sqlite3_flutter_libs.dart' as fl;
@@ -26,9 +28,14 @@ class DatabasePackage {
       sqfliteFfiInit();
     }
 
+    final Directory tempDir = await getTemporaryDirectory();
+    String path = "${tempDir.path}\\kitchen\\assets\\database";
+    Directory myNewDir = await Directory('$path').create(recursive: true);
+
     var databaseFactory = databaseFactoryFfi;
 
-    database = await databaseFactory.openDatabase('/assets/database/kitchenstudio.db',
+
+    database = await databaseFactory.openDatabase('${path}\\kitchenstudio.db',
         options: OpenDatabaseOptions(
           version: 26,
           onUpgrade: (db, oldVersion, newVersion) => createDrop(db, newVersion),

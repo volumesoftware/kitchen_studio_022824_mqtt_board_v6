@@ -31,6 +31,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'Kitchen Studio 10162023',
       debugShowCheckedModeBanner: false,
+      themeMode: ThemeMode.dark,
       theme: ThemeData(
         fontFamily: 'Poppins',
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple),
