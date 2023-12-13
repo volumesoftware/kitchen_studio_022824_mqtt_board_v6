@@ -2,7 +2,7 @@
 
 import 'models.dart';
 
-class ColdMixOperation implements BaseOperation {
+class ColdMixOperation extends TimedOperation {
   static const int CODE = 214;
 
   @override

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'app_router.dart';
 import 'package:kitchen_module/kitchen_module.dart';
-
+import 'package:window_manager/window_manager.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await WindowManager.instance.setFullScreen(true);
   await DatabasePackage.instance.initialize();
   runApp(MyApp());
 }

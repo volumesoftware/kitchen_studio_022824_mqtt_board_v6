@@ -1,4 +1,4 @@
-abstract interface class BaseOperation {
+abstract  class BaseOperation {
   int? id;
   int? recipeId;
   int? operation;

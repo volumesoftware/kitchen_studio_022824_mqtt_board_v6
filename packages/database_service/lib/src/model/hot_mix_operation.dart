@@ -1,6 +1,6 @@
 
 import 'models.dart';
-class HotMixOperation implements BaseOperation {
+class HotMixOperation extends TimedOperation {
   static const int CODE = 215;
 
   @override
