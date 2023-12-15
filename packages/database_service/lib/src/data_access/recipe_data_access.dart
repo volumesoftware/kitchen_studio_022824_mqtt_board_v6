@@ -20,6 +20,7 @@ class RecipeDataAccess implements DataAccess<Recipe> {
 
   @override
   Future<int?> delete(int id) async {
+    database?.delete(BaseOperation.tableName(), where: "recipe_id = ?", whereArgs: [id]);
     return database
         ?.delete(Recipe.tableName(), where: "id = ?", whereArgs: [id]);
   }

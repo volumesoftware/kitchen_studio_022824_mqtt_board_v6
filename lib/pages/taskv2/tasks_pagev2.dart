@@ -1,13 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:kitchen_module/kitchen_module.dart';
-import 'package:kitchen_studio_10162023/pages/cooking_units/cooking_unit_card_component.dart';
-import 'package:kitchen_studio_10162023/pages/cooking_units/cooking_unit_card_component_v2.dart';
-import 'package:kitchen_studio_10162023/pages/tasks/completed_tasks.dart';
-import 'package:kitchen_studio_10162023/pages/tasks/created_tasks.dart';
-import 'package:kitchen_studio_10162023/pages/tasks/running_tasks.dart';
 import 'package:kitchen_studio_10162023/pages/taskv2/completed_tasks_v2.dart';
 import 'package:kitchen_studio_10162023/pages/taskv2/running_tasks_v2.dart';
 
@@ -23,7 +16,7 @@ class _TasksPageV2State extends State<TasksPageV2> {
   List<Task>? tasks = [];
   ThreadPool threadPool = ThreadPool.instance;
   final GlobalKey<ScaffoldState> _key = GlobalKey(); // Create a key
-   FocusScopeNode focusScopeNode = FocusScopeNode();
+  FocusScopeNode focusScopeNode = FocusScopeNode();
 
   void populateTask() {
     taskDataAccess.findAll().then((value) {
@@ -50,7 +43,8 @@ class _TasksPageV2State extends State<TasksPageV2> {
     if (mounted) {
       final key = event.logicalKey.keyLabel;
       if (event is KeyDownEvent) {
-        print("Key down: $key");
+        print(" task page"
+            " Key down: $key");
         if (key == 'Numpad 8' || key == 'Arrow Up') {
           focusScopeNode.previousFocus();
         } else if (key == 'Numpad 2' || key == 'Arrow Down') {

@@ -8,7 +8,6 @@ import 'package:kitchen_studio_10162023/widgets/thermometers.dart';
 class RunningTaskTimelineWidget extends StatefulWidget {
   final RecipeProcessor recipeProcessor;
 
-
   RunningTaskTimelineWidget({Key? key, required this.recipeProcessor})
       : super(key: key);
 
@@ -28,7 +27,7 @@ class _RunningTaskTimelineWidgetState extends State<RunningTaskTimelineWidget> {
 
   @override
   void initState() {
-    heartBeat  = widget.recipeProcessor.hearBeat;
+    heartBeat = widget.recipeProcessor.hearBeat;
     _stateChange = widget.recipeProcessor.hearBeat.listen((DeviceStats stats) {
       temperature.value = stats.temperature! / 400;
 
@@ -93,7 +92,6 @@ class _RunningTaskTimelineWidgetState extends State<RunningTaskTimelineWidget> {
   Widget build(BuildContext context) {
     return StreamBuilder(
       stream: heartBeat,
-
       builder: (context, snapshot) {
         if ((snapshot.data == null) &&
             (widget.recipeProcessor.getDeviceStats().moduleName == null)) {
@@ -140,11 +138,12 @@ class _RunningTaskTimelineWidgetState extends State<RunningTaskTimelineWidget> {
                                 style: Theme.of(context).textTheme.titleLarge,
                               ),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Icon(Icons.watch_later_outlined),
                                   Text(
-                                    "${widget.recipeProcessor.etaInSeconds}",
+                                    "${timeLeft(widget.recipeProcessor.etaInSeconds)}",
                                     style:
                                         Theme.of(context).textTheme.titleLarge,
                                   ),
@@ -154,11 +153,8 @@ class _RunningTaskTimelineWidgetState extends State<RunningTaskTimelineWidget> {
                                   style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.redAccent),
                                   onPressed: () {
-
-
                                     ThreadPool.instance
                                         .pop(widget.recipeProcessor);
-
 
                                     setState(() {
                                       message = "Please restart the module";
@@ -402,5 +398,18 @@ class _RunningTaskTimelineWidgetState extends State<RunningTaskTimelineWidget> {
         );
       },
     );
+  }
+
+  String timeLeft(int seconds) {
+    String eta = "";
+    if (seconds >= 60) {
+      eta = (seconds / 60).toStringAsFixed(2);
+      return "$eta minutes";
+    } else if (seconds >= 3600) {
+      eta = (seconds / (60 * 60)).toStringAsFixed(2);
+      return "$eta hours";
+    } else {
+      return "$seconds seconds";
+    }
   }
 }

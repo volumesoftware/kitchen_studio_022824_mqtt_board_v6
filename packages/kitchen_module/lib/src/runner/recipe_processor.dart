@@ -89,6 +89,13 @@ class RecipeProcessor {
         if (message == "completed") {
           _busy = false;
           _payload!.task.status = Task.COMPLETED;
+          var endTime = DateTime.now();
+          int estimatedTimeCompletion = endTime.difference(taskStarted).inSeconds;
+
+          _payload!.recipe.cookCount = _payload!.recipe.cookCount ?? 0 + 1;
+          _payload!.recipe.estimatedTimeCompletion = estimatedTimeCompletion.toDouble();
+
+          await recipeDataAccess.updateById(_payload!.recipe.id!, _payload!.recipe);
           await taskDataAccess.updateById(_payload!.task.id!, _payload!.task);
           _payload = null;
 
@@ -147,33 +154,37 @@ class RecipeProcessor {
   }
 
   Future<void> processRecipe(TaskPayload p) async {
-    int duration = 0;
-    for (var i = 0; i < p.operations.length; i++) {
-      BaseOperation operation = p.operations[i];
+    int? duration = p.recipe.estimatedTimeCompletion?.toInt();
 
-      if (operation is TimedOperation) {
-        TimedOperation op = (operation) as TimedOperation;
-        duration = duration + op.duration!;
-      }
+    if(duration == null || duration == 0){
+      for (var i = 0; i < p.operations.length; i++) {
+        BaseOperation operation = p.operations[i];
 
-      if (operation.operation == RepeatOperation.CODE) {
-        RepeatOperation repeater = (operation as RepeatOperation);
-        Iterable<BaseOperation> _repeatSequence = p.operations.getRange(
-            (repeater.repeatIndex!) > 0 ? (repeater.repeatIndex! - 1) : 0, i);
+        if (operation is TimedOperation) {
+          TimedOperation op = (operation) as TimedOperation;
+          duration = duration! + op.duration!;
+        }
 
-        for (var j = 0; j < repeater.repeatCount!; j++) {
-          print("REPEAT ${j + 1}");
-          for (BaseOperation _operation in _repeatSequence) {
-            if (_operation is TimedOperation) {
-              TimedOperation _op = (_operation) as TimedOperation;
-              duration = duration + _op.duration!;
+        if (operation.operation == RepeatOperation.CODE) {
+          RepeatOperation repeater = (operation as RepeatOperation);
+          Iterable<BaseOperation> _repeatSequence = p.operations.getRange(
+              (repeater.repeatIndex!) > 0 ? (repeater.repeatIndex! - 1) : 0, i);
+
+          for (var j = 0; j < repeater.repeatCount!; j++) {
+            print("REPEAT ${j + 1}");
+            for (BaseOperation _operation in _repeatSequence) {
+              if (_operation is TimedOperation) {
+                TimedOperation _op = (_operation) as TimedOperation;
+                duration = duration! + _op.duration!;
+              }
             }
           }
         }
       }
+      etaInSeconds = duration ?? 0 + 120;
+    }else{
+      etaInSeconds = duration;
     }
-
-    etaInSeconds = duration + 120;
 
     _payload = p;
     _sendPort.send([_receivePort.sendPort, p, _device]);

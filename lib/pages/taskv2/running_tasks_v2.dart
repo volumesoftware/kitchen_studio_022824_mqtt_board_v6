@@ -23,7 +23,9 @@ class _RunningTasksV2State extends State<RunningTasksV2> {
       body: StreamBuilder(
         builder: (context, snapshot) {
           if ((snapshot.data == null) && (threadPool.pool.isEmpty)) {
-            return Text('Loading modules');
+            return Center(
+              child: Text('No module available', style: Theme.of(context).textTheme.displaySmall,),
+            );
           }
           return ListView(
             children: (snapshot.data ?? threadPool.pool)

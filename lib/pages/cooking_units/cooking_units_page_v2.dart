@@ -41,6 +41,11 @@ class _CookingUnitsPageV2State extends State<CookingUnitsPageV2> {
         stream: threadPool.stateChanges,
         builder: (BuildContext context,
             AsyncSnapshot<List<RecipeProcessor>> snapshot) {
+
+          if(threadPool.poolSize ==0 ){
+            return Center(child: Text("No module available", style: Theme.of(context).textTheme.displaySmall),);
+          }
+
           return GridView.builder(
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 childAspectRatio: .65,

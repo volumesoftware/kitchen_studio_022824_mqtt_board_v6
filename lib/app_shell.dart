@@ -1,8 +1,9 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:kitchen_module/kitchen_module.dart';
 import 'package:kitchen_studio_10162023/app_router.dart';
-import 'package:kitchen_studio_10162023/pages/cooking_units/cooking_units_page.dart';
 import 'package:kitchen_studio_10162023/pages/cooking_units/cooking_units_page_v2.dart';
 import 'package:kitchen_studio_10162023/pages/ingredients/ingredients_page.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/recipes_page.dart';
@@ -19,6 +20,12 @@ class _AppShellScreenState extends State<AppShellScreen> {
   ThreadPool threadPool = ThreadPool.instance;
   List<RecipeProcessor> _recipeProcessors = [];
   FocusScopeNode _focusNode = FocusScopeNode();
+  final GlobalKey _cookingUnitListTile = GlobalKey();
+  final GlobalKey _recipesListTile = GlobalKey();
+  final GlobalKey _tasksListTile = GlobalKey();
+
+  double X = 0;
+  double Y = 0;
 
   int selectedIndex = 0;
 
@@ -44,20 +51,58 @@ class _AppShellScreenState extends State<AppShellScreen> {
     final key = event.logicalKey.keyLabel;
     if (event is KeyDownEvent) {
       print("Key down: $key");
-      if (key == 'Numpad 8' || key == 'Arrow Up') {
-        _focusNode.previousFocus();
-      } else if (key == 'Numpad 2' || key == 'Arrow Down') {
-        _focusNode.nextFocus();
+
+      switch (key) {
+        case "Numpad 7":
+          {
+            simulateClicking(_cookingUnitListTile);
+            break;
+          }
+        case "Numpad 4":
+          {
+            simulateClicking(_recipesListTile);
+            break;
+          }
+        case "Numpad 1":
+          {
+            simulateClicking(_tasksListTile);
+            break;
+          }
       }
     }
     return false;
   }
 
+  Future<void> simulateClicking(GlobalKey key) async {
+    final RenderObject? renderObj = key.currentContext?.findRenderObject();
+    RenderBox renderbox = renderObj as RenderBox;
+    Offset position = renderbox.localToGlobal(Offset.zero);
+    double x = position.dx;
+    double y = position.dy;
+
+    print(" shell $x , $y");
+
+    setState(() {
+      X = x;
+      Y =y;
+    });
+
+    GestureBinding.instance.handlePointerEvent(PointerDownEvent(
+      position: Offset(x + 10, y),
+    )); //trigger button up,
+
+    await Future.delayed(Duration(milliseconds: 50));
+
+    GestureBinding.instance.handlePointerEvent(PointerUpEvent(
+      position: Offset(x + 10, y),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
-    return FocusScope(
-        node: _focusNode,
-        child: Scaffold(
+    return Stack(
+      children: [
+        Scaffold(
           body: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -70,7 +115,7 @@ class _AppShellScreenState extends State<AppShellScreen> {
                       Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
-                          color: Colors.redAccent.withOpacity(0.1),
+                          color: Theme.of(context).colorScheme.onInverseSurface,
                         ),
                         height: 200,
                         width: 200,
@@ -83,6 +128,8 @@ class _AppShellScreenState extends State<AppShellScreen> {
                         margin: const EdgeInsets.symmetric(vertical: 20),
                       ),
                       ListTile(
+                        key: _cookingUnitListTile,
+                        selected: selectedIndex == 0,
                         leading: Icon(Icons.device_hub),
                         title: const Text('Cooking Units'),
                         onTap: () {
@@ -91,18 +138,21 @@ class _AppShellScreenState extends State<AppShellScreen> {
                           });
                         },
                       ),
+                      // ListTile(
+                      //   selected: selectedIndex == 1,
+                      //   enabled: false,
+                      //   leading: Icon(Icons.transform_outlined),
+                      //   title: const Text('Transporter Units'),
+                      //   subtitle: const Text('Coming soon'),
+                      //   onTap: () {
+                      //     setState(() {
+                      //       selectedIndex = 1;
+                      //     });
+                      //   },
+                      // ),
                       ListTile(
-                        enabled: false,
-                        leading: Icon(Icons.transform_outlined),
-                        title: const Text('Transporter Units'),
-                        subtitle: const Text('Coming soon'),
-                        onTap: () {
-                          setState(() {
-                            selectedIndex = 1;
-                          });
-                        },
-                      ),
-                      ListTile(
+                        key: _recipesListTile,
+                        selected: selectedIndex == 2,
                         leading: Icon(Icons.list_alt_outlined),
                         title: const Text('Recipes'),
                         onTap: () {
@@ -112,6 +162,8 @@ class _AppShellScreenState extends State<AppShellScreen> {
                         },
                       ),
                       ListTile(
+                        key: _tasksListTile,
+                        selected: selectedIndex == 3,
                         leading: Icon(Icons.list),
                         title: const Text('Tasks'),
                         onTap: () {
@@ -121,17 +173,18 @@ class _AppShellScreenState extends State<AppShellScreen> {
                           Navigator.of(context).pushNamed(AppRouter.taskScreen);
                         },
                       ),
-                      ListTile(
-                        enabled: false,
-                        leading: Icon(Icons.data_object),
-                        title: const Text('Ingredients'),
-                        subtitle: const Text('Coming Soon'),
-                        onTap: () {
-                          setState(() {
-                            selectedIndex = 4;
-                          });
-                        },
-                      ),
+                      // ListTile(
+                      //   selected: selectedIndex == 4,
+                      //   enabled: false,
+                      //   leading: Icon(Icons.data_object),
+                      //   title: const Text('Ingredients'),
+                      //   subtitle: const Text('Coming Soon'),
+                      //   onTap: () {
+                      //     setState(() {
+                      //       selectedIndex = 4;
+                      //     });
+                      //   },
+                      // ),
                     ],
                   ),
                 ),
@@ -143,7 +196,15 @@ class _AppShellScreenState extends State<AppShellScreen> {
               )
             ],
           ),
-        ));
+        ),
+        Positioned(
+          left: X,
+            top: Y,
+            child: CircleAvatar(
+          backgroundColor: Colors.red,
+        ))
+      ],
+    );
   }
 
   Widget getBody(int index) {

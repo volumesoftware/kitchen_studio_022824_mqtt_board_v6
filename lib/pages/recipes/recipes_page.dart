@@ -160,7 +160,7 @@ class _RecipesPageState extends State<RecipesPage> {
                 );
               },
             )
-          : Center(child: Text("No recipes available")),
+          : Center(child: Text("No recipes available", style: Theme.of(context).textTheme.displaySmall,)),
       floatingActionButton: FloatingActionButton.extended(
           onPressed: () async {
             Recipe? a = await _displayTextInputDialog(context);
