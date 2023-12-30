@@ -128,14 +128,17 @@ class _RecipesPageState extends State<RecipesPage> {
                         ),
                         Text(
                           "Cook Count, ${recipes?[index].cookCount}",
+                          textAlign: TextAlign.left,
                           style: Theme.of(context).textTheme.titleSmall,
                         ),
                         Text(
-                          "Duration ${recipes?[index].estimatedTimeCompletion}",
+                          "Duration ${timeLeft(recipes?[index].estimatedTimeCompletion?.toInt() ?? 0)}",
+                          textAlign: TextAlign.left,
                           style: Theme.of(context).textTheme.titleSmall,
                         ),
                         Text(
                           "Author : ${recipes?[index].author} ",
+                          textAlign: TextAlign.left,
                           style: Theme.of(context).textTheme.titleSmall,
                         ),
                         ButtonBar(
@@ -301,5 +304,19 @@ class _RecipesPageState extends State<RecipesPage> {
         );
       },
     );
+  }
+
+
+  String timeLeft(int seconds) {
+    String eta = "";
+    if (seconds >= 60) {
+      eta = (seconds / 60).toStringAsFixed(2);
+      return "$eta minutes";
+    } else if (seconds >= 3600) {
+      eta = (seconds / (60 * 60)).toStringAsFixed(2);
+      return "$eta hours";
+    } else {
+      return "$seconds seconds";
+    }
   }
 }

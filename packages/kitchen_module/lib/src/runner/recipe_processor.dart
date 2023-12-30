@@ -11,6 +11,7 @@ class RecipeProcessor {
   late DateTime taskStarted;
   int etaInSeconds = 0;
   Timer? timer;
+  static int IDLE_TIME = 10;
 
   Set<String?> lastErrors = Set();
 
@@ -18,8 +19,7 @@ class RecipeProcessor {
   RecipeDataAccess recipeDataAccess = RecipeDataAccess.instance;
   BaseOperationDataAccess baseOperationDataAccess =
       BaseOperationDataAccess.instance;
-  StreamController<DeviceStats> _deviceStateChange =
-      StreamController<DeviceStats>.broadcast();
+  StreamController<DeviceStats> _deviceStateChange = StreamController<DeviceStats>.broadcast();
   StreamController<DeviceStats> _heartBeatChange =
       StreamController<DeviceStats>.broadcast();
 
@@ -42,7 +42,7 @@ class RecipeProcessor {
 
     _stateChanges.listen((deviceStats) {
       DateTime currentTime = DateTime.now();
-      if (currentTime.difference(lastStateChangeTime) >= Duration(seconds: 5)) {
+      if (currentTime.difference(lastStateChangeTime) >= Duration(seconds: RecipeProcessor.IDLE_TIME)) {
         _notStateChangeOccured = true;
       } else {
         _notStateChangeOccured = false;
@@ -58,7 +58,7 @@ class RecipeProcessor {
 
     Timer.periodic(Duration(seconds: 2), (_) {
       DateTime currentTime = DateTime.now();
-      if (currentTime.difference(lastStateChangeTime) >= Duration(seconds: 5)) {
+      if (currentTime.difference(lastStateChangeTime) >= Duration(seconds: RecipeProcessor.IDLE_TIME)) {
         _notStateChangeOccured = true;
       } else {
         _notStateChangeOccured = false;
@@ -90,12 +90,15 @@ class RecipeProcessor {
           _busy = false;
           _payload!.task.status = Task.COMPLETED;
           var endTime = DateTime.now();
-          int estimatedTimeCompletion = endTime.difference(taskStarted).inSeconds;
+          int estimatedTimeCompletion =
+              endTime.difference(taskStarted).inSeconds;
 
           _payload!.recipe.cookCount = _payload!.recipe.cookCount ?? 0 + 1;
-          _payload!.recipe.estimatedTimeCompletion = estimatedTimeCompletion.toDouble();
+          _payload!.recipe.estimatedTimeCompletion =
+              estimatedTimeCompletion.toDouble();
 
-          await recipeDataAccess.updateById(_payload!.recipe.id!, _payload!.recipe);
+          await recipeDataAccess.updateById(
+              _payload!.recipe.id!, _payload!.recipe);
           await taskDataAccess.updateById(_payload!.task.id!, _payload!.task);
           _payload = null;
 
@@ -113,14 +116,12 @@ class RecipeProcessor {
             const oneSec = const Duration(seconds: 1);
             timer = new Timer.periodic(
               oneSec,
-                  (Timer timer) {
+              (Timer timer) {
                 if (etaInSeconds == 0) {
                   timer.cancel();
                 } else {
                   etaInSeconds = etaInSeconds - 1;
                 }
-                print(etaInSeconds);
-
               },
             );
             _payload!.task.status = Task.STARTED;
@@ -156,7 +157,7 @@ class RecipeProcessor {
   Future<void> processRecipe(TaskPayload p) async {
     int? duration = p.recipe.estimatedTimeCompletion?.toInt();
 
-    if(duration == null || duration == 0){
+    if (duration == null || duration == 0) {
       for (var i = 0; i < p.operations.length; i++) {
         BaseOperation operation = p.operations[i];
 
@@ -182,7 +183,7 @@ class RecipeProcessor {
         }
       }
       etaInSeconds = duration ?? 0 + 120;
-    }else{
+    } else {
       etaInSeconds = duration;
     }
 

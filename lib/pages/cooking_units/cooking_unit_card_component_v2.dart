@@ -47,11 +47,11 @@ class _CookingUnitCardComponentV2State
         child: StreamBuilder(
           stream: widget.recipeProcessor.hearBeat,
           builder: (context, snapshot) {
-            if(snapshot.data == null){
+            if((snapshot.data == null) && (widget.recipeProcessor.getDeviceStats().moduleName == null)){
               return Text("Loading device");
             }
 
-            DeviceStats? deviceStats = snapshot.data;
+            DeviceStats? deviceStats = snapshot.data ?? widget.recipeProcessor.getDeviceStats();
 
             return Container(
               padding: EdgeInsets.all(20),
@@ -70,7 +70,7 @@ class _CookingUnitCardComponentV2State
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           Text(
-                            "${(deviceStats?.machineTime)}",
+                            "${(timeLeft(deviceStats?.machineTime ?? 0))}",
                             style: Theme.of(context).textTheme.bodySmall,
                           )
                         ],
@@ -235,10 +235,7 @@ class _CookingUnitCardComponentV2State
                             },
                             itemBuilder: (BuildContext context) =>
                                 <PopupMenuEntry<String>>[
-                              const PopupMenuItem<String>(
-                                value: 'zero',
-                                child: Text('Reset (Zero)'),
-                              ),
+
                               const PopupMenuItem<String>(
                                 value: 'wash',
                                 child: Text('Wash'),
@@ -248,17 +245,21 @@ class _CookingUnitCardComponentV2State
                                 child: Text('Dispense'),
                               ),
                               const PopupMenuItem<String>(
-                                value: 'cooling',
-                                child: Text('Cooling'),
-                              ),
-                              const PopupMenuItem<String>(
-                                value: 'heat_until',
-                                child: Text('Heat Until'),
-                              ),
-                              const PopupMenuItem<String>(
-                                value: 'shutdown',
-                                child: Text('Shutdown'),
-                              )
+                                    value: 'zero',
+                                    child: Text('Reset (Zero)'),
+                                  ),
+                              // const PopupMenuItem<String>(
+                              //   value: 'cooling',
+                              //   child: Text('Cooling'),
+                              // ),
+                              // const PopupMenuItem<String>(
+                              //   value: 'heat_until',
+                              //   child: Text('Heat Until'),
+                              // ),
+                              // const PopupMenuItem<String>(
+                              //   value: 'shutdown',
+                              //   child: Text('Shutdown'),
+                              // )
                             ],
                           )
                         ],
@@ -342,6 +343,21 @@ class _CookingUnitCardComponentV2State
         ),
       ),
     );
+  }
+
+  String timeLeft(int milliseconds) {
+    double seconds = milliseconds / 1000;
+
+    String eta = "";
+    if (seconds >= 60) {
+      eta = (seconds / 60).toStringAsFixed(2);
+      return "$eta minutes";
+    } else if (seconds >= 3600) {
+      eta = (seconds / (60 * 60)).toStringAsFixed(2);
+      return "$eta hours";
+    } else {
+      return "$seconds seconds";
+    }
   }
 
   Widget progressGauge() {

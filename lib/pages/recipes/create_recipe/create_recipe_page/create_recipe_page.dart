@@ -4,25 +4,10 @@ import 'dart:io';
 
 import 'package:kitchen_module/kitchen_module.dart';
 import 'package:flutter/material.dart';
+import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/recipe_widget.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/painters/cold_wok_painter.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/painters/hot_wok_painter.dart';
-import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/dispense_widget.dart';
-import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/dock_ingredient_widget.dart';
-import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/drop_ingredient_widget.dart';
-import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/flip_widget.dart';
-import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/heat_at_temperature_until_time_widget.dart';
-import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/heat_until_temperature_widget.dart';
-import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/pump_oil_widget.dart';
-import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/pump_water_widget.dart';
-import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/recipe_widget_action.dart';
-import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/repeat_widget.dart';
-import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/stirl_widget.dart';
-import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/user_action_widget.dart';
-import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/wash_widget.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/unit_monitoring_card_component.dart';
-
-import 'recipe_widgets/cold_mix_widget.dart';
-import 'recipe_widgets/hot_mix_widget.dart';
 
 class CreateRecipePage extends StatefulWidget {
   final Recipe recipe;

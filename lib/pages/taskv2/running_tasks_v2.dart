@@ -15,26 +15,20 @@ class _RunningTasksV2State extends State<RunningTasksV2> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Text("Task Timeline"),
-      ),
-      body: StreamBuilder(
-        builder: (context, snapshot) {
-          if ((snapshot.data == null) && (threadPool.pool.isEmpty)) {
-            return Center(
-              child: Text('No module available', style: Theme.of(context).textTheme.displaySmall,),
-            );
-          }
-          return ListView(
-            children: (snapshot.data ?? threadPool.pool)
-                .map((e) => RunningTaskTimelineWidget(recipeProcessor: e))
-                .toList(),
+    return StreamBuilder(
+      builder: (context, snapshot) {
+        if ((snapshot.data == null) && (threadPool.pool.isEmpty)) {
+          return Center(
+            child: Text('No module available', style: Theme.of(context).textTheme.displaySmall,),
           );
-        },
-        stream: threadPool.stateChanges,
-      ),
+        }
+        return ListView(
+          children: (snapshot.data ?? threadPool.pool)
+              .map((e) => RunningTaskTimelineWidget(recipeProcessor: e))
+              .toList(),
+        );
+      },
+      stream: threadPool.stateChanges,
     );
   }
 }

@@ -20,6 +20,7 @@ class ThreadPool {
             }
           });
 
+
           if (!exist) {
             _pool.add(RecipeProcessor(device.value));
             _pool.sort(
@@ -67,9 +68,5 @@ class ThreadPool {
   void pop(RecipeProcessor recipeProcessor) {
     recipeProcessor.dispose();
     _pool.removeWhere((rp)=>rp.moduleName == recipeProcessor.moduleName);
-    print(_pool);
-    _poolChangeController.sink.add(_pool);
-    print('removing ${recipeProcessor.moduleName}');
-
   }
 }

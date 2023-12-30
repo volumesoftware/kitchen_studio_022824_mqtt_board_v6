@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:kitchen_module/kitchen_module.dart';
+import 'package:kitchen_studio_10162023/app_router.dart';
 import 'package:kitchen_studio_10162023/pages/taskv2/recipe_search_delegate_v2.dart';
 import 'package:kitchen_studio_10162023/widgets/thermometers.dart';
 
@@ -371,11 +372,12 @@ class _RunningTaskTimelineWidgetState extends State<RunningTaskTimelineWidget> {
                                   child: Focus(
                                     child: ElevatedButton(
                                       onPressed: () async {
-                                        var result = await showSearch<Task?>(
-                                          context: context,
-                                          delegate: RecipeSearchDelegateV2(
-                                              widget.recipeProcessor),
-                                        );
+                                        Navigator.of(context).pushNamed(AppRouter.searchRecipe, arguments: widget.recipeProcessor);
+                                        // var result = await showSearch<Task?>(
+                                        //   context: context,
+                                        //   delegate: RecipeSearchDelegateV2(
+                                        //       widget.recipeProcessor),
+                                        // );
                                       },
                                       child: Padding(
                                         padding: EdgeInsets.all(25),
