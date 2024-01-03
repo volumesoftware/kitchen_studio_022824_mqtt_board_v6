@@ -1,4 +1,6 @@
 
+import 'package:flutter/material.dart';
+
 import 'models.dart';
 class HeatForOperation extends TimedOperation {
   static const int CODE = 212;
@@ -21,16 +23,23 @@ class HeatForOperation extends TimedOperation {
 
   int? duration;
   @override
-  String? requestId = 'Heating in time';
+  String? requestId = 'Timeout Heat';
 
-  HeatForOperation(
+  double? tiltAngleA;
+
+  @override
+  IconData? iconData = Icons.thermostat_auto_outlined;
+
+
+      HeatForOperation(
       {
         this.id,
         this.recipeId,
         this.currentIndex,
         this.instructionSize,
         this.targetTemperature,
-        this.duration});
+        this.duration,
+        this.tiltAngleA});
 
   @override
   Map<String, dynamic> toJson() {
@@ -42,6 +51,9 @@ class HeatForOperation extends TimedOperation {
     data['instruction_size'] = instructionSize;
     data['target_temperature'] = targetTemperature;
     data['duration'] = duration;
+    data['preset_name'] = presetName;
+
+    data['tilt_angle_a'] = tiltAngleA;
     return data;
   }
 
@@ -55,6 +67,9 @@ class HeatForOperation extends TimedOperation {
     instructionSize =json["instruction_size"]==null? null: json["instruction_size"] as int;
     targetTemperature = json["target_temperature"]==null? null: json["target_temperature"] as double;
     duration = json["duration"] == null? 0 : json["duration"] as int;
+    presetName =json['preset_name']==null? null: json['preset_name'] as String;
+
+    tiltAngleA = json["tilt_angle_a"]==null? null: json["tilt_angle_a"] as double;
   }
 
 

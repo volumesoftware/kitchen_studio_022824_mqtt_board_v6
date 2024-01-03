@@ -1,4 +1,7 @@
 
+import 'package:flutter/material.dart';
+import 'package:flutter/src/widgets/icon_data.dart';
+
 import 'models.dart';
 class DropIngredientOperation implements BaseOperation {
   static const int CODE = 207;
@@ -37,11 +40,14 @@ class DropIngredientOperation implements BaseOperation {
     data['instruction_size'] = instructionSize;
     data['target_temperature'] = targetTemperature;
     data['cycle'] = cycle;
+    data['preset_name'] = presetName;
+
     return data;
   }
 
   DropIngredientOperation.fromDatabase(Map<String, Object?> json) {
     id = json['id'] as int;
+    presetName =json['preset_name']==null? null: json['preset_name'] as String;
     requestId =json['request_id']==null? null: json['request_id'] as String;
     recipeId = json['recipe_id']==null? null: json['recipe_id'] as int;
     operation = json["operation"] == null ? null : json["operation"] as int;
@@ -50,6 +56,12 @@ class DropIngredientOperation implements BaseOperation {
     targetTemperature = json["target_temperature"]==null? null: json["target_temperature"] as double;
     cycle = json["cycle"] == null? 0 : json["cycle"] as int;
   }
+
+  @override
+  String? presetName;
+
+  @override
+  IconData? iconData = Icons.publish_sharp;
 
 
 }

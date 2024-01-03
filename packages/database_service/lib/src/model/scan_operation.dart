@@ -1,3 +1,5 @@
+import 'package:flutter/src/widgets/icon_data.dart';
+
 import 'models.dart';
 
 class ScanOperation implements BaseOperation {
@@ -34,6 +36,8 @@ class ScanOperation implements BaseOperation {
     data['current_index'] = currentIndex;
     data['instruction_size'] = instructionSize;
     data['target_temperature'] = targetTemperature;
+    data['preset_name'] = presetName;
+
     return data;
   }
 
@@ -51,5 +55,13 @@ class ScanOperation implements BaseOperation {
     targetTemperature = json["target_temperature"] == null
         ? null
         : json["target_temperature"] as double;
+    presetName =json['preset_name']==null? null: json['preset_name'] as String;
+
   }
+
+  @override
+  String? presetName;
+
+  @override
+  IconData? iconData;
 }

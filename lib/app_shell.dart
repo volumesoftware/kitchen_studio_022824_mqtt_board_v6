@@ -1,12 +1,9 @@
-import 'package:avatar_glow/avatar_glow.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:kitchen_module/kitchen_module.dart';
-import 'package:kitchen_studio_10162023/app_router.dart';
 import 'package:kitchen_studio_10162023/pages/cooking_units/cooking_units_page_v2.dart';
 import 'package:kitchen_studio_10162023/pages/ingredients/ingredients_page.dart';
+import 'package:kitchen_studio_10162023/pages/operation_template/operation_template_page.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/recipes_page.dart';
 import 'package:kitchen_studio_10162023/pages/taskv2/tasks_pagev2.dart';
 import 'package:kitchen_studio_10162023/pages/transporter_units/cooking_units_page.dart';
@@ -26,6 +23,7 @@ class _AppShellScreenState extends State<AppShellScreen> {
   final GlobalKey _cookingUnitListTile = GlobalKey();
   final GlobalKey _recipesListTile = GlobalKey();
   final GlobalKey _tasksListTile = GlobalKey();
+  final GlobalKey _operationTemplateListTile = GlobalKey();
 
   double X = 0;
   double Y = 0;
@@ -66,20 +64,21 @@ class _AppShellScreenState extends State<AppShellScreen> {
                         Container(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10),
-                            color: Theme.of(context).colorScheme.onInverseSurface,
+                            color:
+                                Theme.of(context).colorScheme.onInverseSurface,
                           ),
                           height: 200,
                           width: 200,
                           child: selectedIndex == 3
                               ? Row()
                               : Center(
-                            child: Text(
-                              "Kitchen Studio",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .headlineMedium,
-                            ),
-                          ),
+                                  child: Text(
+                                    "Kitchen Studio",
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineMedium,
+                                  ),
+                                ),
                           margin: const EdgeInsets.symmetric(vertical: 20),
                         ),
                         ListTile(
@@ -111,8 +110,9 @@ class _AppShellScreenState extends State<AppShellScreen> {
                           key: _recipesListTile,
                           selected: selectedIndex == 2,
                           leading: Icon(Icons.list_alt_outlined),
-                          title:
-                          selectedIndex == 3 ? Row() : const Text('Recipes'),
+                          title: selectedIndex == 3
+                              ? Row()
+                              : const Text('Recipes'),
                           onTap: () {
                             setState(() {
                               selectedIndex = 2;
@@ -123,11 +123,13 @@ class _AppShellScreenState extends State<AppShellScreen> {
                           key: _tasksListTile,
                           selected: selectedIndex == 3,
                           leading: Icon(Icons.list),
-                          title: selectedIndex == 3 ? Row() :const Text('Tasks'),
+                          title:
+                              selectedIndex == 3 ? Row() : const Text('Tasks'),
                           onTap: () {
                             setState(() {
                               selectedIndex = 3;
                             });
+
                             // Navigator.of(context).pushNamed(AppRouter.taskScreen);
                           },
                         ),
@@ -143,12 +145,25 @@ class _AppShellScreenState extends State<AppShellScreen> {
                         //     });
                         //   },
                         // ),
+                        ListTile(
+                          key: _operationTemplateListTile,
+                          selected: selectedIndex == 5,
+                          leading: Icon(Icons.calculate_sharp),
+                          title:
+                          selectedIndex == 3 ? Row() : const Text('Operation Template'),
+                          onTap: () {
+                            setState(() {
+                              selectedIndex = 5;
+                            });
+                          },
+                        )
                       ],
                     ),
                   ),
                 ),
                 SizedBox(
-                  width: MediaQuery.of(context).size.width * (selectedIndex == 3 ? 0.95 : 0.8),
+                  width: MediaQuery.of(context).size.width *
+                      (selectedIndex == 3 ? 0.95 : 0.8),
                   height: MediaQuery.of(context).size.height,
                   child: getBody(selectedIndex),
                 )
@@ -192,6 +207,10 @@ class _AppShellScreenState extends State<AppShellScreen> {
       case 4:
         {
           return IngredientsPage();
+        }
+      case 5:
+        {
+          return OperationTemplatePage();
         }
 
       default:

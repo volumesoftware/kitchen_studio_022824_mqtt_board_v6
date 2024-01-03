@@ -1,3 +1,6 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/src/widgets/icon_data.dart';
+
 import 'models.dart';
 
 class DockIngredientOperation implements BaseOperation {
@@ -31,12 +34,15 @@ class DockIngredientOperation implements BaseOperation {
     data['current_index'] = currentIndex;
     data['instruction_size'] = instructionSize;
     data['target_temperature'] = targetTemperature;
+    data['preset_name'] = presetName;
+
     return data;
   }
 
   DockIngredientOperation.fromDatabase(
       Map<String, Object?> json, this.ingredientItems) {
     id = json['id'] as int;
+    presetName =json['preset_name']==null? null: json['preset_name'] as String;
     requestId =
         json['request_id'] == null ? null : json['request_id'] as String;
     recipeId = json['recipe_id'] as int;
@@ -49,6 +55,12 @@ class DockIngredientOperation implements BaseOperation {
         ? 0
         : json['target_temperature'] as double;
   }
+
+  @override
+  String? presetName;
+
+  @override
+  IconData? iconData = Icons.dock_sharp;
 }
 
 class IngredientItem {

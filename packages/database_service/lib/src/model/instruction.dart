@@ -1,4 +1,6 @@
-abstract  class BaseOperation {
+import 'package:flutter/material.dart';
+
+abstract class BaseOperation {
   int? id;
   int? recipeId;
   int? operation;
@@ -6,6 +8,8 @@ abstract  class BaseOperation {
   int? instructionSize;
   double? targetTemperature;
   String? requestId;
+  String? presetName;
+  IconData? iconData;
 
   BaseOperation(
       {this.id,
@@ -35,9 +39,15 @@ abstract  class BaseOperation {
         duration INTEGER,
         message INTEGER,
         title INTEGER,
+        preset_name TEXT,
         is_closing BOOLEAN,
         repeat_index INTEGER,
-        repeat_count INTEGER
+        repeat_count INTEGER,
+        tilt_angle_a FLOAT,
+        tilt_angle_b FLOAT,
+        rotate_angle FLOAT,
+        rotate_speed INTEGER,
+        tilt_speed INTEGER
     );
     ''';
   }

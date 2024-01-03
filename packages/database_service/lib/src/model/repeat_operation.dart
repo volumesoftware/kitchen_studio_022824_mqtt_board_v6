@@ -1,3 +1,6 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/src/widgets/icon_data.dart';
+
 import 'models.dart';
 
 class RepeatOperation implements BaseOperation {
@@ -38,6 +41,8 @@ class RepeatOperation implements BaseOperation {
     data['target_temperature'] = targetTemperature;
     data['repeat_index'] = repeatIndex;
     data['repeat_count'] = repeatCount;
+    data['preset_name'] = presetName;
+
     return data;
   }
 
@@ -59,5 +64,13 @@ class RepeatOperation implements BaseOperation {
         json["repeat_count"] == null ? null : json["repeat_count"] as int;
     repeatIndex =
         json["repeat_index"] == null ? null : json["repeat_index"] as int;
+    presetName =json['preset_name']==null? null: json['preset_name'] as String;
+
   }
+
+  @override
+  String? presetName;
+
+  @override
+  IconData? iconData = Icons.repeat;
 }

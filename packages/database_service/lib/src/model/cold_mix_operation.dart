@@ -1,5 +1,8 @@
 
 
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+
 import 'models.dart';
 
 class ColdMixOperation extends TimedOperation {
@@ -22,7 +25,20 @@ class ColdMixOperation extends TimedOperation {
   @override
   double? targetTemperature;
 
+  double? tiltAngleA;
+
+  double? tiltAngleB;
+
+  double? rotateAngle;
+
+  int? tiltSpeed;
+
+  int? rotateSpeed;
+
   int? duration;
+
+  IconData? iconData = Icons.severe_cold;
+
   @override
   String? requestId = 'Cold Mix';
 
@@ -34,7 +50,13 @@ class ColdMixOperation extends TimedOperation {
         this.currentIndex,
         this.instructionSize,
         this.targetTemperature,
-        this.duration});
+        this.duration,
+        this.tiltAngleA,
+        this.tiltAngleB,
+        this.rotateAngle,
+        this.rotateSpeed,
+        this.tiltSpeed
+      });
 
   @override
   Map<String, dynamic> toJson() {
@@ -46,6 +68,14 @@ class ColdMixOperation extends TimedOperation {
     data['instruction_size'] = instructionSize;
     data['target_temperature'] = targetTemperature;
     data['duration'] = duration;
+
+    data['tilt_angle_a'] = tiltAngleA;
+    data['tilt_angle_b'] = tiltAngleB;
+    data['rotate_angle'] = rotateAngle;
+    data['rotate_speed'] = rotateSpeed;
+    data['tilt_speed'] = tiltSpeed;
+    data['preset_name'] = presetName;
+
     return data;
   }
 
@@ -59,6 +89,13 @@ class ColdMixOperation extends TimedOperation {
     instructionSize =json["instruction_size"]==null? null: json["instruction_size"] as int;
     targetTemperature = json["target_temperature"]==null? null: json["target_temperature"] as double;
     duration = json["duration"]==null? null: json["duration"] as int;
+    presetName =json['preset_name']==null? null: json['preset_name'] as String;
+
+    tiltAngleA = json["tilt_angle_a"]==null? null: json["tilt_angle_a"] as double;
+    tiltAngleB = json["tilt_angle_b"]==null? null: json["tilt_angle_b"] as double;
+    rotateAngle = json["rotate_angle"]==null? null: json["rotate_angle"] as double;
+    rotateSpeed = json["rotate_speed"]==null? null: json["rotate_speed"] as int;
+    tiltSpeed = json["tilt_speed"]==null? null: json["tilt_speed"] as int;
   }
 
 

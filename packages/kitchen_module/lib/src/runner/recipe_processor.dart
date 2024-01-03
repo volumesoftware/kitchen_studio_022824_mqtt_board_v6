@@ -20,8 +20,7 @@ class RecipeProcessor {
   BaseOperationDataAccess baseOperationDataAccess =
       BaseOperationDataAccess.instance;
   StreamController<DeviceStats> _deviceStateChange = StreamController<DeviceStats>.broadcast();
-  StreamController<DeviceStats> _heartBeatChange =
-      StreamController<DeviceStats>.broadcast();
+  StreamController<DeviceStats> _heartBeatChange = StreamController<DeviceStats>.broadcast();
 
   DeviceStats _device;
   late Isolate _isolate;

@@ -1,3 +1,5 @@
+import 'package:flutter/src/widgets/icon_data.dart';
+
 import 'models.dart';
 
 class MotorOperation implements BaseOperation {
@@ -34,6 +36,8 @@ class MotorOperation implements BaseOperation {
     data['target_temperature'] = targetTemperature;
     data['relative_tilt_angle'] = relativeTiltAngle;
     data['relative_rotate_angle'] = relativeRotateAngle;
+    data['preset_name'] = presetName;
+
     return data;
   }
 
@@ -51,5 +55,13 @@ class MotorOperation implements BaseOperation {
     targetTemperature = json["target_temperature"] == null
         ? null
         : json["target_temperature"] as double;
+    presetName =json['preset_name']==null? null: json['preset_name'] as String;
+
   }
+
+  @override
+  String? presetName;
+
+  @override
+  IconData? iconData;
 }

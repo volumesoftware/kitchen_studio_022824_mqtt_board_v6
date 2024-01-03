@@ -1,4 +1,7 @@
 
+import 'package:flutter/material.dart';
+import 'package:flutter/src/widgets/icon_data.dart';
+
 import 'models.dart';
 class FlipOperation implements BaseOperation {
   static const int CODE = 213;
@@ -24,6 +27,17 @@ class FlipOperation implements BaseOperation {
   int? interval;
   @override
   String? requestId = 'Flipping';
+  double? tiltAngleA;
+
+  double? tiltAngleB;
+
+  double? rotateAngle;
+
+  int? tiltSpeed;
+
+  int? rotateSpeed;
+
+
 
 
 
@@ -34,7 +48,12 @@ class FlipOperation implements BaseOperation {
       this.instructionSize,
       this.targetTemperature,
       this.cycle,
-      this.interval});
+      this.interval,
+        this.tiltAngleA,
+        this.tiltAngleB,
+        this.rotateAngle,
+        this.rotateSpeed,
+        this.tiltSpeed});
 
   @override
   Map<String, dynamic> toJson() {
@@ -47,6 +66,13 @@ class FlipOperation implements BaseOperation {
     data['target_temperature'] = targetTemperature;
     data['cycle'] = cycle;
     data['interval'] = interval;
+    data['preset_name'] = presetName;
+
+    data['tilt_angle_a'] = tiltAngleA;
+    data['tilt_angle_b'] = tiltAngleB;
+    data['rotate_angle'] = rotateAngle;
+    data['rotate_speed'] = rotateSpeed;
+    data['tilt_speed'] = tiltSpeed;
     return data;
   }
 
@@ -60,6 +86,20 @@ class FlipOperation implements BaseOperation {
     targetTemperature = json["target_temperature"]==null? null: json["target_temperature"] as double;
     cycle = json["cycle"] == null? 0 : json["cycle"] as int;
     interval = json["interval"] == null? 0 : json["interval"] as int;
+    presetName =json['preset_name']==null? null: json['preset_name'] as String;
+
+    tiltAngleA = json["tilt_angle_a"]==null? null: json["tilt_angle_a"] as double;
+    tiltAngleB = json["tilt_angle_b"]==null? null: json["tilt_angle_b"] as double;
+    rotateAngle = json["rotate_angle"]==null? null: json["rotate_angle"] as double;
+    rotateSpeed = json["rotate_speed"]==null? null: json["rotate_speed"] as int;
+    tiltSpeed = json["tilt_speed"]==null? null: json["tilt_speed"] as int;
+
   }
+
+  @override
+  String? presetName;
+
+  @override
+  IconData? iconData = Icons.flip_camera_android;
 
 }

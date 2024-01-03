@@ -1,3 +1,6 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/src/widgets/icon_data.dart';
+
 import 'models.dart';
 
 class UserActionOperation implements BaseOperation {
@@ -42,6 +45,8 @@ class UserActionOperation implements BaseOperation {
     data['message'] = message;
     data['title'] = title;
     data['is_closing'] = isClosing == true ? 1 : 0;
+    data['preset_name'] = presetName;
+
     return data;
   }
 
@@ -61,5 +66,13 @@ class UserActionOperation implements BaseOperation {
     message = json["message"] == null ? null : json["message"] as String;
     title = json["title"] == null ? null : json["title"] as String;
     isClosing = json["is_closing"] == 0 ? false : true;
+    presetName =json['preset_name']==null? null: json['preset_name'] as String;
+
   }
+
+  @override
+  String? presetName;
+
+  @override
+  IconData? iconData = Icons.person_search_outlined;
 }

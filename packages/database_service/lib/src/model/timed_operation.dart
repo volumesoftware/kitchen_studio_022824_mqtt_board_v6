@@ -14,6 +14,8 @@ abstract class TimedOperation extends BaseOperation {
   @override
   double? targetTemperature;
   int? _duration;
+  @override
+  String? presetName;
 
   int? get duration => _duration ?? 0;
 

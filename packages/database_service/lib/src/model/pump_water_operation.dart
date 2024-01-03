@@ -1,3 +1,6 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+
 import 'models.dart';
 
 class PumpWaterOperation extends TimedOperation {
@@ -21,6 +24,9 @@ class PumpWaterOperation extends TimedOperation {
   double? targetTemperature;
 
   int? duration;
+
+  IconData? iconData = Icons.water_drop_outlined;
+
   @override
   String? requestId = 'Pump Water';
 
@@ -42,6 +48,8 @@ class PumpWaterOperation extends TimedOperation {
     data['instruction_size'] = instructionSize;
     data['target_temperature'] = targetTemperature;
     data['duration'] = duration;
+    data['preset_name'] = presetName;
+
     return data;
   }
 
@@ -60,5 +68,7 @@ class PumpWaterOperation extends TimedOperation {
         ? null
         : json["target_temperature"] as double;
     duration = json["duration"] == null ? null : json["duration"] as int;
+    presetName =json['preset_name']==null? null: json['preset_name'] as String;
+
   }
 }

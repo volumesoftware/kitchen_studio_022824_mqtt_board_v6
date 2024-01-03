@@ -34,7 +34,7 @@ class DatabasePackage {
 
     database = await databaseFactory.openDatabase('${path}\\kitchenstudio.db',
         options: OpenDatabaseOptions(
-          version: 26,
+          version: 30,
           onUpgrade: (db, oldVersion, newVersion) => createDrop(db, newVersion),
           onCreate: (db, version) => createDrop(db, version),
         ));
@@ -49,6 +49,8 @@ class DatabasePackage {
     await db.execute(Ingredient.dropCreateCommand());
     await db.execute(IngredientItem.dropCreateCommand());
     await db.execute(BaseOperation.dropCreateCommand());
+    await db.execute(OperationTemplate.dropCreateCommand());
+    await db.execute(OperationTemplateItem.dropCreateCommand());
     await db.execute(Task.dropCreateCommand());
   }
 }

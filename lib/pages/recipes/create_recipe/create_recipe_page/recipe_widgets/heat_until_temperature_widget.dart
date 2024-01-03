@@ -24,6 +24,7 @@ class _HeatUntilTemperatureWidgetState
   RecipeWidgetActions? recipeWidgetActions;
 
   TextEditingController? _targetTemperatureController;
+  TextEditingController? _tiltAngleController;
 
   @override
   void initState() {
@@ -31,6 +32,8 @@ class _HeatUntilTemperatureWidgetState
     operation = widget.operation;
     _targetTemperatureController =
         TextEditingController(text: "${operation?.targetTemperature}");
+    _tiltAngleController =
+        TextEditingController(text: "${operation?.tiltAngleA}");
     super.initState();
   }
 
@@ -39,17 +42,40 @@ class _HeatUntilTemperatureWidgetState
     return Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          leading: Icon(
-            Icons.thermostat,
+          leading: Container(
+            child: Center(
+              child: Text("${widget.operation.currentIndex! + 1}"),
+            ),
           ),
           title: Text(
-            "Heat Until Temperature",
+            "Heat Until",
             style: Theme.of(context).textTheme.titleSmall,
           ),
           automaticallyImplyLeading: false,
           actions: [
-            CircleAvatar(
-              child: Text("${widget.operation.currentIndex! + 1}"),
+            PopupMenuButton<String>(
+              icon: Icon(Icons.filter_list),
+              onSelected: (String result) {
+                switch (result) {
+                  case 'delete':
+                    recipeWidgetActions?.onDelete(operation!);
+                    break;
+                  case 'save preset':
+                    recipeWidgetActions?.onPresetSave(operation!);
+                    break;
+                  default:
+                }
+              },
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                const PopupMenuItem<String>(
+                  value: 'delete',
+                  child: Text('Delete'),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'save preset',
+                  child: Text('Save as preset'),
+                ),
+              ],
             )
           ],
         ),
@@ -67,7 +93,7 @@ class _HeatUntilTemperatureWidgetState
                           suffixText: "celsius",
                           border: OutlineInputBorder(),
                           label: Text('Target Temperature'),
-                          hintText: 'Target Temperature',
+                          hintText: '230',
                         ),
                       ),
                     )
@@ -75,22 +101,44 @@ class _HeatUntilTemperatureWidgetState
                       title: Text('Target Temperature'),
                       trailing: Text("${_targetTemperatureController?.text}"),
                     ),
+              inEditMode
+                  ? Padding(
+                      padding: EdgeInsets.symmetric(vertical: 3),
+                      child: TextField(
+                        controller: _tiltAngleController,
+                        decoration: InputDecoration(
+                          isDense: true,
+                          suffixText: "degree",
+                          border: OutlineInputBorder(),
+                          label: Text('Tilt Angle'),
+                          hintText: '45',
+                        ),
+                      ),
+                    )
+                  : ListTile(
+                      title: Text('Tilt Angle'),
+                      trailing: Text("${_tiltAngleController?.text}"),
+                    )
             ],
           ),
         ),
         bottomSheet: ButtonBar(
           children: [
-            ElevatedButton(
-                onPressed: () {
-                  recipeWidgetActions?.onDelete(operation!);
-                },
-                child: Text("Delete")),
-
+            inEditMode
+                ? FilledButton(
+                    onPressed: () async {
+                      setState(() {
+                        inEditMode = false;
+                      });
+                    },
+                    child: Text("Cancel"))
+                : Row(),
             inEditMode
                 ? FilledButton(
                     onPressed: () {
                       operation?.targetTemperature =
                           double.tryParse(_targetTemperatureController!.text);
+                      operation?.tiltAngleA =double.tryParse(_tiltAngleController!.text);
                       recipeWidgetActions?.onValueUpdate(operation!);
                       setState(() {
                         inEditMode = false;

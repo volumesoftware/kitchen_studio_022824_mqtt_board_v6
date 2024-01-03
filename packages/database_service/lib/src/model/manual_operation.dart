@@ -1,4 +1,6 @@
 
+import 'package:flutter/src/widgets/icon_data.dart';
+
 import 'models.dart';
 class ManualOperation implements BaseOperation {
 
@@ -37,6 +39,8 @@ class ManualOperation implements BaseOperation {
     data['target_temperature'] = targetTemperature;
     data['message'] = message;
     data['title'] = title;
+    data['preset_name'] = presetName;
+
     return data;
   }
 
@@ -51,7 +55,15 @@ class ManualOperation implements BaseOperation {
     targetTemperature = json["target_temperature"]==null? null: json["target_temperature"] as double;
     message = json["message"] == null ? null:  json['message'] as String;
     title = json["title"] == null ? null:  json['title'] as String;
+    presetName =json['preset_name']==null? null: json['preset_name'] as String;
+
   }
+
+  @override
+  String? presetName;
+
+  @override
+  IconData? iconData;
 
 
 

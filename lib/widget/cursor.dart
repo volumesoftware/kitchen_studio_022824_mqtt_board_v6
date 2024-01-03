@@ -76,7 +76,6 @@ class _PositionedCursorState extends State<PositionedCursor> {
       });
     }
     if (event is KeyRepeatEvent || event is RawKeyDownEvent || event is KeyDownEvent) {
-      print("CURSOR $key");
       switch (key) {
         case "Numpad 6":
           {

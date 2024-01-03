@@ -186,13 +186,14 @@ class _CookingUnitCardComponentV2State
                                 case 'dispense':
                                   String dispense = jsonEncode(
                                       DispenseOperation(
-                                              targetTemperature: 0,
-                                              currentIndex: 0,
-                                              recipeId: 0,
-                                              cycle: 1,
-                                              id: 0,
-                                              instructionSize: 0)
-                                          .toJson());
+                                          currentIndex: 0,
+                                          cycle: 1,
+                                          targetTemperature: 0,
+                                          tiltAngleB: -30 ,
+                                          tiltAngleA: 15,
+                                          tiltSpeed: 0,
+                                          rotateSpeed: 0
+                                      )                                          .toJson());
                                   udpService?.send(
                                       dispense.codeUnits,
                                       InternetAddress(deviceStats!.ipAddress!),
@@ -200,35 +201,20 @@ class _CookingUnitCardComponentV2State
                                   break;
                                 case 'wash':
                                   String wash = jsonEncode(WashOperation(
-                                          duration: 60,
-                                          targetTemperature: 80,
-                                          currentIndex: 0,
-                                          recipeId: 0,
-                                          cycle: 1,
-                                          id: 0,
-                                          instructionSize: 0)
-                                      .toJson());
+                                      currentIndex: 0,
+                                      duration: 6,
+                                      cycle: 1,
+                                      tiltAngleA: 45,
+                                      tiltAngleB: 15,
+                                      rotateAngle: 270,
+                                      rotateSpeed: 0,
+                                      tiltSpeed: 0,
+                                      targetTemperature: 80).toJson());
                                   udpService?.send(
                                       wash.codeUnits,
                                       InternetAddress(
-                                          deviceStats!.ipAddress!),
+                                          deviceStats.ipAddress!),
                                       8888);
-                                  String userAction = jsonEncode(
-                                      UserActionOperation(
-                                              targetTemperature: 0,
-                                              currentIndex: 0,
-                                              recipeId: 0,
-                                              instructionSize: 0)
-                                          .toJson());
-                                  udpService?.send(
-                                      userAction.codeUnits,
-                                      InternetAddress(
-                                          deviceStats!.ipAddress!),
-                                      8888);
-                                  break;
-
-                                  break;
-
                                   break;
                                 default:
                               }

@@ -21,7 +21,6 @@ class _UserActionWidgetState extends State<UserActionWidget> {
   TextEditingController? _targetTemperatureController;
   TextEditingController? _titleController;
   TextEditingController? _messageController;
-  bool isEnd = false;
 
   @override
   void initState() {
@@ -36,18 +35,6 @@ class _UserActionWidgetState extends State<UserActionWidget> {
         TextEditingController(text: "${operation?.targetTemperature}");
     _titleController = TextEditingController(text: "${operation?.title}");
     _messageController = TextEditingController(text: "${operation?.message}");
-
-    if (operation != null) {
-      if (operation!.isClosing!) {
-        setState(() {
-          isEnd = true;
-        });
-      } else {
-        setState(() {
-          isEnd = false;
-        });
-      }
-    }
   }
 
   @override
@@ -55,18 +42,41 @@ class _UserActionWidgetState extends State<UserActionWidget> {
     return Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          leading: Icon(
-            isEnd ? Icons.stop_circle_outlined : Icons.person_search_outlined,
+          leading: Container(
+            child: Center(
+              child: Text("${widget.operation.currentIndex! + 1}"),
+            ),
           ),
           title: Text(
-            isEnd ? "Recipe's End" : "User Action",
+            "User Action",
             style: Theme.of(context).textTheme.titleSmall,
           ),
           automaticallyImplyLeading: false,
-          actions: [
-            CircleAvatar(
-              child: Text("${widget.operation.currentIndex! + 1}"),
-            )
+          actions: [                          PopupMenuButton<String>(
+            icon: Icon(Icons.filter_list),
+            onSelected: (String result) {
+              switch (result) {
+                case 'delete':
+                  recipeWidgetActions?.onDelete(operation!);
+                  break;
+                case 'save preset':
+                  recipeWidgetActions?.onPresetSave(operation!);
+                  break;
+                default:
+              }
+            },
+            itemBuilder: (BuildContext context) =>
+            <PopupMenuEntry<String>>[
+              const PopupMenuItem<String>(
+                value: 'delete',
+                child: Text('Delete'),
+              ),
+              const PopupMenuItem<String>(
+                value: 'save preset',
+                child: Text('Save as preset'),
+              ),
+            ],
+          )
           ],
         ),
         body: Container(
@@ -133,46 +143,40 @@ class _UserActionWidgetState extends State<UserActionWidget> {
             ],
           ),
         ),
-        bottomSheet: isEnd
-            ? SizedBox()
-            : ButtonBar(
-                children: [
-                  inEditMode
-                      ? FilledButton(
-                          onPressed: () async {
-                            setState(() {
-                              inEditMode = false;
-                              initialize();
-                            });
-                          },
-                          child: Text("Cancel"))
-                      : ElevatedButton(
-                          onPressed: () {
-                            recipeWidgetActions?.onDelete(operation!);
-                          },
-                          child: Text("Delete")),
-                  inEditMode
-                      ? FilledButton(
-                          onPressed: () {
-                            operation?.targetTemperature = double.tryParse(
-                                _targetTemperatureController!.text);
-                            operation?.title = _titleController!.text;
-                            operation?.message = _messageController!.text;
+        bottomSheet: ButtonBar(
+          children: [
+            inEditMode
+                ? FilledButton(
+                    onPressed: () async {
+                      setState(() {
+                        inEditMode = false;
+                        initialize();
+                      });
+                    },
+                    child: Text("Cancel"))
+                : Row(),
+            inEditMode
+                ? FilledButton(
+                    onPressed: () {
+                      operation?.targetTemperature =
+                          double.tryParse(_targetTemperatureController!.text);
+                      operation?.title = _titleController!.text;
+                      operation?.message = _messageController!.text;
 
-                            recipeWidgetActions?.onValueUpdate(operation!);
-                            setState(() {
-                              inEditMode = false;
-                            });
-                          },
-                          child: Text(
-                            "Update",
-                          ))
-                      : FilledButton(
-                          onPressed: () => setState(() {
-                                inEditMode = true;
-                              }),
-                          child: Text("Edit")),
-                ],
-              ));
+                      recipeWidgetActions?.onValueUpdate(operation!);
+                      setState(() {
+                        inEditMode = false;
+                      });
+                    },
+                    child: Text(
+                      "Update",
+                    ))
+                : FilledButton(
+                    onPressed: () => setState(() {
+                          inEditMode = true;
+                        }),
+                    child: Text("Edit")),
+          ],
+        ));
   }
 }

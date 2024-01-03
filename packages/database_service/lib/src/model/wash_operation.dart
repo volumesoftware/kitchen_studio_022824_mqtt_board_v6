@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 import 'models.dart';
 
 class WashOperation extends TimedOperation {
@@ -19,6 +21,17 @@ class WashOperation extends TimedOperation {
   @override
   String? requestId = 'Wash';
 
+  double? tiltAngleA;
+
+  double? tiltAngleB;
+
+  double? rotateAngle;
+
+  int? tiltSpeed;
+
+  int? rotateSpeed;
+  IconData? iconData = Icons.waves_sharp;
+
   WashOperation(
       {this.id,
       this.recipeId,
@@ -26,7 +39,12 @@ class WashOperation extends TimedOperation {
       this.currentIndex,
       this.instructionSize,
       this.targetTemperature,
-      this.duration});
+      this.duration,
+      this.tiltAngleA,
+      this.tiltAngleB,
+      this.rotateAngle,
+      this.rotateSpeed,
+      this.tiltSpeed});
 
   @override
   Map<String, dynamic> toJson() {
@@ -40,6 +58,12 @@ class WashOperation extends TimedOperation {
 
     data['duration'] = duration;
     data['cycle'] = cycle;
+
+    data['tilt_angle_a'] = tiltAngleA;
+    data['tilt_angle_b'] = tiltAngleB;
+    data['rotate_angle'] = rotateAngle;
+    data['rotate_speed'] = rotateSpeed;
+    data['tilt_speed'] = tiltSpeed;
     return data;
   }
 
@@ -59,5 +83,15 @@ class WashOperation extends TimedOperation {
         : json["target_temperature"] as double;
     duration = json["duration"] == null ? null : json["duration"] as int;
     cycle = json["cycle"] == null ? null : json["cycle"] as int;
+
+    tiltAngleA =
+        json["tilt_angle_a"] == null ? null : json["tilt_angle_a"] as double;
+    tiltAngleB =
+        json["tilt_angle_b"] == null ? null : json["tilt_angle_b"] as double;
+    rotateAngle =
+        json["rotate_angle"] == null ? null : json["rotate_angle"] as double;
+    rotateSpeed =
+        json["rotate_speed"] == null ? null : json["rotate_speed"] as int;
+    tiltSpeed = json["tilt_speed"] == null ? null : json["tilt_speed"] as int;
   }
 }

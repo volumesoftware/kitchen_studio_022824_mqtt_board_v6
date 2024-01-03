@@ -44,18 +44,41 @@ class _RepeatWidgetState extends State<RepeatWidget> {
     return Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          leading: Icon(
-            isEnd ? Icons.stop_circle_outlined : Icons.person_search_outlined,
+          leading: Container(
+            child: Center(
+              child: Text("${widget.operation.currentIndex! + 1}"),
+            ),
           ),
           title: Text(
-            "Repeat Loop",
+            "Repeat",
             style: Theme.of(context).textTheme.titleSmall,
           ),
           automaticallyImplyLeading: false,
-          actions: [
-            CircleAvatar(
-              child: Text("${widget.operation.currentIndex! + 1}"),
-            )
+          actions: [                          PopupMenuButton<String>(
+            icon: Icon(Icons.filter_list),
+            onSelected: (String result) {
+              switch (result) {
+                case 'delete':
+                  recipeWidgetActions?.onDelete(operation!);
+                  break;
+                case 'save preset':
+                  recipeWidgetActions?.onPresetSave(operation!);
+                  break;
+                default:
+              }
+            },
+            itemBuilder: (BuildContext context) =>
+            <PopupMenuEntry<String>>[
+              const PopupMenuItem<String>(
+                value: 'delete',
+                child: Text('Delete'),
+              ),
+              const PopupMenuItem<String>(
+                value: 'save preset',
+                child: Text('Save as preset'),
+              ),
+            ],
+          )
           ],
         ),
         body: Container(
@@ -128,18 +151,13 @@ class _RepeatWidgetState extends State<RepeatWidget> {
                 children: [
                   inEditMode
                       ? FilledButton(
-                          onPressed: () async {
-                            setState(() {
-                              inEditMode = false;
-                              initialize();
-                            });
-                          },
-                          child: Text("Cancel"))
-                      : ElevatedButton(
-                          onPressed: () {
-                            recipeWidgetActions?.onDelete(operation!);
-                          },
-                          child: Text("Delete")),
+                      onPressed: () async {
+                        setState(() {
+                          inEditMode = false;
+                        });
+                      },
+                      child: Text("Cancel"))
+                      : Row(),
                   inEditMode
                       ? FilledButton(
                           onPressed: () {

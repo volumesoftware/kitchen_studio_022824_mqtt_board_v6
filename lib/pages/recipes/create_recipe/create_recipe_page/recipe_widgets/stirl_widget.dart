@@ -37,18 +37,41 @@ class _StirOperationWidgetState extends State<StirOperationWidget> {
     return Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          leading: Icon(
-            Icons.ads_click_outlined,
+          leading: Container(
+            child: Center(
+              child: Text("${widget.operation.currentIndex! + 1}"),
+            ),
           ),
           title: Text(
-            "Stir Operatiokn",
+            "Stir",
             style: Theme.of(context).textTheme.titleSmall,
           ),
           automaticallyImplyLeading: false,
-          actions: [
-            CircleAvatar(
-              child: Text("${operation!.currentIndex! + 1}"),
-            )
+          actions: [                          PopupMenuButton<String>(
+            icon: Icon(Icons.filter_list),
+            onSelected: (String result) {
+              switch (result) {
+                case 'delete':
+                  recipeWidgetActions?.onDelete(operation!);
+                  break;
+                case 'save preset':
+                  recipeWidgetActions?.onPresetSave(operation!);
+                  break;
+                default:
+              }
+            },
+            itemBuilder: (BuildContext context) =>
+            <PopupMenuEntry<String>>[
+              const PopupMenuItem<String>(
+                value: 'delete',
+                child: Text('Delete'),
+              ),
+              const PopupMenuItem<String>(
+                value: 'save preset',
+                child: Text('Save as preset'),
+              ),
+            ],
+          )
           ],
         ),
         body: Container(
@@ -94,11 +117,15 @@ class _StirOperationWidgetState extends State<StirOperationWidget> {
         ),
         bottomSheet: ButtonBar(
           children: [
-            ElevatedButton(
-                onPressed: () {
-                  recipeWidgetActions?.onDelete(operation!);
+            inEditMode
+                ? FilledButton(
+                onPressed: () async {
+                  setState(() {
+                    inEditMode = false;
+                  });
                 },
-                child: Text("Delete")),
+                child: Text("Cancel"))
+                : Row(),
             inEditMode
                 ? FilledButton(
                     onPressed: () {

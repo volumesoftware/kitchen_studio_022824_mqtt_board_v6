@@ -2,12 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter_draggable_gridview/flutter_draggable_gridview.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:kitchen_module/kitchen_module.dart';
 import 'package:flutter/material.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/recipe_widget.dart';
-import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/painters/cold_wok_painter.dart';
-import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/painters/hot_wok_painter.dart';
-import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/unit_monitoring_card_component.dart';
 
 class CreateRecipePage extends StatefulWidget {
   final Recipe recipe;
@@ -24,7 +23,8 @@ class _CreateRecipePageState extends State<CreateRecipePage>
   RecipeProcessor? recipeProcessor;
   List<RecipeProcessor> recipeProcessors = [];
   Timer? timer;
-  List<BaseOperation>? instructions = [];
+  List<BaseOperation> instructions = [];
+  List<BaseOperation> presets = [];
   final GlobalKey<ScaffoldState> _key = GlobalKey(); // Create a key
 
   BaseOperationDataAccess baseOperationDataAccess =
@@ -34,8 +34,9 @@ class _CreateRecipePageState extends State<CreateRecipePage>
   UdpService? udpService = UdpService.instance;
   DeviceDataAccess deviceDataAccess = DeviceDataAccess.instance;
   TaskDataAccess taskDataAccess = TaskDataAccess.instance;
-
+  bool showAddBetweenButton = false;
   bool manualOpen = false;
+  TextEditingController _presetSearchController = TextEditingController();
 
   @override
   void dispose() {
@@ -57,17 +58,25 @@ class _CreateRecipePageState extends State<CreateRecipePage>
       });
     });
     var tempOperations = await baseOperationDataAccess
-        .search("recipe_id = ?", whereArgs: [widget.recipe.id!]);
+            .search("recipe_id = ?", whereArgs: [widget.recipe.id!]) ??
+        [];
+    var tempPresets =
+        await baseOperationDataAccess.search("recipe_id = ?", whereArgs: [-1]);
 
     setState(() {
       recipeProcessors = threadPool.pool;
+      presets = tempPresets ?? [];
       instructions = tempOperations;
+      instructions.sort(
+        (a, b) => a.currentIndex!.compareTo(b.currentIndex!),
+      );
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _key,
       onEndDrawerChanged: (isOpened) {
         if (!isOpened) {
           setState(() {
@@ -75,99 +84,101 @@ class _CreateRecipePageState extends State<CreateRecipePage>
           });
         }
       },
-      key: _key,
       appBar: AppBar(
+        leading: IconButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          icon: Icon(Icons.arrow_back),
+        ),
         title: Text("Doodle Recipe (${widget.recipe.recipeName})"),
-        actions: [
-          PopupMenuButton<RecipeProcessor>(
-            child: Row(
-              children: [
-                recipeProcessor != null
-                    ? Text("${recipeProcessor!.moduleName}")
-                    : Text(recipeProcessors.isNotEmpty
-                        ? "Choose module"
-                        : "No module available"),
-                SizedBox(width: 10),
-                Icon(Icons.account_tree_outlined)
-              ],
-            ),
-            onSelected: (RecipeProcessor result) {
-              setState(() {
-                recipeProcessor = result;
-              });
-            },
-            itemBuilder: (BuildContext context) => recipeProcessors
-                .map((e) => PopupMenuItem<RecipeProcessor>(
-                      value: e,
-                      child: Text('${e.moduleName}'),
-                    ))
-                .toList(),
-          ),
-          SizedBox(width: 10),
-          recipeProcessors.isNotEmpty
-              ? IconButton(
-                  onPressed: () {
-                    setState(() {
-                      manualOpen = true;
-                    });
-                    _key.currentState?.openEndDrawer();
-                  },
-                  icon: Icon(Icons.menu_open))
-              : Icon(
-                  Icons.warning,
-                  color: Theme.of(context).colorScheme.error,
-                )
-        ],
       ),
-      endDrawer: recipeProcessor != null
-          ? Container(
-              width: 300,
-              height: 350,
-              child: UnitMonitoringCardComponent(
-                recipeProcessor: recipeProcessor!,
-                onTestRecipe: () async {
-                  Task task = Task(
-                      progress: 0,
-                      recipeName: widget.recipe.recipeName,
-                      moduleName: recipeProcessor?.moduleName,
-                      recipeId: widget.recipe.id,
-                      taskName: "Recipe doodling test",
-                      status: Task.CREATED);
-                  int? taskId = await taskDataAccess.create(task);
-                  if (taskId != null) {
-                    Task? task = await taskDataAccess.getById(taskId);
-                    if (task != null) {
-                      recipeProcessor?.processRecipe(
-                          TaskPayload(widget.recipe, instructions!, task));
-                    }
-                  }
-                },
-              ),
-            )
-          : SizedBox(),
+      drawer: Container(
+        color: Colors.white,
+        width: MediaQuery.of(context).size.width * 0.24,
+        height: MediaQuery.of(context).size.height,
+        child: Scaffold(
+          appBar: AppBar(
+            automaticallyImplyLeading: false,
+            title: TextField(
+              controller: _presetSearchController,
+              onChanged: (value) async {
+                if (value.isEmpty) {
+                  populateOperations();
+                } else {
+                  print(value);
+                  var filteredPreset = await baseOperationDataAccess.search(
+                      "preset_name like ? and recipe_id = ?",
+                      whereArgs: ["%$value%", -1]);
+                  print(filteredPreset);
+                  setState(() {
+                    presets = filteredPreset ?? [];
+                  });
+                }
+              },
+              decoration: InputDecoration(
+                  isDense: true,
+                  border: OutlineInputBorder(),
+                  suffixIcon: Icon(Icons.search),
+                  hintText: 'Heat ...',
+                  label: Text("Search Presets")),
+            ),
+          ),
+          body: presets.isEmpty
+              ? Center(
+                  child: Text("No presets available"),
+                )
+              : ListView(
+                  children: presets
+                      .map((e) => ListTile(
+                            subtitle: Text("${e.requestId}"),
+                            title: Text("${e.presetName}"),
+                            leading: Icon(e.iconData),
+                            trailing: IconButton(
+                              icon: Icon(
+                                Icons.delete_forever,
+                                color: Theme.of(context).colorScheme.error,
+                              ),
+                              onPressed: () async {
+                                await baseOperationDataAccess.delete(e.id!);
+                                populateOperations();
+                              },
+                            ),
+                            onTap: () {
+                              setState(() {
+                                e.currentIndex = instructions!.length;
+                                e.recipeId = widget.recipe.id;
+                                e.presetName = null;
+                              });
+                              onSave(e);
+                              Navigator.of(context).pop();
+                              _presetSearchController.clear();
+                            },
+                          ))
+                      .toList(),
+                ),
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.only(left: 10, right: 10),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Card(
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                width: MediaQuery.of(context).size.width * 0.15,
+            Container(
+              width: MediaQuery.of(context).size.width * 0.15,
+              child: Card(
                 child: ListView(
                   children: [
-                    Container(
-                      margin: EdgeInsets.symmetric(vertical: 50),
-                      width: double.infinity,
-                      height: 150,
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          image: DecorationImage(
-                              fit: BoxFit.cover,
-                              image: FileImage(File(
-                                  widget.recipe.imageFilePath ??
-                                      "assets/images/img.png")))),
+                    ListTile(
+                      leading: Icon(Icons.settings_applications),
+                      title: Text("Preset"),
+                      subtitle: Text("Load Saved Presets"),
+                      onTap: () async {
+                        populateOperations();
+                        _key.currentState?.openDrawer();
+                      },
                     ),
+                    Divider(),
                     ListTile(
                       leading: Stack(
                         children: [
@@ -204,6 +215,7 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                         setState(() {
                           onSave(HeatUntilTemperatureOperation(
                               currentIndex: instructions!.length,
+                              tiltAngleA: 90,
                               targetTemperature: 20));
                         });
                       },
@@ -227,6 +239,7 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                             onSave(HeatForOperation(
                                 currentIndex: instructions!.length,
                                 duration: 6,
+                                tiltAngleA: 90,
                                 targetTemperature: 20));
                           });
                         });
@@ -245,6 +258,11 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                                 currentIndex: instructions!.length,
                                 duration: 6,
                                 cycle: 1,
+                                tiltAngleA: 45,
+                                tiltAngleB: 15,
+                                rotateAngle: 270,
+                                rotateSpeed: 0,
+                                tiltSpeed: 0,
                                 targetTemperature: 20));
                           });
                         });
@@ -259,7 +277,11 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                             onSave(DispenseOperation(
                                 currentIndex: instructions!.length,
                                 cycle: 1,
-                                targetTemperature: 20));
+                                targetTemperature: 20,
+                                tiltAngleB: -30,
+                                tiltAngleA: 15,
+                                tiltSpeed: 0,
+                                rotateSpeed: 0));
                           });
                         });
                       },
@@ -273,47 +295,41 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                               currentIndex: instructions!.length,
                               cycle: 1,
                               interval: 2,
-                              targetTemperature: 20));
+                              tiltAngleA: -15,
+                              tiltAngleB: 95,
+                              targetTemperature: 20,
+                              tiltSpeed: 0,
+                              rotateSpeed: 0));
                         });
                       },
                     ),
                     ListTile(
-                      leading: Icon(Icons.ads_click_outlined),
-                      title: const Text('Stir Operation'),
-                      onTap: () {
-                        setState(() {
-                          onSave(StirOperation(
-                              currentIndex: instructions!.length,
-                              duration: 15000,
-                              targetTemperature: 20));
-                        });
-                      },
-                    ),
-                    ListTile(
-                      leading: CustomPaint(
-                        painter: ColdWokPainter(),
-                      ),
-                      title: const Text('Cold Mix Operation'),
+                      leading: Icon(Icons.severe_cold),
+                      title: const Text('Cold Mix'),
                       onTap: () {
                         setState(() {
                           onSave(ColdMixOperation(
                               currentIndex: instructions!.length,
-                              duration: 15000,
+                              duration: 15,
+                              tiltAngleA: 45,
+                              tiltAngleB: 15,
+                              rotateAngle: 270,
                               targetTemperature: 20));
                         });
                       },
                     ),
                     ListTile(
-                      leading: CustomPaint(
-                        painter: HotWokPainter(),
-                      ),
-                      title: const Text('Hot Mix Operation'),
+                      leading: Icon(Icons.heat_pump_outlined),
+                      title: const Text('Hot Mix'),
                       onTap: () {
                         setState(() {
                           onSave(HotMixOperation(
                               currentIndex: instructions!.length,
-                              duration: 15000,
-                              targetTemperature: 20));
+                              duration: 15,
+                              targetTemperature: 20,
+                              tiltAngleA: 150,
+                              tiltAngleB: 35,
+                              rotateAngle: 270));
                         });
                       },
                     ),
@@ -342,7 +358,7 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                       },
                     ),
                     ListTile(
-                      leading: Icon(Icons.water_drop_outlined),
+                      leading: Icon(Icons.repeat),
                       title: const Text('Repeat'),
                       onTap: () {
                         setState(() {
@@ -385,22 +401,38 @@ class _CreateRecipePageState extends State<CreateRecipePage>
               ),
             ),
             Container(
-              width: MediaQuery.of(context).size.width * 0.82,
+              width: MediaQuery.of(context).size.width * 0.80,
               height: MediaQuery.of(context).size.height,
-              child: GridView.builder(
-                itemCount: instructions!.length,
+              child: instructions.isEmpty ? Center(child: Text("Please add instructions"),) : DraggableGridViewBuilder(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 6, childAspectRatio: .8),
-                itemBuilder: (context, index) {
-                  instructions![index].currentIndex = index;
-                  return Card(
-                    child: Padding(
-                      padding: EdgeInsets.all(5),
-                      child: Stack(
-                        children: [
-                          getInstructionWidget(instructions![index]),
-                        ],
-                      ),
+                  crossAxisCount: 6,
+                  childAspectRatio: 0.8,
+                ),
+                children: instructions
+                    .map((item) => _buildItem(context, item))
+                    .toList(),
+                isOnlyLongPress: true,
+                dragCompletion: (List<DraggableGridItem> list, int beforeIndex,
+                    int afterIndex) async {
+                  print('onDragAccept: $beforeIndex -> $afterIndex');
+                  print(instructions[beforeIndex].requestId);
+                  print(instructions[afterIndex].requestId);
+                  instructions[beforeIndex].currentIndex = afterIndex;
+                  instructions[afterIndex].currentIndex = beforeIndex;
+                  await baseOperationDataAccess.updateById(instructions[beforeIndex].id!, instructions[beforeIndex]);
+                  await baseOperationDataAccess.updateById(instructions[afterIndex].id!, instructions[afterIndex]);
+                  populateOperations();
+                },
+                dragFeedback: (List<DraggableGridItem> list, int index) {
+                  return Container(
+                    child: list[index].child,
+                  );
+                },
+                dragPlaceHolder: (List<DraggableGridItem> list, int index) {
+                  return PlaceHolderWidget(
+                    child: Container(
+                      color: Theme.of(context).colorScheme.primary,
+                      child: list[index].child,
                     ),
                   );
                 },
@@ -409,25 +441,24 @@ class _CreateRecipePageState extends State<CreateRecipePage>
           ],
         ),
       ),
-      // floatingActionButton: FloatingActionButton.extended(
-      //     onPressed: () {},
-      //     label: Row(
-      //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      //       children: [Text("Save Recipe"), Icon(Icons.save)],
-      //     )),
     );
   }
 
-  void removeOperation(int index) {
-    setState(() {
-      instructions!.remove(instructions![index]);
-    });
-    for (var i = 0; i < instructions!.length; i++) {
-      setState(() {
-        instructions![i].currentIndex = i;
-      });
-    }
+  DraggableGridItem _buildItem(BuildContext context, BaseOperation e) {
+    return DraggableGridItem(
+        isDraggable: true,
+        child: SizedBox(
+          height: 200,
+          width: 200,
+          child: Card(
+            child: Padding(
+              padding: EdgeInsets.all(5),
+              child: getInstructionWidget(e),
+            ),
+          ),
+        ));
   }
+
 
   Widget getInstructionWidget(BaseOperation instruction) {
     if (instruction.operation == HeatUntilTemperatureOperation.CODE) {
@@ -514,20 +545,15 @@ class _CreateRecipePageState extends State<CreateRecipePage>
   }
 
   @override
-  void onDelete(BaseOperation operation) {
-    var json = operation.toJson();
-    json['id'] = operation.id;
-    print("Deleteing ${json}");
-    baseOperationDataAccess
-        .delete(operation.id!)
-        .then((value) => populateOperations());
+  Future<void> onDelete(BaseOperation operation) async {
+    await baseOperationDataAccess.delete(operation.id!);
+    populateOperations();
   }
 
   @override
-  void onValueUpdate(BaseOperation operation) {
-    baseOperationDataAccess
-        .updateById(operation.id!, operation)
-        .then((value) => populateOperations());
+  void onValueUpdate(BaseOperation operation) async {
+    await baseOperationDataAccess.updateById(operation.id!, operation);
+    populateOperations();
   }
 
   @override
@@ -574,5 +600,45 @@ class _CreateRecipePageState extends State<CreateRecipePage>
 
     udpService?.send(jsonEncode(operation.toJson()).codeUnits,
         InternetAddress(recipeProcessor!.getDeviceStats().ipAddress!), 8888);
+  }
+
+  TextEditingController _presetNameController = TextEditingController();
+
+  Future<void> _displayTextInputDialog(
+      BuildContext context, BaseOperation operation) async {
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('PresetName'),
+          content: TextField(
+            controller: _presetNameController,
+            decoration: InputDecoration(hintText: "Text Field in Dialog"),
+          ),
+          actions: <Widget>[
+            FilledButton(
+              child: Text('CANCEL'),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+            ElevatedButton(
+              child: Text('OK'),
+              onPressed: () async {
+                operation.recipeId = -1;
+                operation.presetName = _presetNameController.text;
+                await baseOperationDataAccess.create(operation);
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  void onPresetSave(BaseOperation operation) {
+    _displayTextInputDialog(context, operation);
   }
 }

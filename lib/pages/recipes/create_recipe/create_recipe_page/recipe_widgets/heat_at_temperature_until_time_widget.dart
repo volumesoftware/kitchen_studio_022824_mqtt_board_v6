@@ -25,6 +25,7 @@ class _HeatAtTemperatureUntilTimeWidgetState
   bool inEditMode = false;
   TextEditingController? _targetTemperatureController;
   TextEditingController? _durationController;
+  TextEditingController? _tiltAngleController;
 
   @override
   void initState() {
@@ -33,6 +34,8 @@ class _HeatAtTemperatureUntilTimeWidgetState
     _targetTemperatureController =
         TextEditingController(text: "${operation?.targetTemperature}");
     _durationController = TextEditingController(text: "${operation?.duration}");
+    _tiltAngleController =
+        TextEditingController(text: "${operation?.tiltAngleA}");
     super.initState();
   }
 
@@ -41,17 +44,40 @@ class _HeatAtTemperatureUntilTimeWidgetState
     return Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          leading: Icon(
-            Icons.thermostat_auto_outlined,
+          leading: Container(
+            child: Center(
+              child: Text("${widget.operation.currentIndex! + 1}"),
+            ),
           ),
           title: Text(
-            "Heat at Temperature, Until Time",
+            "Timeout Heat",
             style: Theme.of(context).textTheme.titleSmall,
           ),
           automaticallyImplyLeading: false,
           actions: [
-            CircleAvatar(
-              child: Text("${operation!.currentIndex! + 1}"),
+            PopupMenuButton<String>(
+              icon: Icon(Icons.filter_list),
+              onSelected: (String result) {
+                switch (result) {
+                  case 'delete':
+                    recipeWidgetActions?.onDelete(operation!);
+                    break;
+                  case 'save preset':
+                    recipeWidgetActions?.onPresetSave(operation!);
+                    break;
+                  default:
+                }
+              },
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                const PopupMenuItem<String>(
+                  value: 'delete',
+                  child: Text('Delete'),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'save preset',
+                  child: Text('Save as preset'),
+                ),
+              ],
             )
           ],
         ),
@@ -92,17 +118,39 @@ class _HeatAtTemperatureUntilTimeWidgetState
                   : ListTile(
                       title: Text('Duration'),
                       trailing: Text("${_durationController?.text}"),
+                    ),
+              inEditMode
+                  ? Padding(
+                      padding: EdgeInsets.symmetric(vertical: 3),
+                      child: TextField(
+                        controller: _tiltAngleController,
+                        decoration: InputDecoration(
+                          isDense: true,
+                          suffixText: "degree",
+                          border: OutlineInputBorder(),
+                          label: Text('Tilt Angle'),
+                          hintText: '45',
+                        ),
+                      ),
+                    )
+                  : ListTile(
+                      title: Text('Tilt Angle'),
+                      trailing: Text("${_tiltAngleController?.text}°"),
                     )
             ],
           ),
         ),
         bottomSheet: ButtonBar(
           children: [
-            ElevatedButton(
-                onPressed: () {
-                  recipeWidgetActions?.onDelete(operation!);
-                },
-                child: Text("Delete")),
+            inEditMode
+                ? FilledButton(
+                    onPressed: () async {
+                      setState(() {
+                        inEditMode = false;
+                      });
+                    },
+                    child: Text("Cancel"))
+                : Row(),
             inEditMode
                 ? FilledButton(
                     onPressed: () {
@@ -110,6 +158,8 @@ class _HeatAtTemperatureUntilTimeWidgetState
                           double.tryParse(_targetTemperatureController!.text);
                       operation?.duration =
                           int.tryParse(_durationController!.text);
+                      operation?.tiltAngleA =
+                          double.tryParse(_tiltAngleController!.text);
                       recipeWidgetActions?.onValueUpdate(operation!);
                       setState(() {
                         inEditMode = false;
