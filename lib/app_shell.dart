@@ -145,18 +145,18 @@ class _AppShellScreenState extends State<AppShellScreen> {
                         //     });
                         //   },
                         // ),
-                        ListTile(
-                          key: _operationTemplateListTile,
-                          selected: selectedIndex == 5,
-                          leading: Icon(Icons.calculate_sharp),
-                          title:
-                          selectedIndex == 3 ? Row() : const Text('Operation Template'),
-                          onTap: () {
-                            setState(() {
-                              selectedIndex = 5;
-                            });
-                          },
-                        )
+                        // ListTile(
+                        //   key: _operationTemplateListTile,
+                        //   selected: selectedIndex == 5,
+                        //   leading: Icon(Icons.calculate_sharp),
+                        //   title:
+                        //   selectedIndex == 3 ? Row() : const Text('Operation Template'),
+                        //   onTap: () {
+                        //     setState(() {
+                        //       selectedIndex = 5;
+                        //     });
+                        //   },
+                        // )
                       ],
                     ),
                   ),

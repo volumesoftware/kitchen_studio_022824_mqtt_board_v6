@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:kitchen_module/kitchen_module.dart';
 import 'package:kitchen_studio_10162023/app_router.dart';
 import 'package:kitchen_studio_10162023/pages/taskv2/recipe_search_delegate_v2.dart';
+import 'package:kitchen_studio_10162023/pages/taskv2/running_task_processor.dart';
 import 'package:kitchen_studio_10162023/widgets/thermometers.dart';
 
 class RunningTaskTimelineWidget extends StatefulWidget {
@@ -66,7 +67,7 @@ class _RunningTaskTimelineWidgetState extends State<RunningTaskTimelineWidget> {
         }
       }
 
-      scrollToIndex(widget.recipeProcessor.getIndexProgress());
+      // scrollToIndex(widget.recipeProcessor.getIndexProgress());
     });
     super.initState();
   }
@@ -220,151 +221,153 @@ class _RunningTaskTimelineWidgetState extends State<RunningTaskTimelineWidget> {
                       ),
                       body: Stack(
                         children: [
-                          SingleChildScrollView(
-                            controller: _scrollController,
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: (widget.recipeProcessor
-                                          .getPayload()
-                                          ?.operations ??
-                                      [])
-                                  .map((e) {
-                                double? currentProgress = ((widget
-                                                .recipeProcessor
-                                                .getDeviceStats()
-                                                .currentLocalTime ??
-                                            0)
-                                        .toDouble()) /
-                                    ((widget.recipeProcessor
-                                                .getDeviceStats()
-                                                .localTimeMax ??
-                                            0)
-                                        .toDouble());
+                          RunningTaskProcessorWidget(recipeProcessor: widget.recipeProcessor),
 
-                                if (currentProgress.isNaN ||
-                                    currentProgress.isInfinite ||
-                                    currentProgress == 0 ||
-                                    currentProgress > 1) {
-                                  currentProgress = null;
-                                }
-
-                                List<Widget> informations = [
-                                  Text(
-                                    "${e.requestId}",
-                                    style:
-                                        Theme.of(context).textTheme.titleLarge,
-                                  ),
-                                  SizedBox(
-                                    height: 10,
-                                  ),
-                                  Container(
-                                    height: 20,
-                                    width: 100,
-                                    child: LinearProgressIndicator(
-                                      value: currentProgress,
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    height: 10,
-                                  ),
-                                ];
-                                informations.addAll(e.toJson().entries.map((f) {
-                                  if (f.key == 'request_id') {
-                                    return SizedBox();
-                                  }
-                                  if (f.key == 'operation') {
-                                    return SizedBox();
-                                  }
-                                  if (f.key == 'recipe_id') {
-                                    return SizedBox();
-                                  }
-                                  if (f.key == 'current_index') {
-                                    return SizedBox();
-                                  }
-                                  if (f.key == 'instruction_size') {
-                                    return SizedBox();
-                                  }
-                                  return Text(
-                                      "${f.key.replaceAll("_", " ")} ${f.value}");
-                                }).toList());
-
-                                return e.currentIndex ==
-                                        widget.recipeProcessor
-                                            .getIndexProgress()
-                                    ? Stack(
-                                        children: [
-                                          Container(
-                                            height: double.infinity,
-                                            decoration: BoxDecoration(
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .primary
-                                                    .withOpacity(0.05),
-                                                borderRadius:
-                                                    BorderRadius.circular(10)),
-                                            margin: EdgeInsets.all(5),
-                                            padding: EdgeInsets.only(
-                                                left: 10, right: 10),
-                                            child:
-                                                Column(children: informations),
-                                          ),
-                                          Container(
-                                            height: double.infinity,
-                                            decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: Colors.blue
-                                                      .withOpacity(0.2),
-                                                  // Change the glow color here
-                                                  blurRadius: 10,
-                                                  // Adjust the blur radius
-                                                  spreadRadius:
-                                                      3, // Adjust the spread radius
-                                                  // You can also use 'BoxShape.circle' for circular containers
-                                                ),
-                                              ],
-                                            ),
-                                            margin: EdgeInsets.all(5),
-                                            padding: EdgeInsets.only(
-                                                left: 10, right: 10),
-                                            child: Column(
-                                              children: informations,
-                                            ),
-                                          )
-                                        ],
-                                      )
-                                    : Container(
-                                        height: 100,
-                                        decoration: BoxDecoration(
-                                            color: e.currentIndex ==
-                                                    widget.recipeProcessor
-                                                        .getIndexProgress()
-                                                ? Colors.red
-                                                : Theme.of(context)
-                                                    .colorScheme
-                                                    .primary
-                                                    .withOpacity(0.05),
-                                            borderRadius:
-                                                BorderRadius.circular(10)),
-                                        margin: EdgeInsets.all(5),
-                                        padding: EdgeInsets.only(
-                                            left: 10, right: 10),
-                                        child: Row(
-                                          children: [
-                                            Text(
-                                              "${e.requestId}",
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .titleLarge,
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                              }).toList(),
-                            ),
-                          ),
+                          // SingleChildScrollView(
+                          //   controller: _scrollController,
+                          //   scrollDirection: Axis.horizontal,
+                          //   child: Row(
+                          //     children: (widget.recipeProcessor
+                          //                 .getPayload()
+                          //                 ?.operations ??
+                          //             [])
+                          //         .map((e) {
+                          //       double? currentProgress = ((widget
+                          //                       .recipeProcessor
+                          //                       .getDeviceStats()
+                          //                       .currentLocalTime ??
+                          //                   0)
+                          //               .toDouble()) /
+                          //           ((widget.recipeProcessor
+                          //                       .getDeviceStats()
+                          //                       .localTimeMax ??
+                          //                   0)
+                          //               .toDouble());
+                          //
+                          //       if (currentProgress.isNaN ||
+                          //           currentProgress.isInfinite ||
+                          //           currentProgress == 0 ||
+                          //           currentProgress > 1) {
+                          //         currentProgress = null;
+                          //       }
+                          //
+                          //       List<Widget> informations = [
+                          //         Text(
+                          //           "${e.requestId}",
+                          //           style:
+                          //               Theme.of(context).textTheme.titleLarge,
+                          //         ),
+                          //         SizedBox(
+                          //           height: 10,
+                          //         ),
+                          //         Container(
+                          //           height: 20,
+                          //           width: 100,
+                          //           child: LinearProgressIndicator(
+                          //             value: currentProgress,
+                          //           ),
+                          //         ),
+                          //         SizedBox(
+                          //           height: 10,
+                          //         ),
+                          //       ];
+                          //       informations.addAll(e.toJson().entries.map((f) {
+                          //         if (f.key == 'request_id') {
+                          //           return SizedBox();
+                          //         }
+                          //         if (f.key == 'operation') {
+                          //           return SizedBox();
+                          //         }
+                          //         if (f.key == 'recipe_id') {
+                          //           return SizedBox();
+                          //         }
+                          //         if (f.key == 'current_index') {
+                          //           return SizedBox();
+                          //         }
+                          //         if (f.key == 'instruction_size') {
+                          //           return SizedBox();
+                          //         }
+                          //         return Text(
+                          //             "${f.key.replaceAll("_", " ")} ${f.value}");
+                          //       }).toList());
+                          //
+                          //       return e.currentIndex ==
+                          //               widget.recipeProcessor
+                          //                   .getIndexProgress()
+                          //           ? Stack(
+                          //               children: [
+                          //                 Container(
+                          //                   height: double.infinity,
+                          //                   decoration: BoxDecoration(
+                          //                       color: Theme.of(context)
+                          //                           .colorScheme
+                          //                           .primary
+                          //                           .withOpacity(0.05),
+                          //                       borderRadius:
+                          //                           BorderRadius.circular(10)),
+                          //                   margin: EdgeInsets.all(5),
+                          //                   padding: EdgeInsets.only(
+                          //                       left: 10, right: 10),
+                          //                   child:
+                          //                       Column(children: informations),
+                          //                 ),
+                          //                 Container(
+                          //                   height: double.infinity,
+                          //                   decoration: BoxDecoration(
+                          //                     borderRadius:
+                          //                         BorderRadius.circular(10),
+                          //                     boxShadow: [
+                          //                       BoxShadow(
+                          //                         color: Colors.blue
+                          //                             .withOpacity(0.2),
+                          //                         // Change the glow color here
+                          //                         blurRadius: 10,
+                          //                         // Adjust the blur radius
+                          //                         spreadRadius:
+                          //                             3, // Adjust the spread radius
+                          //                         // You can also use 'BoxShape.circle' for circular containers
+                          //                       ),
+                          //                     ],
+                          //                   ),
+                          //                   margin: EdgeInsets.all(5),
+                          //                   padding: EdgeInsets.only(
+                          //                       left: 10, right: 10),
+                          //                   child: Column(
+                          //                     children: informations,
+                          //                   ),
+                          //                 )
+                          //               ],
+                          //             )
+                          //           : Container(
+                          //               height: 100,
+                          //               decoration: BoxDecoration(
+                          //                   color: e.currentIndex ==
+                          //                           widget.recipeProcessor
+                          //                               .getIndexProgress()
+                          //                       ? Colors.red
+                          //                       : Theme.of(context)
+                          //                           .colorScheme
+                          //                           .primary
+                          //                           .withOpacity(0.05),
+                          //                   borderRadius:
+                          //                       BorderRadius.circular(10)),
+                          //               margin: EdgeInsets.all(5),
+                          //               padding: EdgeInsets.only(
+                          //                   left: 10, right: 10),
+                          //               child: Row(
+                          //                 children: [
+                          //                   Text(
+                          //                     "${e.requestId}",
+                          //                     style: Theme.of(context)
+                          //                         .textTheme
+                          //                         .titleLarge,
+                          //                   ),
+                          //                 ],
+                          //               ),
+                          //             );
+                          //     }).toList(),
+                          //   ),
+                          // ),
                           (widget.recipeProcessor.getPayload()?.operations ??
                                       [])
                                   .isEmpty

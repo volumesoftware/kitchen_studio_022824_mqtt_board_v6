@@ -3,6 +3,7 @@ import 'package:flutter_draggable_gridview/flutter_draggable_gridview.dart';
 import 'package:kitchen_module/kitchen_module.dart';
 import 'package:kitchen_studio_10162023/app_router.dart';
 
+
 class OperationTemplatePage extends StatefulWidget {
   const OperationTemplatePage({Key? key}) : super(key: key);
 
@@ -52,6 +53,9 @@ class _OperationTemplatePageState extends State<OperationTemplatePage> {
           );
         },
       ),
+      floatingActionButton: FloatingActionButton.small(onPressed: () {
+        Navigator.of(context).pushNamed(AppRouter.operationTemplateFormPage);
+      },),
     );
   }
 
