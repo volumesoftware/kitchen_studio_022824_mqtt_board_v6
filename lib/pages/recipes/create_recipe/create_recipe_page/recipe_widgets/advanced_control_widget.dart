@@ -1,26 +1,32 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:kitchen_module/kitchen_module.dart';
+import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/advance_control_editor/advanced_control_editor_widget.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/recipe_widget_action.dart';
 
-class StirOperationWidget extends StatefulWidget {
-  final StirOperation operation;
+class AdvancedControlWidget extends StatefulWidget {
+  final AdvancedOperation operation;
   final RecipeWidgetActions recipeWidgetActions;
 
-  const StirOperationWidget({
-    Key? key,
-    required this.operation, required this.recipeWidgetActions,
-  }) : super(key: key);
+  const AdvancedControlWidget(
+      {Key? key, required this.operation, required this.recipeWidgetActions})
+      : super(key: key);
 
   @override
-  State<StirOperationWidget> createState() => _StirOperationWidgetState();
+  State<AdvancedControlWidget> createState() =>
+      _AdvancedControlWidgetState();
 }
 
-class _StirOperationWidgetState extends State<StirOperationWidget> {
-  StirOperation? operation;
+class _AdvancedControlWidgetState
+    extends State<AdvancedControlWidget> {
+  AdvancedOperation? operation;
+  RecipeWidgetActions? recipeWidgetActions;
   bool inEditMode = false;
   TextEditingController? _targetTemperatureController;
   TextEditingController? _durationController;
-  RecipeWidgetActions? recipeWidgetActions;
+  TextEditingController? _tiltAngleController;
 
   @override
   void initState() {
@@ -28,7 +34,6 @@ class _StirOperationWidgetState extends State<StirOperationWidget> {
     operation = widget.operation;
     _targetTemperatureController =
         TextEditingController(text: "${operation?.targetTemperature}");
-    _durationController = TextEditingController(text: "${operation?.duration}");
     super.initState();
   }
 
@@ -43,35 +48,35 @@ class _StirOperationWidgetState extends State<StirOperationWidget> {
             ),
           ),
           title: Text(
-            "${widget.operation.presetName ?? 'Stir'}",
+            "Advanced Control",
             style: Theme.of(context).textTheme.titleSmall,
           ),
           automaticallyImplyLeading: false,
-          actions: [                          PopupMenuButton<String>(
-            icon: Icon(Icons.filter_list),
-            onSelected: (String result) {
-              switch (result) {
-                case 'delete':
-                  recipeWidgetActions?.onDelete(operation!);
-                  break;
-                case 'save preset':
-                  recipeWidgetActions?.onPresetSave(operation!);
-                  break;
-                default:
-              }
-            },
-            itemBuilder: (BuildContext context) =>
-            <PopupMenuEntry<String>>[
-              const PopupMenuItem<String>(
-                value: 'delete',
-                child: Text('Delete'),
-              ),
-              const PopupMenuItem<String>(
-                value: 'save preset',
-                child: Text('Save as preset'),
-              ),
-            ],
-          )
+          actions: [
+            PopupMenuButton<String>(
+              icon: Icon(Icons.filter_list),
+              onSelected: (String result) {
+                switch (result) {
+                  case 'delete':
+                    recipeWidgetActions?.onDelete(operation!);
+                    break;
+                  case 'save preset':
+                    recipeWidgetActions?.onPresetSave(operation!);
+                    break;
+                  default:
+                }
+              },
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                const PopupMenuItem<String>(
+                  value: 'delete',
+                  child: Text('Delete'),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'save preset',
+                  child: Text('Save as preset'),
+                ),
+              ],
+            )
           ],
         ),
         body: Container(
@@ -111,7 +116,7 @@ class _StirOperationWidgetState extends State<StirOperationWidget> {
                   : ListTile(
                       title: Text('Duration'),
                       trailing: Text("${_durationController?.text}"),
-                    )
+                    ),
             ],
           ),
         ),
@@ -119,18 +124,18 @@ class _StirOperationWidgetState extends State<StirOperationWidget> {
           children: [
             inEditMode
                 ? FilledButton(
-                onPressed: () async {
-                  setState(() {
-                    inEditMode = false;
-                  });
-                },
-                child: Text("Cancel"))
+                    onPressed: () async {
+                      setState(() {
+                        inEditMode = false;
+                      });
+                    },
+                    child: Text("Cancel"))
                 : Row(),
             inEditMode
                 ? FilledButton(
                     onPressed: () {
-                      operation?.targetTemperature = double.tryParse(_targetTemperatureController!.text);
-                      operation?.duration = int.tryParse(_durationController!.text);
+                      operation?.targetTemperature =
+                          double.tryParse(_targetTemperatureController!.text);
                       recipeWidgetActions?.onValueUpdate(operation!);
                       setState(() {
                         inEditMode = false;
@@ -140,9 +145,31 @@ class _StirOperationWidgetState extends State<StirOperationWidget> {
                       "Update",
                     ))
                 : FilledButton(
-                    onPressed: () => setState(() {
-                          inEditMode = true;
-                        }),
+                    onPressed: () {
+                      setState(() {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              scrollable: true,
+                              title: const Text('Advanced Control Editor'),
+                              content: AdvanceControlWidget(advancedOperation: operation!),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    // Close the dialog
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: Text('Close'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+
+                        inEditMode = true;
+                      });
+                    },
                     child: Text("Edit")),
           ],
         ));

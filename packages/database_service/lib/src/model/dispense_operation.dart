@@ -31,7 +31,7 @@ class DispenseOperation implements BaseOperation {
 
   int? rotateSpeed;
 
-  IconData? iconData = Icons.account_tree_outlined;
+  IconData? iconData = Icons.eject;
 
 
 

@@ -7,3 +7,4 @@ export 'recipe_data_access.dart';
 export 'task_data_access.dart';
 export 'operation_template_data_access.dart';
 export 'operation_template_item_data_access.dart';
+export 'advanced_operation_item_data_access.dart';

@@ -45,7 +45,7 @@ class _PumpOilWidgetState extends State<PumpOilWidget> {
             ),
           ),
           title: Text(
-            "Pump Oil",
+            "${widget.operation.presetName ?? 'Pump Oil'}",
             style: Theme.of(context).textTheme.titleSmall,
           ),
           automaticallyImplyLeading: false,

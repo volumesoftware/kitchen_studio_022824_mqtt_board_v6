@@ -6,6 +6,7 @@ import 'package:flutter_draggable_gridview/flutter_draggable_gridview.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:kitchen_module/kitchen_module.dart';
 import 'package:flutter/material.dart';
+import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/advanced_control_widget.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/recipe_widget.dart';
 
 class CreateRecipePage extends StatefulWidget {
@@ -146,9 +147,8 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                             ),
                             onTap: () {
                               setState(() {
-                                e.currentIndex = instructions!.length;
+                                e.currentIndex = instructions.length;
                                 e.recipeId = widget.recipe.id;
-                                e.presetName = null;
                               });
                               onSave(e);
                               Navigator.of(context).pop();
@@ -178,12 +178,23 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                         _key.currentState?.openDrawer();
                       },
                     ),
+                    ListTile(
+                      leading: Icon(Icons.label),
+                      title: const Text('Advanced Control'),
+                      onTap: () {
+                        setState(() {
+                          onSave(AdvancedOperation(
+                              currentIndex: instructions.length,
+                              targetTemperature: 35));
+                        });
+                      },
+                    ),
                     Divider(),
                     ListTile(
                       leading: Stack(
                         children: [
                           Icon(
-                            Icons.person_search_outlined,
+                            Icons.person,
                           )
                         ],
                       ),
@@ -224,7 +235,7 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                       leading: Stack(
                         children: [
                           Icon(
-                            Icons.thermostat_auto_outlined,
+                            Icons.share_arrival_time_outlined,
                           )
                         ],
                       ),
@@ -237,7 +248,7 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                         setState(() {
                           setState(() {
                             onSave(HeatForOperation(
-                                currentIndex: instructions!.length,
+                                currentIndex: instructions.length,
                                 duration: 6,
                                 tiltAngleA: 90,
                                 targetTemperature: 20));
@@ -269,7 +280,7 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                       },
                     ),
                     ListTile(
-                      leading: Icon(Icons.account_tree_outlined),
+                      leading: Icon(Icons.eject),
                       title: const Text('Dispense'),
                       onTap: () {
                         setState(() {
@@ -403,40 +414,49 @@ class _CreateRecipePageState extends State<CreateRecipePage>
             Container(
               width: MediaQuery.of(context).size.width * 0.80,
               height: MediaQuery.of(context).size.height,
-              child: instructions.isEmpty ? Center(child: Text("Please add instructions"),) : DraggableGridViewBuilder(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 6,
-                  childAspectRatio: 0.8,
-                ),
-                children: instructions
-                    .map((item) => _buildItem(context, item))
-                    .toList(),
-                isOnlyLongPress: true,
-                dragCompletion: (List<DraggableGridItem> list, int beforeIndex,
-                    int afterIndex) async {
-                  print('onDragAccept: $beforeIndex -> $afterIndex');
-                  print(instructions[beforeIndex].requestId);
-                  print(instructions[afterIndex].requestId);
-                  instructions[beforeIndex].currentIndex = afterIndex;
-                  instructions[afterIndex].currentIndex = beforeIndex;
-                  await baseOperationDataAccess.updateById(instructions[beforeIndex].id!, instructions[beforeIndex]);
-                  await baseOperationDataAccess.updateById(instructions[afterIndex].id!, instructions[afterIndex]);
-                  populateOperations();
-                },
-                dragFeedback: (List<DraggableGridItem> list, int index) {
-                  return Container(
-                    child: list[index].child,
-                  );
-                },
-                dragPlaceHolder: (List<DraggableGridItem> list, int index) {
-                  return PlaceHolderWidget(
-                    child: Container(
-                      color: Theme.of(context).colorScheme.primary,
-                      child: list[index].child,
+              child: instructions.isEmpty
+                  ? Center(
+                      child: Text("Please add instructions"),
+                    )
+                  : DraggableGridViewBuilder(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 6,
+                        childAspectRatio: 0.8,
+                      ),
+                      children: instructions
+                          .map((item) => _buildItem(context, item))
+                          .toList(),
+                      isOnlyLongPress: true,
+                      dragCompletion: (List<DraggableGridItem> list,
+                          int beforeIndex, int afterIndex) async {
+                        print('onDragAccept: $beforeIndex -> $afterIndex');
+                        print(instructions[beforeIndex].requestId);
+                        print(instructions[afterIndex].requestId);
+                        instructions[beforeIndex].currentIndex = afterIndex;
+                        instructions[afterIndex].currentIndex = beforeIndex;
+                        await baseOperationDataAccess.updateById(
+                            instructions[beforeIndex].id!,
+                            instructions[beforeIndex]);
+                        await baseOperationDataAccess.updateById(
+                            instructions[afterIndex].id!,
+                            instructions[afterIndex]);
+                        populateOperations();
+                      },
+                      dragFeedback: (List<DraggableGridItem> list, int index) {
+                        return Container(
+                          child: list[index].child,
+                        );
+                      },
+                      dragPlaceHolder:
+                          (List<DraggableGridItem> list, int index) {
+                        return PlaceHolderWidget(
+                          child: Container(
+                            color: Theme.of(context).colorScheme.primary,
+                            child: list[index].child,
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             )
           ],
         ),
@@ -458,7 +478,6 @@ class _CreateRecipePageState extends State<CreateRecipePage>
           ),
         ));
   }
-
 
   Widget getInstructionWidget(BaseOperation instruction) {
     if (instruction.operation == HeatUntilTemperatureOperation.CODE) {
@@ -529,6 +548,11 @@ class _CreateRecipePageState extends State<CreateRecipePage>
     } else if (instruction.operation == RepeatOperation.CODE) {
       return RepeatWidget(
         operation: instruction as RepeatOperation,
+        recipeWidgetActions: this,
+      );
+    }else if (instruction.operation == AdvancedOperation.CODE) {
+      return AdvancedControlWidget(
+        operation: instruction as AdvancedOperation,
         recipeWidgetActions: this,
       );
     }

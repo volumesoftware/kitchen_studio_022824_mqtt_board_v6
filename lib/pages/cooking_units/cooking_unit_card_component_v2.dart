@@ -26,9 +26,7 @@ class _CookingUnitCardComponentV2State
   final ValueNotifier<double> temperature = ValueNotifier(0.3);
   double _progress = 0.0;
   bool _busy = false;
-  String? _backgroundImagePath;
   final GlobalKey<ScaffoldState> _key = GlobalKey(); // Create a key
-  bool _showBottomSheet = false;
 
   @override
   void dispose() {
@@ -66,11 +64,11 @@ class _CookingUnitCardComponentV2State
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "${deviceStats?.moduleName}",
+                            "${deviceStats.moduleName}",
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           Text(
-                            "${(timeLeft(deviceStats?.machineTime ?? 0))}",
+                            (timeLeft(deviceStats.machineTime ?? 0)),
                             style: Theme.of(context).textTheme.bodySmall,
                           )
                         ],
@@ -109,8 +107,8 @@ class _CookingUnitCardComponentV2State
                                               udpService?.send(
                                                   jsonEncode(mOp.toJson())
                                                       .codeUnits,
-                                                  InternetAddress(deviceStats!.ipAddress!),
-                                                  deviceStats!.port!);
+                                                  InternetAddress(deviceStats.ipAddress!),
+                                                  deviceStats.port!);
                                             },
                                             title: Text("Tilt Up (3°)"),
                                             trailing: Icon(Icons.arrow_upward),
@@ -123,7 +121,7 @@ class _CookingUnitCardComponentV2State
                                                   jsonEncode(mOp.toJson())
                                                       .codeUnits,
                                                   InternetAddress(
-                                                      deviceStats!.ipAddress!),
+                                                      deviceStats.ipAddress!),
                                                   deviceStats.port!);
                                             },
                                             title: Text("Tilt Down (3°)"),
@@ -137,8 +135,8 @@ class _CookingUnitCardComponentV2State
                                               udpService?.send(
                                                   jsonEncode(mOp.toJson())
                                                       .codeUnits,
-                                                  InternetAddress(deviceStats!.ipAddress!),
-                                                  deviceStats!.port!);
+                                                  InternetAddress(deviceStats.ipAddress!),
+                                                  deviceStats.port!);
                                             },
                                             title: Text("Rotate Right (15°)"),
                                             trailing: Icon(Icons.arrow_forward),
@@ -150,7 +148,7 @@ class _CookingUnitCardComponentV2State
                                               udpService?.send(
                                                   jsonEncode(mOp.toJson())
                                                       .codeUnits,
-                                                  InternetAddress(deviceStats!.ipAddress!),
+                                                  InternetAddress(deviceStats.ipAddress!),
                                                   deviceStats.port!);
                                             },
                                             title: Text("Rotate Left (15°)"),
@@ -178,7 +176,7 @@ class _CookingUnitCardComponentV2State
                                   udpService?.send(
                                       jsonData.codeUnits,
                                       InternetAddress(
-                                          deviceStats!.ipAddress!),
+                                          deviceStats.ipAddress!),
                                       8888);
                                   break;
                                 case 'heat_until':
@@ -196,7 +194,7 @@ class _CookingUnitCardComponentV2State
                                       )                                          .toJson());
                                   udpService?.send(
                                       dispense.codeUnits,
-                                      InternetAddress(deviceStats!.ipAddress!),
+                                      InternetAddress(deviceStats.ipAddress!),
                                       8888);
                                   break;
                                 case 'wash':
@@ -276,7 +274,7 @@ class _CookingUnitCardComponentV2State
                           ),
                         ),
                         Text(
-                            "${deviceStats?.temperature?.toStringAsFixed(2)} °C",
+                            "${deviceStats.temperature?.toStringAsFixed(2)} °C",
                             style: Theme.of(context)
                                 .textTheme
                                 .titleLarge
@@ -296,31 +294,16 @@ class _CookingUnitCardComponentV2State
                     ),
                   ),
                   Text(
-                    "${deviceStats?.requestId}",
+                    "${deviceStats.requestId}",
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   Text(
-                    "${deviceStats?.ipAddress}:${deviceStats?.port}",
+                    "${deviceStats.ipAddress}:${deviceStats.port}",
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   Text(
-                    "${deviceStats?.type}",
+                    "${deviceStats.type}",
                     style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Enable Queue",
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                      // Switch(
-                      //   value: taskRunner?.isChained() ?? false,
-                      //   onChanged: (value) {
-                      //     taskRunner?.setChained(value);
-                      //   },
-                      // )
-                    ],
                   ),
                 ],
               ),
@@ -352,7 +335,7 @@ class _CookingUnitCardComponentV2State
         curve: Curves.elasticOut,
         radius: 66,
         initialValue: 0,
-        value: _progress ?? 0.0,
+        value: _progress,
         axis: GaugeAxis(
             min: 0,
             max: 1,

@@ -48,7 +48,7 @@ class _HeatUntilTemperatureWidgetState
             ),
           ),
           title: Text(
-            "Heat Until",
+            "${widget.operation.presetName ?? 'Heat Until'}",
             style: Theme.of(context).textTheme.titleSmall,
           ),
           automaticallyImplyLeading: false,

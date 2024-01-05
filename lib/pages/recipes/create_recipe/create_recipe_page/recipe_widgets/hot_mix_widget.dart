@@ -120,7 +120,7 @@ class _HotMixOperationWidgetState extends State<HotMixOperationWidget> {
             ),
           ),
           title: Text(
-            "Hot Mix",
+            "${widget.operation.presetName ?? 'Hot Mix'}",
             style: Theme.of(context).textTheme.titleSmall,
           ),
           automaticallyImplyLeading: false,

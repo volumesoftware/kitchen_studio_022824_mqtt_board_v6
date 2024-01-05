@@ -50,7 +50,7 @@ class _RepeatWidgetState extends State<RepeatWidget> {
             ),
           ),
           title: Text(
-            "Repeat",
+            "${widget.operation.presetName ?? 'Repeat'}",
             style: Theme.of(context).textTheme.titleSmall,
           ),
           automaticallyImplyLeading: false,

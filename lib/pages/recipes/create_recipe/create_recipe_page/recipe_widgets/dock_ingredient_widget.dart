@@ -71,7 +71,7 @@ class _DockIngredientWidgetState extends State<DockIngredientWidget> {
             Icons.dock_sharp,
           ),
           title: Text(
-            "Dock Ingredient",
+            "${widget.operation.presetName ?? 'Dock Ingredient'}",
             style: Theme.of(context).textTheme.titleSmall,
           ),
           automaticallyImplyLeading: false,

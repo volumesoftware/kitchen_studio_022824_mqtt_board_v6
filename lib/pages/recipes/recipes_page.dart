@@ -89,10 +89,11 @@ class _RecipesPageState extends State<RecipesPage> {
                             ),
                             PopupMenuButton<String>(
                               icon: Icon(Icons.filter_list),
-                              onSelected: (String result) async{
+                              onSelected: (String result) async {
                                 switch (result) {
                                   case 'delete':
-                                    int? count =  await recipeDataAccess?.delete(recipes![index].id!);
+                                    int? count = await recipeDataAccess
+                                        ?.delete(recipes![index].id!);
                                     pullRecipes();
                                     break;
                                   case 'filter2':
@@ -106,10 +107,6 @@ class _RecipesPageState extends State<RecipesPage> {
                                 const PopupMenuItem<String>(
                                   value: 'delete',
                                   child: Text('Delete'),
-                                ),
-                                const PopupMenuItem<String>(
-                                  value: 'view',
-                                  child: Text('View'),
                                 ),
                               ],
                             )
@@ -145,9 +142,9 @@ class _RecipesPageState extends State<RecipesPage> {
                           children: [
                             ElevatedButton(
                                 onPressed: () {
-
-                                  Navigator.of(context).pushNamed(AppRouter.createRecipePage, arguments: recipes![index]);
-
+                                  Navigator.of(context).pushNamed(
+                                      AppRouter.createRecipePage,
+                                      arguments: recipes![index]);
                                 },
                                 child: Text("Edit")),
                             // ElevatedButton(
@@ -163,7 +160,11 @@ class _RecipesPageState extends State<RecipesPage> {
                 );
               },
             )
-          : Center(child: Text("No recipes available", style: Theme.of(context).textTheme.displaySmall,)),
+          : Center(
+              child: Text(
+              "No recipes available",
+              style: Theme.of(context).textTheme.displaySmall,
+            )),
       floatingActionButton: FloatingActionButton.extended(
           onPressed: () async {
             Recipe? a = await _displayTextInputDialog(context);
@@ -227,17 +228,22 @@ class _RecipesPageState extends State<RecipesPage> {
                     ListTile(
                       title: Text("Choose A Type Handler"),
                       subtitle: Text("${_typeHandler}"),
-                      trailing: DropdownButton<String>(
-                        items: <String>['Stir Fry', 'Deep Fry']
-                            .map((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          if (value != null) setTypeHandler(value, setState);
+                      trailing: PopupMenuButton<String>(
+                        icon: Icon(Icons.filter_list),
+                        onSelected: (String value) {
+                          setTypeHandler(value, setState);
                         },
+                        itemBuilder: (BuildContext context) =>
+                            <PopupMenuEntry<String>>[
+                          const PopupMenuItem<String>(
+                            value: 'Stir Fry',
+                            child: Text('Stir Fry'),
+                          ),
+                          const PopupMenuItem<String>(
+                            value: 'Deep Fry',
+                            child: Text('Deep Fry'),
+                          ),
+                        ],
                       ),
                     ),
                     Padding(
@@ -277,11 +283,10 @@ class _RecipesPageState extends State<RecipesPage> {
                   onPressed: () async {
                     final Directory tempDir = await getTemporaryDirectory();
                     String path = "${tempDir.path}\\kitchen\\assets\\images";
-                    Directory myNewDir = await Directory('$path').create(recursive: true);
-                    File? copiedFile =
-                        await file?.copy("${tempDir.path}\\kitchen\\assets\\images\\${fileName}");
-
-
+                    Directory myNewDir =
+                        await Directory('$path').create(recursive: true);
+                    File? copiedFile = await file?.copy(
+                        "${tempDir.path}\\kitchen\\assets\\images\\${fileName}");
 
                     Recipe recipe = Recipe(
                         author: _authorController.text,
@@ -305,7 +310,6 @@ class _RecipesPageState extends State<RecipesPage> {
       },
     );
   }
-
 
   String timeLeft(int seconds) {
     String eta = "";

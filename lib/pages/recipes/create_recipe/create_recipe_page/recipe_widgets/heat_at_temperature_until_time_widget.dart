@@ -50,7 +50,7 @@ class _HeatAtTemperatureUntilTimeWidgetState
             ),
           ),
           title: Text(
-            "Timeout Heat",
+            "${widget.operation.presetName ?? 'Timeout Heat'}",
             style: Theme.of(context).textTheme.titleSmall,
           ),
           automaticallyImplyLeading: false,

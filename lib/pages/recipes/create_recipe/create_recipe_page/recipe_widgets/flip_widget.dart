@@ -129,7 +129,7 @@ class _FlipWidgetState extends State<FlipWidget> {
           ),
         ),
         title: Text(
-          "Flip",
+          "${widget.operation.presetName ?? 'Flip'}",
           style: Theme.of(context).textTheme.titleSmall,
         ),
         automaticallyImplyLeading: false,

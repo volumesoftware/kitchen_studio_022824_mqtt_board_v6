@@ -28,7 +28,7 @@ class HeatForOperation extends TimedOperation {
   double? tiltAngleA;
 
   @override
-  IconData? iconData = Icons.thermostat_auto_outlined;
+  IconData? iconData = Icons.share_arrival_time_outlined;
 
 
       HeatForOperation(

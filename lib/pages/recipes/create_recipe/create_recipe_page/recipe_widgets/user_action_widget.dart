@@ -48,7 +48,7 @@ class _UserActionWidgetState extends State<UserActionWidget> {
             ),
           ),
           title: Text(
-            "User Action",
+            "${widget.operation.presetName ?? 'User Action'}",
             style: Theme.of(context).textTheme.titleSmall,
           ),
           automaticallyImplyLeading: false,

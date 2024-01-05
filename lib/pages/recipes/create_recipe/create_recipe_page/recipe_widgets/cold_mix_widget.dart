@@ -119,7 +119,7 @@ class _ColdMixOperationWidgetState extends State<ColdMixOperationWidget> {
             ),
           ),
           title: Text(
-            "Cold Mix",
+            "${widget.operation.presetName?? 'Cold Mix'}",
             style: Theme.of(context).textTheme.titleSmall,
           ),
           automaticallyImplyLeading: false,

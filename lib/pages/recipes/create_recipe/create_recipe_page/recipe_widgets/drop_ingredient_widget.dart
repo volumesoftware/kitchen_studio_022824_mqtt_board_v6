@@ -45,7 +45,7 @@ class _DropIngredientWidgetState extends State<DropIngredientWidget> {
           Icons.publish_sharp,
         ),
         title: Text(
-          "Drop Ingredient",
+          "${widget.operation.presetName ?? 'Drop Ingredient'}",
           style: Theme.of(context).textTheme.titleSmall,
         ),
         automaticallyImplyLeading: false,

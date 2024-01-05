@@ -118,7 +118,7 @@ class _WashWidgetState extends State<WashWidget> {
           ),
         ),
         title: Text(
-          "Wash",
+          "${widget.operation.presetName ?? 'Wash'}",
           style: Theme.of(context).textTheme.titleSmall,
         ),
         automaticallyImplyLeading: false,

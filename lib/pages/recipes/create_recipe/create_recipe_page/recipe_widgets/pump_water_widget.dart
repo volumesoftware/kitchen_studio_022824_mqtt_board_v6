@@ -51,7 +51,7 @@ class _PumpWaterWidgetState extends State<PumpWaterWidget> {
             ),
           ),
           title: Text(
-            "Pump Water",
+            "${widget.operation.presetName ?? 'Pump Water'}",
             style: Theme.of(context).textTheme.titleSmall,
           ),
           automaticallyImplyLeading: false,

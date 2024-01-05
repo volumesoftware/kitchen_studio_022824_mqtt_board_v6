@@ -116,7 +116,7 @@ class _DispenseWidgetState extends State<DispenseWidget> {
           ),
         ),
         title: Text(
-          "Dispense",
+          "${widget.operation.presetName ?? 'Dispense'}",
           style: Theme.of(context).textTheme.titleSmall,
         ),
         automaticallyImplyLeading: false,

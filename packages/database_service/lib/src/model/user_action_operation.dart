@@ -74,5 +74,5 @@ class UserActionOperation implements BaseOperation {
   String? presetName;
 
   @override
-  IconData? iconData = Icons.person_search_outlined;
+  IconData? iconData = Icons.person_2_rounded;
 }

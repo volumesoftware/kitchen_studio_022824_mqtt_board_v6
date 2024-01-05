@@ -75,8 +75,7 @@ class IngredientItem {
   IngredientItem(
       {this.id, this.ingredientId, this.operationId, this.mode, this.quantity});
 
-  IngredientItem.fromDatabase(
-      Map<String, Object?> json, this.ingredient, this.operation) {
+  IngredientItem.fromDatabase(Map<String, Object?> json, this.ingredient, this.operation) {
     id = json['id'] as int;
     mode = json['mode'] == null ? null : json['mode'] as String;
     ingredientId =

@@ -65,20 +65,20 @@ class _AppShellScreenState extends State<AppShellScreen> {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10),
                             color:
-                                Theme.of(context).colorScheme.onInverseSurface,
+                            Theme.of(context).colorScheme.onInverseSurface,
                           ),
                           height: 200,
                           width: 200,
                           child: selectedIndex == 3
                               ? Row()
                               : Center(
-                                  child: Text(
-                                    "Kitchen Studio",
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .headlineMedium,
-                                  ),
-                                ),
+                            child: Text(
+                              "Kitchen Studio",
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headlineMedium,
+                            ),
+                          ),
                           margin: const EdgeInsets.symmetric(vertical: 20),
                         ),
                         ListTile(
@@ -119,12 +119,24 @@ class _AppShellScreenState extends State<AppShellScreen> {
                             });
                           },
                         ),
+                        // ListTile(
+                        //   key: _operationTemplateListTile,
+                        //   selected: selectedIndex == 5,
+                        //   leading: Icon(Icons.calculate_sharp),
+                        //   subtitle: selectedIndex == 3 ? Row() : const Text('Complex Recipe Creator'),
+                        //   title: selectedIndex == 3 ? Row() : const Text('Advanced recipe'),
+                        //   onTap: () {
+                        //     setState(() {
+                        //       selectedIndex = 5;
+                        //     });
+                        //   },
+                        // ),
                         ListTile(
                           key: _tasksListTile,
                           selected: selectedIndex == 3,
                           leading: Icon(Icons.list),
                           title:
-                              selectedIndex == 3 ? Row() : const Text('Tasks'),
+                          selectedIndex == 3 ? Row() : const Text('Tasks'),
                           onTap: () {
                             setState(() {
                               selectedIndex = 3;
@@ -145,23 +157,12 @@ class _AppShellScreenState extends State<AppShellScreen> {
                         //     });
                         //   },
                         // ),
-                        // ListTile(
-                        //   key: _operationTemplateListTile,
-                        //   selected: selectedIndex == 5,
-                        //   leading: Icon(Icons.calculate_sharp),
-                        //   title:
-                        //   selectedIndex == 3 ? Row() : const Text('Operation Template'),
-                        //   onTap: () {
-                        //     setState(() {
-                        //       selectedIndex = 5;
-                        //     });
-                        //   },
-                        // )
                       ],
                     ),
                   ),
                 ),
-                SizedBox(
+                Container(
+                  color: Colors.green,
                   width: MediaQuery.of(context).size.width *
                       (selectedIndex == 3 ? 0.95 : 0.8),
                   height: MediaQuery.of(context).size.height,
