@@ -58,7 +58,14 @@ class AdvancedOperationItemDataAccess implements DataAccess<AdvancedOperationIte
   }
 
   @override
-  Future<List<AdvancedOperationItem>?> search(String? where, {List<Object>? whereArgs}) async {
+  Future<List<AdvancedOperationItem>?> search(String? where, {bool? distinct,
+    List<String>? columns,
+    List<Object?>? whereArgs,
+    String? groupBy,
+    String? having,
+    String? orderBy,
+    int? limit,
+    int? offse}) async {
     var list = await database?.query(AdvancedOperationItem.tableName(),
         whereArgs: whereArgs, where: where);
     return list?.map((e) => AdvancedOperationItem.fromDatabase(e)).toList();

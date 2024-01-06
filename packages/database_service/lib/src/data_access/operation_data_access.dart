@@ -15,7 +15,7 @@ class BaseOperationDataAccess implements DataAccess<BaseOperation> {
 
   static BaseOperationDataAccess get instance => _instance;
 
-  Future<BaseOperation> _fullMap(Map<String, Object?> e) async{
+  Future<BaseOperation> _fullMap(Map<String, Object?> e) async {
     switch (e['operation'] as int) {
       case DispenseOperation.CODE:
         return DispenseOperation.fromDatabase(e);
@@ -52,9 +52,14 @@ class BaseOperationDataAccess implements DataAccess<BaseOperation> {
       case RepeatOperation.CODE:
         return RepeatOperation.fromDatabase(e);
       case AdvancedOperation.CODE:
-        List<Map<String, Object?>>? items = await database?.query(AdvancedOperationItem.tableName(),
-            whereArgs: [e['id']], where: "operation_id = ?");
-        return AdvancedOperation.fromDatabase(e, controlItems: items?.map((k) => AdvancedOperationItem.fromDatabase(k)).toList());
+        List<Map<String, Object?>>? items = await database?.query(
+            AdvancedOperationItem.tableName(),
+            whereArgs: [e['id']],
+            where: "operation_id = ?");
+        return AdvancedOperation.fromDatabase(e,
+            controlItems: items
+                ?.map((k) => AdvancedOperationItem.fromDatabase(k))
+                .toList());
     }
 
     return ZeroingOperation.fromDatabase(e);
@@ -110,14 +115,22 @@ class BaseOperationDataAccess implements DataAccess<BaseOperation> {
 
   @override
   Future<int?> delete(int id) async {
+    BaseOperation? result = await getById(id);
+    if (result == null) return 0;
+    if (result is AdvancedOperation) {
+      await database?.delete(AdvancedOperationItem.tableName(),
+          where: "operation_id = ?", whereArgs: [id]);
+    }
     return database
         ?.delete(BaseOperation.tableName(), where: "id = ?", whereArgs: [id]);
   }
 
   @override
   Future<List<BaseOperation>?> findAll() async {
-    var list = await database?.rawQuery('SELECT * FROM ${BaseOperation.tableName()}') ?? [];
-    return  list.map((e) => _map(e)).toList();
+    var list = await database
+            ?.rawQuery('SELECT * FROM ${BaseOperation.tableName()}') ??
+        [];
+    return list.map((e) => _map(e)).toList();
   }
 
   @override
@@ -141,9 +154,16 @@ class BaseOperationDataAccess implements DataAccess<BaseOperation> {
 
   @override
   Future<List<BaseOperation>?> search(String? where,
-      {List<Object>? whereArgs}) async {
+      {bool? distinct,
+      List<String>? columns,
+      List<Object?>? whereArgs,
+      String? groupBy,
+      String? having,
+      String? orderBy,
+      int? limit,
+      int? offse}) async {
     var list = await database?.query(BaseOperation.tableName(),
-        whereArgs: whereArgs, where: where);
+        whereArgs: whereArgs, where: where, orderBy: orderBy);
     return list?.map((e) => _map(e)).toList();
   }
 }

@@ -54,7 +54,14 @@ class IngredientDataAccess implements DataAccess<Ingredient> {
 
   @override
   Future<List<Ingredient>?> search(String? where,
-      {List<Object>? whereArgs}) async {
+      {bool? distinct,
+        List<String>? columns,
+        List<Object?>? whereArgs,
+        String? groupBy,
+        String? having,
+        String? orderBy,
+        int? limit,
+        int? offse}) async {
     var list = await database?.query(Ingredient.tableName(),
         whereArgs: whereArgs, where: where);
     return list?.map((e) => Ingredient.fromDatabase(e)).toList();

@@ -154,17 +154,25 @@ class RecipeProcessor {
   }
 
   Future<void> processRecipe(TaskPayload p) async {
-
-    p.operations.sort(
-          (a, b) => a.currentIndex!.compareTo(b.currentIndex!),
-    );
+    //sort the recipe according to index and not ID
+    p.operations.sort((a, b) => a.currentIndex!.compareTo(b.currentIndex!),);
 
     int? duration = p.recipe.estimatedTimeCompletion?.toInt();
 
-    if (duration == null || duration == 0) {
-      for (var i = 0; i < p.operations.length; i++) {
-        BaseOperation operation = p.operations[i];
+    for (var i = 0; i < p.operations.length; i++) {
+      if(p.operations[i] is AdvancedOperation){
+        print('Porting new object');
+        p.operations[i] = (await baseOperationDataAccess.getById(p.operations[i].id!))!;
+      }
+    }
 
+      if (duration == null || duration == 0) {
+      for (var i = 0; i < p.operations.length; i++) {
+        if(p.operations[i] is AdvancedOperation){
+          p.operations[i] = (await baseOperationDataAccess.getById(p.operations[i].id!))!;
+        }
+
+        BaseOperation operation = p.operations[i];
         if (operation is TimedOperation) {
           TimedOperation op = (operation) as TimedOperation;
           duration = duration! + op.duration!;

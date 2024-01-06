@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:kitchen_studio_10162023/app_router.dart';
 import 'package:kitchen_module/kitchen_module.dart';
+import 'package:kitchen_studio_10162023/service/globla_loader_service.dart';
 import 'package:path_provider/path_provider.dart';
 
 class RecipesPage extends StatefulWidget {
@@ -281,6 +282,8 @@ class _RecipesPageState extends State<RecipesPage> {
                 ElevatedButton(
                   child: Text('OK'),
                   onPressed: () async {
+
+                    GlobalLoaderService.instance.showLoading();
                     final Directory tempDir = await getTemporaryDirectory();
                     String path = "${tempDir.path}\\kitchen\\assets\\images";
                     Directory myNewDir =
@@ -295,12 +298,12 @@ class _RecipesPageState extends State<RecipesPage> {
                         typeHandler: _typeHandler);
                     var i = await recipeDataAccess?.create(recipe);
                     if (i != null) {
-                      Recipe? createdRecipe =
-                          await recipeDataAccess?.getById(i);
+                      Recipe? createdRecipe = await recipeDataAccess?.getById(i);
                       Navigator.pop(context, createdRecipe);
                     } else {
                       Navigator.pop(context);
                     }
+                    GlobalLoaderService.instance.hideLoading();
                   },
                 ),
               ],

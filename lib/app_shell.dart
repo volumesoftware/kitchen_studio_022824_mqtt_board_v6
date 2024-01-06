@@ -7,7 +7,8 @@ import 'package:kitchen_studio_10162023/pages/operation_template/operation_templ
 import 'package:kitchen_studio_10162023/pages/recipes/recipes_page.dart';
 import 'package:kitchen_studio_10162023/pages/taskv2/tasks_pagev2.dart';
 import 'package:kitchen_studio_10162023/pages/transporter_units/cooking_units_page.dart';
-import 'package:kitchen_studio_10162023/widget/cursor.dart';
+import 'package:kitchen_studio_10162023/service/globla_loader_service.dart';
+import 'package:kitchen_studio_10162023/widgets/cursor.dart';
 
 class AppShellScreen extends StatefulWidget {
   const AppShellScreen({Key? key}) : super(key: key);
@@ -65,20 +66,20 @@ class _AppShellScreenState extends State<AppShellScreen> {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10),
                             color:
-                            Theme.of(context).colorScheme.onInverseSurface,
+                                Theme.of(context).colorScheme.onInverseSurface,
                           ),
                           height: 200,
                           width: 200,
                           child: selectedIndex == 3
                               ? Row()
                               : Center(
-                            child: Text(
-                              "Kitchen Studio",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .headlineMedium,
-                            ),
-                          ),
+                                  child: Text(
+                                    "Kitchen Studio",
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineMedium,
+                                  ),
+                                ),
                           margin: const EdgeInsets.symmetric(vertical: 20),
                         ),
                         ListTile(
@@ -136,7 +137,7 @@ class _AppShellScreenState extends State<AppShellScreen> {
                           selected: selectedIndex == 3,
                           leading: Icon(Icons.list),
                           title:
-                          selectedIndex == 3 ? Row() : const Text('Tasks'),
+                              selectedIndex == 3 ? Row() : const Text('Tasks'),
                           onTap: () {
                             setState(() {
                               selectedIndex = 3;
@@ -182,7 +183,19 @@ class _AppShellScreenState extends State<AppShellScreen> {
                   Y = value.y;
                 });
               },
-            ))
+            )),
+        StreamBuilder(
+          stream: GlobalLoaderService.instance.loaderState,
+          builder: (context, snapshot) {
+            return snapshot.data ?? GlobalLoaderService.instance.show
+                ? Container(
+                    width: MediaQuery.of(context).size.width,
+                    height: MediaQuery.of(context).size.height,
+                    color: Colors.green,
+                  )
+                : Row();
+          },
+        )
       ],
     );
   }

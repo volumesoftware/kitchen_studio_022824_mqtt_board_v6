@@ -28,7 +28,14 @@ Future<void> recipeIsolateEntryPoint(SendPort sendPort) async {
         if (operation.operation == UserActionOperation.CODE) {
           eventSenderPort.send(UserAction("", "", operation.currentIndex));
         }
-        if (operation.operation == RepeatOperation.CODE) {
+        else if(operation.operation == AdvancedOperation.CODE){
+          AdvancedOperation advancedOperation = (operation as AdvancedOperation);
+          if(advancedOperation.requireUserPermission!){
+            eventSenderPort.send(UserAction("", "", operation.currentIndex));
+          }
+          bool? available = await waitForIdle(operation, _device);
+        }
+        else if (operation.operation == RepeatOperation.CODE) {
           RepeatOperation repeater = (operation as RepeatOperation);
           Iterable<BaseOperation> _repeatSequence =
               operations.getRange((repeater.repeatIndex!) > 0 ? (repeater.repeatIndex! - 1) : 0, i);
@@ -47,12 +54,10 @@ Future<void> recipeIsolateEntryPoint(SendPort sendPort) async {
       }
 
       bool? available = await waitForIdle(
-          UserActionOperation(
-              message: "",
-              title: "",
+          PumpWaterOperation(
               currentIndex: 0,
-              targetTemperature: 28,
-              isClosing: true),
+              duration: 0,
+              targetTemperature: 28),
           _device);
       eventSenderPort.send(TaskProgress(1));
       eventSenderPort.send("completed");
@@ -96,9 +101,11 @@ Future<bool?> waitForIdle(BaseOperation operation, DeviceStats server) async {
     },
   );
 
-  var json = operation.toJson();
+  var json = (operation is AdvancedOperation) ? operation.toAdvancedJson() :operation.toJson();
+  print("sending $json");
   socket.send(jsonEncode(json).codeUnits, InternetAddress(server.ipAddress!),
       server.port!);
+
 
   Completer<bool?> completer = Completer();
   // Listen for incoming data and complete the Future when data is received

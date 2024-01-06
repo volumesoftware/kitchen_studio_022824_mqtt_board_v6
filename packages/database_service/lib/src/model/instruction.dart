@@ -41,6 +41,7 @@ abstract class BaseOperation {
         title INTEGER,
         preset_name TEXT,
         is_closing BOOLEAN,
+        require_user_permission BOOLEAN,
         repeat_index INTEGER,
         repeat_count INTEGER,
         tilt_angle_a FLOAT,

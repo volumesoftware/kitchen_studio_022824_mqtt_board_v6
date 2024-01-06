@@ -6,7 +6,7 @@ import 'models.dart';
 
 
 class AdvancedOperation implements BaseOperation {
-  static const int CODE = 333333;
+  static const int CODE = 333;
 
   @override
   int? id;
@@ -22,15 +22,37 @@ class AdvancedOperation implements BaseOperation {
   double? targetTemperature;
   @override
   String? requestId = 'Advanced Control';
-  List<AdvancedOperationItem> controlItems = [];
   int? rotateSpeed;
   int? tiltSpeed;
+  String? title;
+  String? message;
+  bool? requireUserPermission;
+
+  List<AdvancedOperationItem> controlItems = [];
+
 
   AdvancedOperation(
       {this.currentIndex, this.instructionSize, this.targetTemperature});
 
   @override
   Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['request_id'] = requestId;
+    data['operation'] = operation;
+    data['recipe_id'] = recipeId;
+    data['current_index'] = currentIndex;
+    data['instruction_size'] = instructionSize;
+    data['target_temperature'] = targetTemperature;
+    data['preset_name'] = presetName;
+    data['tilt_speed'] = tiltSpeed;
+    data['rotate_speed'] = rotateSpeed;
+    data['message'] = message;
+    data['title'] = title;
+    data['require_user_permission'] = requireUserPermission == true ? 1 : 0;
+    return data;
+  }
+
+  Map<String, dynamic> toAdvancedJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['request_id'] = 'Docking Ingredient';
     data['operation'] = operation;
@@ -41,12 +63,15 @@ class AdvancedOperation implements BaseOperation {
     data['preset_name'] = presetName;
     data['tilt_speed'] = tiltSpeed;
     data['rotate_speed'] = rotateSpeed;
-    // var ingredientItemsMap = [];
-    // controlItems.forEach((element) {
-    //   ingredientItemsMap.add(element.toJson());
-    // });
-    // data['control_items'] = ingredientItemsMap;
-
+    data['message'] = message;
+    data['title'] = title;
+    data['require_user_permission'] = requireUserPermission == true ? 1 : 0;
+    var ingredientItemsMap = [];
+    controlItems.forEach((element) {
+      print(element.toString());
+      ingredientItemsMap.add(element.toJson());
+    });
+    data['control_items'] = ingredientItemsMap;
     return data;
   }
 
@@ -69,6 +94,10 @@ class AdvancedOperation implements BaseOperation {
         : json['target_temperature'] as double;
     rotateSpeed = json["rotate_speed"]==null? null: json["rotate_speed"] as int;
     tiltSpeed = json["tilt_speed"]==null? null: json["tilt_speed"] as int;
+    message = json["message"] == null ? null : json["message"] as String;
+    title = json["title"] == null ? null : json["title"] as String;
+    requireUserPermission = json["require_user_permission"] == 0 ? false : true;
+
   }
 
   @override
@@ -82,7 +111,8 @@ enum OperationItemValueType {
   INTEGER,
   BOOLEAN,
   DOUBLE,
-  STRING
+  STRING,
+  NULL
 }
 
 
@@ -93,7 +123,11 @@ enum OperationItemCodeEnum {
   WOK_VIBRATOR,
   OIL_PUMP,
   WATER_PUMP,
-  USER_ACTION
+  USER_ACTION,
+  TIMEOUT_WAIT,
+  ZERO_TILT_MOTOR,
+  ZERO_ROTATING_MOTOR,
+  ZERO_BUCKET_MOTOR
 }
 
 class AdvancedOperationItem {

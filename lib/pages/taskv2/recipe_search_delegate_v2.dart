@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kitchen_module/kitchen_module.dart';
 import 'package:kitchen_studio_10162023/pages/taskv2/recipe_search_result_page_v2.dart';
-import 'package:kitchen_studio_10162023/widget/cursor.dart';
+import 'package:kitchen_studio_10162023/widgets/cursor.dart';
 
 class RecipeSearchDelegateV2 extends SearchDelegate<Task?> {
   final RecipeProcessor recipeProcessor;

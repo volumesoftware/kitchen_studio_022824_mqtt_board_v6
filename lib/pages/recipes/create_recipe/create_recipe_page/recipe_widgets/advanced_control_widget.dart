@@ -15,25 +15,18 @@ class AdvancedControlWidget extends StatefulWidget {
       : super(key: key);
 
   @override
-  State<AdvancedControlWidget> createState() =>
-      _AdvancedControlWidgetState();
+  State<AdvancedControlWidget> createState() => _AdvancedControlWidgetState();
 }
 
-class _AdvancedControlWidgetState
-    extends State<AdvancedControlWidget> {
-  AdvancedOperation? operation;
+class _AdvancedControlWidgetState extends State<AdvancedControlWidget> {
+  late AdvancedOperation operation;
   RecipeWidgetActions? recipeWidgetActions;
   bool inEditMode = false;
-  TextEditingController? _targetTemperatureController;
-  TextEditingController? _durationController;
-  TextEditingController? _tiltAngleController;
 
   @override
   void initState() {
     recipeWidgetActions = widget.recipeWidgetActions;
     operation = widget.operation;
-    _targetTemperatureController =
-        TextEditingController(text: "${operation?.targetTemperature}");
     super.initState();
   }
 
@@ -48,20 +41,24 @@ class _AdvancedControlWidgetState
             ),
           ),
           title: Text(
-            "Advanced Control",
+            "${operation.title ??  'Advanced Control Editor'}",
             style: Theme.of(context).textTheme.titleSmall,
           ),
           automaticallyImplyLeading: false,
           actions: [
             PopupMenuButton<String>(
               icon: Icon(Icons.filter_list),
-              onSelected: (String result) {
+              onSelected: (String result) async {
                 switch (result) {
                   case 'delete':
-                    recipeWidgetActions?.onDelete(operation!);
+                    recipeWidgetActions?.onDelete(operation);
                     break;
                   case 'save preset':
-                    recipeWidgetActions?.onPresetSave(operation!);
+                    List<AdvancedOperationItem>? list =
+                        await AdvancedOperationItemDataAccess.instance.search(
+                            'operation_id = ?',
+                            whereArgs: [operation.id!]);
+                    recipeWidgetActions?.onPresetSave(operation, child: list);
                     break;
                   default:
                 }
@@ -83,94 +80,50 @@ class _AdvancedControlWidgetState
           margin: EdgeInsets.symmetric(vertical: 10),
           child: Column(
             children: [
-              inEditMode
-                  ? Padding(
-                      padding: EdgeInsets.symmetric(vertical: 3),
-                      child: TextField(
-                        controller: _targetTemperatureController,
-                        decoration: InputDecoration(
-                            suffixText: "celsius",
-                            isDense: true,
-                            border: OutlineInputBorder(),
-                            hintText: 'Target Temperature',
-                            label: Text("Target Temperature")),
-                      ),
-                    )
-                  : ListTile(
-                      title: Text('Target Temperature'),
-                      trailing: Text("${_targetTemperatureController?.text}"),
-                    ),
-              inEditMode
-                  ? Padding(
-                      padding: EdgeInsets.symmetric(vertical: 3),
-                      child: TextField(
-                        controller: _durationController,
-                        decoration: InputDecoration(
-                            suffixText: "seconds",
-                            isDense: true,
-                            border: OutlineInputBorder(),
-                            hintText: 'Duration',
-                            label: Text("Duration")),
-                      ),
-                    )
-                  : ListTile(
-                      title: Text('Duration'),
-                      trailing: Text("${_durationController?.text}"),
-                    ),
+              ListTile(
+                title: Text('Target Temperature'),
+                trailing: Text("${operation.targetTemperature}"),
+              ),
+              ListTile(
+                title: Text('Tilt Speed'),
+                trailing: Text("${operation.tiltSpeed}"),
+              ),
+              ListTile(
+                title: Text('Rotate Speed'),
+                trailing: Text("${operation.rotateSpeed}"),
+              )
+
             ],
           ),
         ),
         bottomSheet: ButtonBar(
           children: [
-            inEditMode
-                ? FilledButton(
-                    onPressed: () async {
-                      setState(() {
-                        inEditMode = false;
-                      });
-                    },
-                    child: Text("Cancel"))
-                : Row(),
-            inEditMode
-                ? FilledButton(
-                    onPressed: () {
-                      operation?.targetTemperature =
-                          double.tryParse(_targetTemperatureController!.text);
-                      recipeWidgetActions?.onValueUpdate(operation!);
-                      setState(() {
-                        inEditMode = false;
-                      });
-                    },
-                    child: Text(
-                      "Update",
-                    ))
-                : FilledButton(
-                    onPressed: () {
-                      setState(() {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              scrollable: true,
-                              title: const Text('Advanced Control Editor'),
-                              content: AdvanceControlWidget(advancedOperation: operation!),
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    // Close the dialog
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: Text('Close'),
-                                ),
-                              ],
-                            );
-                          },
+            FilledButton(
+                onPressed: () {
+                  setState(() {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          scrollable: true,
+                          title:  Text('${operation.title ??  'Advanced Control Editor'}'),
+                          content: AdvanceControlWidget(
+                            advancedOperation: operation,
+                            onSaved: (AdvancedOperation value) {
+                              setState(() {
+                                operation = value;
+                              });
+                              widget.recipeWidgetActions.onValueUpdate(operation);
+                            },
+                          ),
                         );
+                      },
+                    );
 
-                        inEditMode = true;
-                      });
-                    },
-                    child: Text("Edit")),
+                    inEditMode = true;
+                  });
+                },
+                child: Text("Edit")),
           ],
         ));
   }
