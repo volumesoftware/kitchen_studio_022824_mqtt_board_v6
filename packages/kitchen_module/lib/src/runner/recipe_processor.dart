@@ -154,8 +154,6 @@ class RecipeProcessor {
   }
 
   Future<void> processRecipe(TaskPayload p) async {
-    //sort the recipe according to index and not ID
-    p.operations.sort((a, b) => a.currentIndex!.compareTo(b.currentIndex!),);
 
     int? duration = p.recipe.estimatedTimeCompletion?.toInt();
 

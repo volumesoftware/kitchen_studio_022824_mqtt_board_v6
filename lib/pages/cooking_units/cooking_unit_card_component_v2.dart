@@ -45,11 +45,13 @@ class _CookingUnitCardComponentV2State
         child: StreamBuilder(
           stream: widget.recipeProcessor.hearBeat,
           builder: (context, snapshot) {
-            if((snapshot.data == null) && (widget.recipeProcessor.getDeviceStats().moduleName == null)){
+            if ((snapshot.data == null) &&
+                (widget.recipeProcessor.getDeviceStats().moduleName == null)) {
               return Text("Loading device");
             }
 
-            DeviceStats? deviceStats = snapshot.data ?? widget.recipeProcessor.getDeviceStats();
+            DeviceStats? deviceStats =
+                snapshot.data ?? widget.recipeProcessor.getDeviceStats();
 
             return Container(
               padding: EdgeInsets.all(20),
@@ -107,7 +109,8 @@ class _CookingUnitCardComponentV2State
                                               udpService?.send(
                                                   jsonEncode(mOp.toJson())
                                                       .codeUnits,
-                                                  InternetAddress(deviceStats.ipAddress!),
+                                                  InternetAddress(
+                                                      deviceStats.ipAddress!),
                                                   deviceStats.port!);
                                             },
                                             title: Text("Tilt Up (3°)"),
@@ -135,7 +138,8 @@ class _CookingUnitCardComponentV2State
                                               udpService?.send(
                                                   jsonEncode(mOp.toJson())
                                                       .codeUnits,
-                                                  InternetAddress(deviceStats.ipAddress!),
+                                                  InternetAddress(
+                                                      deviceStats.ipAddress!),
                                                   deviceStats.port!);
                                             },
                                             title: Text("Rotate Right (15°)"),
@@ -148,7 +152,8 @@ class _CookingUnitCardComponentV2State
                                               udpService?.send(
                                                   jsonEncode(mOp.toJson())
                                                       .codeUnits,
-                                                  InternetAddress(deviceStats.ipAddress!),
+                                                  InternetAddress(
+                                                      deviceStats.ipAddress!),
                                                   deviceStats.port!);
                                             },
                                             title: Text("Rotate Left (15°)"),
@@ -175,8 +180,7 @@ class _CookingUnitCardComponentV2State
                                       '{"operation":"199","request_id":"zeroing"}';
                                   udpService?.send(
                                       jsonData.codeUnits,
-                                      InternetAddress(
-                                          deviceStats.ipAddress!),
+                                      InternetAddress(deviceStats.ipAddress!),
                                       8888);
                                   break;
                                 case 'heat_until':
@@ -184,14 +188,14 @@ class _CookingUnitCardComponentV2State
                                 case 'dispense':
                                   String dispense = jsonEncode(
                                       DispenseOperation(
-                                          currentIndex: 0,
-                                          cycle: 1,
-                                          targetTemperature: 0,
-                                          tiltAngleB: -30 ,
-                                          tiltAngleA: 15,
-                                          tiltSpeed: 0,
-                                          rotateSpeed: 0
-                                      )                                          .toJson());
+                                              currentIndex: 0,
+                                              cycle: 1,
+                                              targetTemperature: 0,
+                                              tiltAngleB: -30,
+                                              tiltAngleA: 15,
+                                              tiltSpeed: 0,
+                                              rotateSpeed: 0)
+                                          .toJson());
                                   udpService?.send(
                                       dispense.codeUnits,
                                       InternetAddress(deviceStats.ipAddress!),
@@ -199,19 +203,45 @@ class _CookingUnitCardComponentV2State
                                   break;
                                 case 'wash':
                                   String wash = jsonEncode(WashOperation(
-                                      currentIndex: 0,
-                                      duration: 6,
-                                      cycle: 1,
-                                      tiltAngleA: 45,
-                                      tiltAngleB: 15,
-                                      rotateAngle: 270,
-                                      rotateSpeed: 0,
-                                      tiltSpeed: 0,
-                                      targetTemperature: 80).toJson());
+                                          currentIndex: 0,
+                                          duration: 6,
+                                          cycle: 1,
+                                          tiltAngleA: 45,
+                                          tiltAngleB: 15,
+                                          rotateAngle: 270,
+                                          rotateSpeed: 0,
+                                          tiltSpeed: 0,
+                                          targetTemperature: 80)
+                                      .toJson());
                                   udpService?.send(
                                       wash.codeUnits,
-                                      InternetAddress(
-                                          deviceStats.ipAddress!),
+                                      InternetAddress(deviceStats.ipAddress!),
+                                      8888);
+                                  break;
+                                case 'prime_oil':
+                                  String primeOil = jsonEncode({
+                                    "request_id" : "Prime Oil",
+                                    "operation" : 216,
+                                    "current_index" : 0,
+                                    "instruction_size" : 0,
+                                    "target_temperature" : 28.0,
+                                  });
+                                  udpService?.send(
+                                      primeOil.codeUnits,
+                                      InternetAddress(deviceStats.ipAddress!),
+                                      8888);
+                                  break;
+                                case 'prime_water':
+                                  String primeWater = jsonEncode({
+                                    "request_id" : "Prime Water",
+                                    "operation" : 217,
+                                    "current_index" : 0,
+                                    "instruction_size" : 0,
+                                    "target_temperature" : 28.0,
+                                  });
+                                  udpService?.send(
+                                      primeWater.codeUnits,
+                                      InternetAddress(deviceStats.ipAddress!),
                                       8888);
                                   break;
                                 default:
@@ -219,7 +249,6 @@ class _CookingUnitCardComponentV2State
                             },
                             itemBuilder: (BuildContext context) =>
                                 <PopupMenuEntry<String>>[
-
                               const PopupMenuItem<String>(
                                 value: 'wash',
                                 child: Text('Wash'),
@@ -229,9 +258,18 @@ class _CookingUnitCardComponentV2State
                                 child: Text('Dispense'),
                               ),
                               const PopupMenuItem<String>(
-                                    value: 'zero',
-                                    child: Text('Reset (Zero)'),
-                                  ),
+                                value: 'zero',
+                                child: Text('Reset (Zero)'),
+                              ),
+                              const PopupMenuItem<String>(
+                                value: 'prime_oil',
+                                child: Text('Prime Oil'),
+                              ),
+                              const PopupMenuItem<String>(
+                                value: 'prime_water',
+                                child: Text('Prime Water'),
+                              )
+
                               // const PopupMenuItem<String>(
                               //   value: 'cooling',
                               //   child: Text('Cooling'),

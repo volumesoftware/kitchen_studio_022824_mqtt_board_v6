@@ -310,10 +310,14 @@ class _RecipeItemSearchState extends State<RecipeItemSearch> {
     item.progress = 0.0;
     int? result = await taskDataAccess.create(item);
     if (result != null) {}
+
     if (result! > 0) {
       Task? savedTask = await taskDataAccess.getById(result);
-      List<BaseOperation>? operations = await operationDataAccess
-          .search('recipe_id = ?', whereArgs: [recipe!.id!]);
+      List<BaseOperation> operations = await operationDataAccess.search(
+          "recipe_id = ?",
+          whereArgs: [recipe!.id!],
+          orderBy: 'current_index ASC') ??
+          [];
       recipeProcessor
           .processRecipe(TaskPayload(recipe!, operations ?? [], savedTask!));
       Navigator.of(context).pop(item);
