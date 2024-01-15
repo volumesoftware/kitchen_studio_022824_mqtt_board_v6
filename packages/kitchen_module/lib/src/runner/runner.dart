@@ -27,6 +27,7 @@ Future<void> recipeIsolateEntryPoint(SendPort sendPort) async {
 
         if (operation.operation == UserActionOperation.CODE) {
           eventSenderPort.send(UserAction("", "", operation.currentIndex));
+          bool? available = await waitForIdle(operation, _device);
         }
         else if(operation.operation == AdvancedOperation.CODE){
           AdvancedOperation advancedOperation = (operation as AdvancedOperation);
