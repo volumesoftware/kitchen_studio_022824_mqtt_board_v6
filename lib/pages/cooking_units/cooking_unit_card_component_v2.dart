@@ -204,7 +204,7 @@ class _CookingUnitCardComponentV2State
                                 case 'wash':
                                   String wash = jsonEncode(WashOperation(
                                           currentIndex: 0,
-                                          duration: 6,
+                                          duration: 30,
                                           cycle: 1,
                                           tiltAngleA: 45,
                                           tiltAngleB: 15,
@@ -269,19 +269,6 @@ class _CookingUnitCardComponentV2State
                                 value: 'prime_water',
                                 child: Text('Prime Water'),
                               )
-
-                              // const PopupMenuItem<String>(
-                              //   value: 'cooling',
-                              //   child: Text('Cooling'),
-                              // ),
-                              // const PopupMenuItem<String>(
-                              //   value: 'heat_until',
-                              //   child: Text('Heat Until'),
-                              // ),
-                              // const PopupMenuItem<String>(
-                              //   value: 'shutdown',
-                              //   child: Text('Shutdown'),
-                              // )
                             ],
                           )
                         ],
@@ -294,12 +281,6 @@ class _CookingUnitCardComponentV2State
                     child: Stack(
                       alignment: AlignmentDirectional.center,
                       children: [
-                        // _backgroundImagePath!=null? Center(
-                        //   child: CircleAvatar(
-                        //     radius: 65,
-                        //     backgroundImage: FileImage(File(_backgroundImagePath!)),
-                        //   ),
-                        // ): SizedBox(),
                         CircleAvatar(
                           radius: 65,
                           backgroundColor: Colors.black12,

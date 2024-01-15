@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'app_router.dart';
 import 'package:kitchen_module/kitchen_module.dart';
-import 'package:window_manager/window_manager.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +23,11 @@ class _MyAppState extends State<MyApp> {
     super.initState();
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   // Kitchen Studio 10162023
 
   @override
@@ -33,6 +37,12 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       themeMode: ThemeMode.dark,
       theme: ThemeData(
+        focusColor: Colors.orangeAccent,
+        highlightColor: Colors.orangeAccent,
+        hintColor: Colors.orangeAccent,
+        splashColor: Colors.orangeAccent,
+        indicatorColor: Colors.orangeAccent,
+        hoverColor: Colors.orangeAccent,
         fontFamily: 'Poppins',
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.purple,

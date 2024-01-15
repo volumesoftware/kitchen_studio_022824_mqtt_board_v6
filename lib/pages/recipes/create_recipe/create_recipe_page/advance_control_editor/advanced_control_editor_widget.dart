@@ -2,8 +2,10 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:kitchen_module/kitchen_module.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/advance_control_editor/control_item_editor.dart';
+import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/form_formatter/float_input_formatter.dart';
 import 'package:timelines/timelines.dart';
 
 class AdvanceControlWidget extends StatefulWidget {
@@ -117,8 +119,11 @@ class _AdvanceControlWidgetState extends State<AdvanceControlWidget> {
                   Padding(
                     padding:
                     EdgeInsets.symmetric(vertical: 3, horizontal: 5),
-                    child: TextField(
+                    child: TextFormField(
                       controller: _targetTemperatureController,
+                        inputFormatters: <TextInputFormatter>[
+                          FloatInputFormatter()
+                        ],
                       onChanged: (value) {
                         setState(() {
                           try {

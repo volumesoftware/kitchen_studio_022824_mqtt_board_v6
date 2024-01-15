@@ -1,5 +1,8 @@
 import 'package:database_service/database_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/form_formatter/float_input_formatter.dart';
+import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/form_formatter/number_input_formatter.dart';
 
 class ControlItemEditor extends StatelessWidget {
   final VoidCallback onUpdateValue;
@@ -58,6 +61,9 @@ class ControlItemEditor extends StatelessWidget {
                 Padding(
                   padding: EdgeInsets.symmetric(vertical: 3, horizontal: 5),
                   child: TextField(
+                    inputFormatters: [
+                      getInputTypeFormatter()
+                    ],
                     controller: _valueController,
                     decoration: InputDecoration(
                         suffixIcon: IconButton(
@@ -74,9 +80,9 @@ class ControlItemEditor extends StatelessWidget {
                                 break;
                               case OperationItemValueType.BOOLEAN:
                                 advancedOperationItem.booleanValue =
-                                    int.parse(_valueController.text) == 0
-                                        ? false
-                                        : true;
+                                int.parse(_valueController.text) == 0
+                                    ? false
+                                    : true;
                                 break;
                               case OperationItemValueType.STRING:
                                 advancedOperationItem.stringValue =
@@ -98,5 +104,20 @@ class ControlItemEditor extends StatelessWidget {
               ],
             ),
     );
+  }
+
+  TextInputFormatter getInputTypeFormatter() {
+    switch (advancedOperationItem.valueType ?? 0) {
+      case OperationItemValueType.INTEGER:
+        return NumberInputFormatter();
+      case OperationItemValueType.DOUBLE:
+        return FloatInputFormatter();
+      case OperationItemValueType.BOOLEAN:
+        return FilteringTextInputFormatter.deny("");
+      case OperationItemValueType.STRING:
+        return FilteringTextInputFormatter.deny("");
+      default:
+        return FilteringTextInputFormatter.deny("");
+    }
   }
 }

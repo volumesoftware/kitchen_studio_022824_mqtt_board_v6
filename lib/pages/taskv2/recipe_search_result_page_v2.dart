@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:kitchen_module/kitchen_module.dart';
+import 'package:kitchen_studio_10162023/service/KeyService.dart';
 
 class RecipeSearchResultV2 extends StatefulWidget {
   final List<Recipe> recipes;
@@ -43,8 +44,6 @@ class _RecipeSearchResultV2State extends State<RecipeSearchResultV2> {
     deviceDataAccess = DeviceDataAccess.instance;
     populateRecipe();
 
-    ServicesBinding.instance.keyboard.addHandler(_onKey);
-
     super.initState();
   }
 
@@ -63,104 +62,9 @@ class _RecipeSearchResultV2State extends State<RecipeSearchResultV2> {
 
   @override
   void dispose() {
-    ServicesBinding.instance.keyboard.removeHandler(_onKey);
     super.dispose();
   }
 
-  bool _onKey(KeyEvent event) {
-    final key = event.logicalKey.keyLabel;
-
-    if (event is KeyRepeatEvent ||
-        event is RawKeyDownEvent ||
-        event is KeyDownEvent) {
-      print("DELEGATE $key}");
-      switch (key) {
-        case "Numpad 6":
-          {
-            if (selectedIndex < recipes.length) {
-              setState(() {
-                selectedIndex = selectedIndex + 1;
-              });
-            } else {
-              setState(() {
-                selectedIndex = 0;
-              });
-            }
-            setState(() {
-              selectedId.value = recipes[selectedIndex].id;
-            });
-
-            break;
-          }
-        case "Numpad 4":
-          {
-            if (selectedIndex > 0) {
-              setState(() {
-                selectedIndex = selectedIndex - 1;
-              });
-            } else {
-              setState(() {
-                selectedIndex = recipes.length - 1;
-              });
-            }
-            setState(() {
-              selectedId.value = recipes[selectedIndex].id;
-            });
-
-            break;
-          }
-        case "Numpad 8":
-          {
-            var column =
-                int.parse(((selectedIndex + 1) / 8).toStringAsFixed(0)) + 1;
-            if (column > 1) {
-              setState(() {
-                selectedIndex = (selectedIndex - column);
-              });
-            } else {
-              setState(() {
-                selectedIndex = selectedIndex;
-              });
-            }
-            setState(() {
-              selectedId.value = recipes[selectedIndex].id;
-            });
-
-            break;
-          }
-        case "Numpad 2":
-          {
-            var column =
-                int.parse(((selectedIndex + 1) / 8).toStringAsFixed(0)) + 1;
-            var maxColumn = (recipes.length / gridCount);
-
-            if (column != maxColumn) {
-              setState(() {
-                selectedIndex = (selectedIndex + column);
-              });
-            } else {
-              setState(() {
-                selectedIndex = selectedIndex;
-              });
-            }
-
-            setState(() {
-              selectedId.value = recipes[selectedIndex].id;
-            });
-
-            break;
-          }
-        case "Numpad 5":
-          {
-            setState(() {
-              pressed.value = recipes[selectedIndex].id;
-            });
-            break;
-          }
-      }
-    }
-    return false;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -226,6 +130,9 @@ class _RecipeItemSearchState extends State<RecipeItemSearch> {
 
   @override
   void initState() {
+
+    KeyService.instance.addKeyHandler(context);
+
     recipeProcessor = widget.recipeProcessor;
 
     widget.pressed.addListener(() {
@@ -252,6 +159,11 @@ class _RecipeItemSearchState extends State<RecipeItemSearch> {
 
     super.initState();
   }
+  @override
+  void dispose() {
+    KeyService.instance.removeHandler();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -277,16 +189,6 @@ class _RecipeItemSearchState extends State<RecipeItemSearch> {
             Text(
               "${recipe?.recipeName}",
               style: Theme.of(context).textTheme.titleSmall,
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 3),
-              child: TextField(
-                controller: _taskNameController,
-                decoration: InputDecoration(
-                    isDense: true,
-                    border: OutlineInputBorder(),
-                    label: Text("Task Name")),
-              ),
             ),
             ElevatedButton(
                 onPressed: () async {

@@ -7,6 +7,7 @@ import 'package:kitchen_module/kitchen_module.dart';
 import 'package:flutter/material.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/advanced_control_widget.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/recipe_widget.dart';
+import 'package:kitchen_studio_10162023/service/KeyService.dart';
 import 'package:kitchen_studio_10162023/service/globla_loader_service.dart';
 
 class CreateRecipePage extends StatefulWidget {
@@ -44,11 +45,13 @@ class _CreateRecipePageState extends State<CreateRecipePage>
   @override
   void dispose() {
     listen.cancel();
+    KeyService.instance.removeHandler();
     super.dispose();
   }
 
   @override
   void initState() {
+    KeyService.instance.addKeyHandler(context);
     populateOperations();
     listen = threadPool.stateChanges
         .listen((List<RecipeProcessor> recipeProcessors) {
@@ -323,6 +326,7 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                                     tiltAngleB: -30,
                                     tiltAngleA: 15,
                                     tiltSpeed: 0,
+                                    rotateAngle: 90,
                                     rotateSpeed: 0));
                               });
                             });

@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:kitchen_module/kitchen_module.dart';
+import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/form_formatter/float_input_formatter.dart';
+import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/form_formatter/number_input_formatter.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/recipe_widget_action.dart';
 
 class DispenseWidget extends StatefulWidget {
@@ -157,6 +159,7 @@ class _DispenseWidgetState extends State<DispenseWidget> {
                   ? Padding(
                 padding: EdgeInsets.symmetric(vertical: 3),
                 child: TextField(
+                  inputFormatters: [FloatInputFormatter()],
                   controller: _targetTemperatureController,
                   decoration: InputDecoration(
                     isDense: true,
@@ -175,6 +178,7 @@ class _DispenseWidgetState extends State<DispenseWidget> {
                   ? Padding(
                 padding: EdgeInsets.symmetric(vertical: 3),
                 child: TextField(
+                  inputFormatters: [NumberInputFormatter()],
                   controller: _cycleController,
                   decoration: InputDecoration(
                       isDense: true,
@@ -191,6 +195,7 @@ class _DispenseWidgetState extends State<DispenseWidget> {
                   ? Padding(
                 padding: EdgeInsets.symmetric(vertical: 3),
                 child: TextField(
+                  inputFormatters: [FloatInputFormatter()],
                   controller: _tiltAngleA,
                   decoration: InputDecoration(
                     isDense: true,
@@ -208,6 +213,7 @@ class _DispenseWidgetState extends State<DispenseWidget> {
                   ? Padding(
                 padding: EdgeInsets.symmetric(vertical: 3),
                 child: TextField(
+                  inputFormatters: [FloatInputFormatter()],
                   controller: _tiltAngleB,
                   decoration: InputDecoration(
                     isDense: true,
@@ -225,6 +231,7 @@ class _DispenseWidgetState extends State<DispenseWidget> {
                   ? Padding(
                 padding: EdgeInsets.symmetric(vertical: 3),
                 child: TextField(
+                  inputFormatters: [FloatInputFormatter()],
                   controller: _rotateAngle,
                   decoration: InputDecoration(
                     isDense: true,
