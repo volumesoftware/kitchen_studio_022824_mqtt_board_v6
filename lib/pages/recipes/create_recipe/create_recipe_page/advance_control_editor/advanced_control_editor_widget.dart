@@ -376,7 +376,7 @@ class _AdvanceControlWidgetState extends State<AdvanceControlWidget> {
                         trailing: Icon(Icons.arrow_forward),
                         onTap: () {
                           addToOperationItem(AdvancedOperationItem(
-                              label: 'Duration',
+                              label: 'Volume',
                               hint: '10',
                               valueType: OperationItemValueType.DOUBLE,
                               operationItemCode:
@@ -388,7 +388,7 @@ class _AdvanceControlWidgetState extends State<AdvanceControlWidget> {
                         trailing: Icon(Icons.arrow_forward),
                         onTap: () {
                           addToOperationItem(AdvancedOperationItem(
-                              label: 'Duration',
+                              label: 'Volume',
                               hint: '10',
                               valueType: OperationItemValueType.DOUBLE,
                               operationItemCode:

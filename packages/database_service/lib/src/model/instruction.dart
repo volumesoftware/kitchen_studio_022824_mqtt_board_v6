@@ -34,6 +34,7 @@ abstract class BaseOperation {
         operation INTEGER,
         current_index INTEGER,
         target_temperature FLOAT,
+        volume FLOAT,
         cycle INTEGER,
         interval INTEGER,
         duration INTEGER,

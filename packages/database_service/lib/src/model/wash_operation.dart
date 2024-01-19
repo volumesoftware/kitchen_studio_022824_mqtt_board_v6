@@ -10,6 +10,7 @@ class WashOperation extends TimedOperation {
   int? recipeId;
   @override
   int? operation = WashOperation.CODE;
+
   int? duration;
   int? cycle;
   @override

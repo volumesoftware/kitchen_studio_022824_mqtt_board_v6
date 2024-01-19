@@ -181,7 +181,7 @@ class _WashWidgetState extends State<WashWidget> {
                             suffixText: "seconds",
                             isDense: true,
                             border: OutlineInputBorder(),
-                            hintText: 'Duration',
+                            hintText: '3.0',
                             label: Text("Duration")),
                       ),
                     )

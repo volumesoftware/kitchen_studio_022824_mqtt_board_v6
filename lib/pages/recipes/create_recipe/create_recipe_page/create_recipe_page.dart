@@ -12,8 +12,9 @@ import 'package:kitchen_studio_10162023/service/globla_loader_service.dart';
 
 class CreateRecipePage extends StatefulWidget {
   final Recipe recipe;
+  final double assignedTemperature;
 
-  const CreateRecipePage({Key? key, required this.recipe}) : super(key: key);
+  const CreateRecipePage({Key? key, required this.recipe,  this.assignedTemperature = 24.0}) : super(key: key);
 
   @override
   State<CreateRecipePage> createState() => _CreateRecipePageState();
@@ -21,6 +22,9 @@ class CreateRecipePage extends StatefulWidget {
 
 class _CreateRecipePageState extends State<CreateRecipePage>
     implements RecipeWidgetActions {
+
+  double lastAssignedTemperature = 24;
+
   int activeStep = 0;
   RecipeProcessor? recipeProcessor;
   List<RecipeProcessor> recipeProcessors = [];
@@ -51,6 +55,7 @@ class _CreateRecipePageState extends State<CreateRecipePage>
 
   @override
   void initState() {
+    lastAssignedTemperature = widget.assignedTemperature;
     KeyService.instance.addKeyHandler(context);
     populateOperations();
     listen = threadPool.stateChanges
@@ -219,7 +224,7 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                             setState(() {
                               onSave(AdvancedOperation(
                                   currentIndex: instructions.length,
-                                  targetTemperature: 35));
+                                  targetTemperature: lastAssignedTemperature));
                             });
                           },
                         ),
@@ -238,7 +243,7 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                               onSave(UserActionOperation(
                                 isClosing: false,
                                 currentIndex: instructions!.length,
-                                targetTemperature: 20,
+                                targetTemperature: lastAssignedTemperature,
                               ));
                             });
                           },
@@ -261,7 +266,7 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                               onSave(HeatUntilTemperatureOperation(
                                   currentIndex: instructions!.length,
                                   tiltAngleA: 90,
-                                  targetTemperature: 20));
+                                  targetTemperature: lastAssignedTemperature));
                             });
                           },
                         ),
@@ -285,7 +290,7 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                                     currentIndex: instructions.length,
                                     duration: 6,
                                     tiltAngleA: 90,
-                                    targetTemperature: 20));
+                                    targetTemperature: lastAssignedTemperature));
                               });
                             });
                           },
@@ -308,7 +313,7 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                                     rotateAngle: 270,
                                     rotateSpeed: 0,
                                     tiltSpeed: 0,
-                                    targetTemperature: 20));
+                                    targetTemperature: lastAssignedTemperature));
                               });
                             });
                           },
@@ -322,7 +327,7 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                                 onSave(DispenseOperation(
                                     currentIndex: instructions!.length,
                                     cycle: 1,
-                                    targetTemperature: 20,
+                                    targetTemperature: lastAssignedTemperature,
                                     tiltAngleB: -30,
                                     tiltAngleA: 15,
                                     tiltSpeed: 0,
@@ -343,7 +348,7 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                                   interval: 2,
                                   tiltAngleA: -15,
                                   tiltAngleB: 95,
-                                  targetTemperature: 20,
+                                  targetTemperature: lastAssignedTemperature,
                                   tiltSpeed: 0,
                                   rotateSpeed: 0));
                             });
@@ -360,7 +365,7 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                                   tiltAngleA: 45,
                                   tiltAngleB: 15,
                                   rotateAngle: 270,
-                                  targetTemperature: 20));
+                                  targetTemperature: lastAssignedTemperature));
                             });
                           },
                         ),
@@ -372,7 +377,7 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                               onSave(HotMixOperation(
                                   currentIndex: instructions!.length,
                                   duration: 15,
-                                  targetTemperature: 20,
+                                  targetTemperature: lastAssignedTemperature,
                                   tiltAngleA: 150,
                                   tiltAngleB: 35,
                                   rotateAngle: 270));
@@ -387,7 +392,8 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                               onSave(PumpOilOperation(
                                   currentIndex: instructions!.length,
                                   duration: 10,
-                                  targetTemperature: 20));
+                                  volume: 10.0,
+                                  targetTemperature: lastAssignedTemperature));
                             });
                           },
                         ),
@@ -399,7 +405,8 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                               onSave(PumpWaterOperation(
                                   currentIndex: instructions!.length,
                                   duration: 10,
-                                  targetTemperature: 20));
+                                  volume: 10.0,
+                                  targetTemperature: lastAssignedTemperature));
                             });
                           },
                         ),
@@ -424,7 +431,7 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                             setState(() {
                               onSave(DockIngredientOperation(
                                   currentIndex: instructions!.length,
-                                  targetTemperature: 20));
+                                  targetTemperature: lastAssignedTemperature));
                             });
                           },
                         ),
@@ -437,7 +444,7 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                             setState(() {
                               onSave(DropIngredientOperation(
                                   currentIndex: instructions!.length,
-                                  targetTemperature: 20,
+                                  targetTemperature: lastAssignedTemperature,
                                   cycle: 3));
                             });
                           },
@@ -619,7 +626,7 @@ class _CreateRecipePageState extends State<CreateRecipePage>
   void refreshPage() {
     Navigator.of(context).pushReplacement(PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) =>
-          CreateRecipePage(recipe: widget.recipe),
+          CreateRecipePage(recipe: widget.recipe, assignedTemperature: lastAssignedTemperature,),
       transitionDuration: Duration.zero,
       reverseTransitionDuration: Duration.zero,
     ));
@@ -642,6 +649,10 @@ class _CreateRecipePageState extends State<CreateRecipePage>
 
   @override
   void onValueUpdate(BaseOperation operation) async {
+    setState(() {
+      lastAssignedTemperature = operation.targetTemperature ?? 24.0;
+    });
+
     await baseOperationDataAccess.updateById(operation.id!, operation);
     refreshPage();
   }

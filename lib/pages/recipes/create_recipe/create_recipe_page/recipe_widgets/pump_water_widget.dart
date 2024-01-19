@@ -25,6 +25,7 @@ class _PumpWaterWidgetState extends State<PumpWaterWidget> {
   bool inEditMode = false;
   TextEditingController? _targetTemperatureController;
   TextEditingController? _durationController;
+  TextEditingController? _volumeController;
   RecipeWidgetActions? recipeWidgetActions;
 
 
@@ -35,6 +36,7 @@ class _PumpWaterWidgetState extends State<PumpWaterWidget> {
     _targetTemperatureController =
         TextEditingController(text: "${operation?.targetTemperature}");
     _durationController = TextEditingController(text: "${operation?.duration}");
+    _volumeController = TextEditingController(text: "${operation?.volume}");
     super.initState();
   }
 
@@ -107,18 +109,18 @@ class _PumpWaterWidgetState extends State<PumpWaterWidget> {
                   ? Padding(
                 padding: EdgeInsets.symmetric(vertical: 3),
                 child: TextField(
-                  controller: _durationController,
+                  controller: _volumeController,
                   decoration: InputDecoration(
-                      suffixText: "seconds",
+                      suffixText: "milliliter",
                       isDense: true,
                       border: OutlineInputBorder(),
-                      hintText: 'Duration',
-                      label: Text("Duration")),
+                      hintText: '10.0',
+                      label: Text("Volume")),
                 ),
               )
                   : ListTile(
-                title: Text('Duration'),
-                trailing: Text("${_durationController?.text}"),
+                title: Text('Volume'),
+                trailing: Text("${_volumeController?.text}"),
               )
             ],
           ),
@@ -139,6 +141,7 @@ class _PumpWaterWidgetState extends State<PumpWaterWidget> {
                 onPressed: () {
                   operation?.targetTemperature = double.tryParse(_targetTemperatureController!.text);
                   operation?.duration = int.tryParse(_durationController!.text);
+                  operation?.volume = double.tryParse(_volumeController!.text);
                   recipeWidgetActions?.onValueUpdate(operation!);
                   setState(() {
                     inEditMode = false;

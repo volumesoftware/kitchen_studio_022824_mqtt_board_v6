@@ -23,6 +23,9 @@ class PumpWaterOperation extends TimedOperation {
   @override
   double? targetTemperature;
 
+  double? volume;
+
+  @deprecated
   int? duration;
 
   IconData? iconData = Icons.water_drop_outlined;
@@ -36,7 +39,8 @@ class PumpWaterOperation extends TimedOperation {
       this.currentIndex,
       this.instructionSize,
       this.targetTemperature,
-      this.duration});
+      this.duration,
+      this.volume});
 
   @override
   Map<String, dynamic> toJson() {
@@ -48,6 +52,7 @@ class PumpWaterOperation extends TimedOperation {
     data['instruction_size'] = instructionSize;
     data['target_temperature'] = targetTemperature;
     data['duration'] = duration;
+    data['volume'] = volume;
     data['preset_name'] = presetName;
 
     return data;
@@ -64,9 +69,8 @@ class PumpWaterOperation extends TimedOperation {
     instructionSize = json["instruction_size"] == null
         ? null
         : json["instruction_size"] as int;
-    targetTemperature = json["target_temperature"] == null
-        ? null
-        : json["target_temperature"] as double;
+    targetTemperature = json["target_temperature"] == null ? null : json["target_temperature"] as double;
+    volume = json["volume"] == null ? null : json["volume"] as double;
     duration = json["duration"] == null ? null : json["duration"] as int;
     presetName =json['preset_name']==null? null: json['preset_name'] as String;
 

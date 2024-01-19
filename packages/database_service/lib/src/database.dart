@@ -34,7 +34,7 @@ class DatabasePackage {
 
     database = await databaseFactory.openDatabase('${path}\\kitchenstudio.db',
         options: OpenDatabaseOptions(
-          version: 6,
+          version: 7,
           onUpgrade: (db, oldVersion, newVersion) => createDrop(db, newVersion),
           onDowngrade: (db, oldVersion, newVersion) => createDrop(db, newVersion),
           onCreate: (db, version) => createDrop(db, version),
