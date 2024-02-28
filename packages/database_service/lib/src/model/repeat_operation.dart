@@ -73,4 +73,18 @@ class RepeatOperation implements BaseOperation {
 
   @override
   IconData? iconData = Icons.repeat;
+
+  @override
+  BaseOperation updateValue(Map<String, dynamic> json) {
+    id = json['id'] == null ? id : json['id'] as int;
+    requestId = json['request_id'] == null ? requestId : json['request_id'] as String;
+    recipeId = json['recipe_id'] == null ? recipeId : json['recipe_id'] as int;
+    currentIndex = json["current_index"] == null ? currentIndex : json["current_index"] as int;
+    instructionSize = json["instruction_size"] == null ? instructionSize : json["instruction_size"] as int;
+    targetTemperature = json["target_temperature"] == null ? targetTemperature : json["target_temperature"] as double;
+    repeatCount = json["repeat_count"] == null ? repeatCount : json["repeat_count"] as int;
+    repeatIndex = json["repeat_index"] == null ? repeatIndex : json["repeat_index"] as int;
+    presetName =json['preset_name']==null? presetName: json['preset_name'] as String;
+    return this;
+  }
 }

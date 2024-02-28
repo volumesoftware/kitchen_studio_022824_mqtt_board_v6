@@ -38,13 +38,12 @@ class _CreateRecipePageState extends State<CreateRecipePage>
   ThreadPool threadPool = ThreadPool.instance;
 
   UdpService? udpService = UdpService.instance;
-  DeviceDataAccess deviceDataAccess = DeviceDataAccess.instance;
   TaskDataAccess taskDataAccess = TaskDataAccess.instance;
   bool showAddBetweenButton = false;
   bool manualOpen = false;
   TextEditingController _presetSearchController = TextEditingController();
 
-  late StreamSubscription<List<RecipeProcessor>> listen;
+  late StreamSubscription<List<KitchenToolProcessor>> listen;
 
   @override
   void dispose() {
@@ -59,7 +58,7 @@ class _CreateRecipePageState extends State<CreateRecipePage>
     KeyService.instance.addKeyHandler(context);
     populateOperations();
     listen = threadPool.stateChanges
-        .listen((List<RecipeProcessor> recipeProcessors) {
+        .listen((List<KitchenToolProcessor> recipeProcessors) {
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
         setState(() {
           recipeProcessors = threadPool.pool;
@@ -424,7 +423,7 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                         ),
                         ListTile(
                           leading: Icon(Icons.dock_sharp),
-                          enabled: false,
+                          // enabled: false,
                           subtitle: const Text('Coming soon'),
                           title: const Text('Dock Ingredient'),
                           onTap: () {
@@ -436,7 +435,7 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                           },
                         ),
                         ListTile(
-                          enabled: false,
+                          // enabled: false,
                           subtitle: const Text('Coming soon'),
                           leading: Icon(Icons.publish_sharp),
                           title: const Text('Drop Ingredient'),
@@ -700,7 +699,7 @@ class _CreateRecipePageState extends State<CreateRecipePage>
     }
 
     udpService?.send(jsonEncode(operation.toJson()).codeUnits,
-        InternetAddress(recipeProcessor!.getDeviceStats().ipAddress!), 8888);
+        InternetAddress(recipeProcessor!.getModuleResponse().ipAddress!), 8888);
   }
 
   TextEditingController _presetNameController = TextEditingController();

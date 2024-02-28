@@ -57,6 +57,22 @@ class DropIngredientOperation implements BaseOperation {
     cycle = json["cycle"] == null? 0 : json["cycle"] as int;
   }
 
+
+  @override
+  BaseOperation updateValue(Map<String, dynamic> json) {
+    id = json['id'] == null ? id : json['id'] as int;
+    presetName =json['preset_name']==null? presetName: json['preset_name'] as String;
+    requestId =json['request_id']==null? requestId: json['request_id'] as String;
+    recipeId = json['recipe_id']==null? recipeId: json['recipe_id'] as int;
+    operation = json["operation"] == null ? operation : json["operation"] as int;
+    currentIndex = json["current_index"]==null? currentIndex: json["current_index"] as int;
+    instructionSize =json["instruction_size"]==null? instructionSize: json["instruction_size"] as int;
+    targetTemperature = json["target_temperature"]==null? targetTemperature: json["target_temperature"] as double;
+    cycle = json["cycle"] == null? cycle : json["cycle"] as int;
+    return this;
+  }
+
+
   @override
   String? presetName;
 

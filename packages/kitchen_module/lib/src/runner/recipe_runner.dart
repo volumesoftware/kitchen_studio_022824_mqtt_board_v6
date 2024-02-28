@@ -13,8 +13,8 @@ Future<void> recipeIsolateEntryPoint(SendPort sendPort) async {
   await for (var message in receivePort) {
     if (message is List) {
       final SendPort eventSenderPort = message[0];
-      final TaskPayload payload = message[1];
-      final DeviceStats _device = message[2];
+      final RecipeHandlerPayload payload = message[1];
+      final ModuleResponse _device = message[2];
 
       int totalProgress = payload.operations.length + 1;
       eventSenderPort.send("started");
@@ -58,12 +58,12 @@ Future<void> recipeIsolateEntryPoint(SendPort sendPort) async {
           _device);
       eventSenderPort.send(TaskProgress(1));
       eventSenderPort.send("completed");
-
     }
   }
 }
 
-Future<bool?> waitForIdle(BaseOperation operation, DeviceStats server) async {
+Future<bool?> waitForIdle(
+    BaseOperation operation, ModuleResponse server) async {
   if (operation.operation == UserActionOperation.CODE) {
     // playNotificationSound();
   }
@@ -98,7 +98,16 @@ Future<bool?> waitForIdle(BaseOperation operation, DeviceStats server) async {
       if (datagram != null) {
         try {
           String result = String.fromCharCodes(datagram.data);
-          DeviceStats incomingStats = DeviceStats.fromJson(jsonDecode(result));
+          var parsedJson = jsonDecode(result);
+          ModuleResponse incomingStats;
+          if (parsedJson['type'] == 'STIR_FRY_MODULE') {
+            incomingStats = StirFryResponse(parsedJson);
+          } else if (parsedJson['type'] == 'TRANSPORTER_MODULE') {
+            incomingStats = TransporterResponse(parsedJson);
+          } else {
+            throw HandshakeException(
+                "waitForIdle() Failed to handshake with incoming response with type, ${parsedJson['type']}");
+          }
           if (incomingStats.requestId == 'idle') {
             socket.close();
             timer.cancel();
@@ -113,7 +122,7 @@ Future<bool?> waitForIdle(BaseOperation operation, DeviceStats server) async {
   return completer.future;
 }
 
-Future<bool?> clearIdle(BaseOperation operation, DeviceStats server) async {
+Future<bool?> clearIdle(BaseOperation operation, ModuleResponse server) async {
   int maX = 5000;
   int miN = 4000;
   int randomPort = Random().nextInt(maX - miN) + miN;
@@ -141,7 +150,18 @@ Future<bool?> clearIdle(BaseOperation operation, DeviceStats server) async {
       if (datagram != null) {
         try {
           String result = String.fromCharCodes(datagram.data);
-          DeviceStats incomingStats = DeviceStats.fromJson(jsonDecode(result));
+          var parsedJson = jsonDecode(result);
+          ModuleResponse incomingStats;
+
+          if (parsedJson['type'] == 'STIR_FRY_MODULE') {
+            incomingStats = StirFryResponse(parsedJson);
+          } else if (parsedJson['type'] == 'TRANSPORTER_MODULE') {
+            incomingStats = TransporterResponse(parsedJson);
+          } else {
+            throw HandshakeException(
+                "clearIdle() Failed to handshake with incoming response with type, ${parsedJson['type']}");
+          }
+
           if (incomingStats.requestId != 'idle') {
             socket.close();
             timer.cancel();

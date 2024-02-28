@@ -28,7 +28,7 @@ class _RunningTaskProcessorWidgetState
     extends State<RunningTaskProcessorWidget> {
   late RecipeProcessor _recipeProcessor;
   ScrollController _scrollController = ScrollController();
-  late StreamSubscription<DeviceStats> _stateChange;
+  late StreamSubscription<ModuleResponse> _stateChange;
 
   Color getColor(int index) {
     if (index == _recipeProcessor.getIndexProgress()) {
@@ -46,7 +46,7 @@ class _RunningTaskProcessorWidgetState
       _recipeProcessor = widget.recipeProcessor;
     });
 
-    _stateChange = widget.recipeProcessor.hearBeat.listen((DeviceStats stats) {
+    _stateChange = widget.recipeProcessor.hearBeat.listen((ModuleResponse stats) {
       scrollToIndex(widget.recipeProcessor.getIndexProgress());
     });
 
@@ -94,7 +94,7 @@ class _RunningTaskProcessorWidgetState
           return Padding(
             padding: const EdgeInsets.only(bottom: 15.0),
             child: Icon(_recipeProcessor.getPayload()?.operations[index].iconData,
-                color: getColor(index), size: 80),
+                color: getColor(index), size: 45),
           );
         },
         contentsBuilder: (context, index) {

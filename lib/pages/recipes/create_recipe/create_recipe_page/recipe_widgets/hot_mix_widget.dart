@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:kitchen_module/kitchen_module.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/recipe_widget_action.dart';
+import '../form_formatter/custom_input_formatter.dart';
 
 class HotMixOperationWidget extends StatefulWidget {
   final HotMixOperation operation;
@@ -162,6 +163,9 @@ class _HotMixOperationWidgetState extends State<HotMixOperationWidget> {
                   padding: EdgeInsets.symmetric(vertical: 3),
                   child: TextField(
                     controller: _targetTemperatureController,
+                    inputFormatters: [
+                      FloatInputFormatter()
+                    ],
                     decoration: InputDecoration(
                         suffixText: "celsius",
                         isDense: true,
@@ -179,6 +183,9 @@ class _HotMixOperationWidgetState extends State<HotMixOperationWidget> {
                   padding: EdgeInsets.symmetric(vertical: 3),
                   child: TextField(
                     controller: _durationController,
+                    inputFormatters: [
+                      FloatInputFormatter()
+                    ],
                     decoration: InputDecoration(
                         suffixText: "seconds",
                         isDense: true,
@@ -197,6 +204,9 @@ class _HotMixOperationWidgetState extends State<HotMixOperationWidget> {
                   padding: EdgeInsets.symmetric(vertical: 3),
                   child: TextField(
                     controller: _tiltAngleA,
+                    inputFormatters: [
+                      FloatInputFormatter()
+                    ],
                     decoration: InputDecoration(
                       isDense: true,
                       border: OutlineInputBorder(),
@@ -214,6 +224,9 @@ class _HotMixOperationWidgetState extends State<HotMixOperationWidget> {
                   padding: EdgeInsets.symmetric(vertical: 3),
                   child: TextField(
                     controller: _tiltAngleB,
+                    inputFormatters: [
+                      FloatInputFormatter()
+                    ],
                     decoration: InputDecoration(
                       isDense: true,
                       border: OutlineInputBorder(),
@@ -231,6 +244,9 @@ class _HotMixOperationWidgetState extends State<HotMixOperationWidget> {
                   padding: EdgeInsets.symmetric(vertical: 3),
                   child: TextField(
                     controller: _rotateAngle,
+                    inputFormatters: [
+                      FloatInputFormatter()
+                    ],
                     decoration: InputDecoration(
                       isDense: true,
                       border: OutlineInputBorder(),

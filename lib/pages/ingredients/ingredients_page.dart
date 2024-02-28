@@ -4,6 +4,7 @@ import 'package:avatar_glow/avatar_glow.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:kitchen_module/kitchen_module.dart';
+import 'package:kitchen_studio_10162023/pages/ingredients/ingredient_creation.dart';
 
 class IngredientsPage extends StatefulWidget {
   const IngredientsPage({Key? key}) : super(key: key);
@@ -14,11 +15,7 @@ class IngredientsPage extends StatefulWidget {
 
 class _IngredientsPageState extends State<IngredientsPage> {
   List<Ingredient> ingredients = [];
-  IngredientDataAccess? ingredientDataAccess;
-  String _stockLevel = '';
-  String _ingredientType = '';
-  File? file;
-  String? fileName = "";
+  late IngredientDataAccess ingredientDataAccess;
 
   @override
   void initState() {
@@ -28,7 +25,7 @@ class _IngredientsPageState extends State<IngredientsPage> {
   }
 
   populateIngredient() {
-    ingredientDataAccess?.findAll().then((value) {
+    ingredientDataAccess.findAll().then((value) {
       if (value != null) {
         setState(() {
           ingredients = value;
@@ -64,76 +61,94 @@ class _IngredientsPageState extends State<IngredientsPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "${ingredients[index].ingredientName}",
+                        "${ingredients[index].ingredientName} ",
                         style: Theme.of(context).textTheme.titleSmall,
                       ),
-                      ingredients[index].stockLevel == "LOW" ? AvatarGlow(
-                          child: PopupMenuButton<String>(
-                            icon: Icon(Icons.filter_list),
-                            onSelected: (String result) {
-                              switch (result) {
-                                case 'filter1':
-                                  print('filter 1 clicked');
-                                  break;
-                                case 'filter2':
-                                  print('filter 2 clicked');
-                                  break;
-                                case 'clearFilters':
-                                  print('Clear filters');
-                                  break;
-                                default:
-                              }
-                            },
-                            itemBuilder: (BuildContext context) =>
-                                <PopupMenuEntry<String>>[
-                              const PopupMenuItem<String>(
-                                value: 'Refilled',
-                                child: Text('Refilled'),
+                      ingredients[index].stockLevel == "LOW"
+                          ? AvatarGlow(
+                              child: PopupMenuButton<String>(
+                                icon: Icon(Icons.filter_list),
+                                onSelected: (String result) async {
+                                  switch (result) {
+                                    case 'filter1':
+                                      print('filter 1 clicked');
+                                      break;
+                                    case 'filter2':
+                                      print('filter 2 clicked');
+                                      break;
+                                    case 'delete':
+                                      await ingredientDataAccess.delete(ingredients[index].id!);
+                                      populateIngredient();
+                                      break;
+                                    default:
+                                  }
+                                },
+                                itemBuilder: (BuildContext context) =>
+                                    <PopupMenuEntry<String>>[
+                                  ingredients[index].ingredientType == 'SOLID'
+                                      ? const PopupMenuItem<String>(
+                                          value: 'dispense',
+                                          child: Text('Dispense'),
+                                        )
+                                      : ingredients[index].ingredientType ==
+                                              'GRANULAR'
+                                          ? const PopupMenuItem<String>(
+                                              value: 'dispense',
+                                              child: Text('Dispense'),
+                                            )
+                                          : const PopupMenuItem<String>(
+                                              value: 'dispense',
+                                              child: Text('Dispense'),
+                                            ),
+                                  const PopupMenuItem<String>(
+                                    value: 'Refilled',
+                                    child: Text('Refilled'),
+                                  ),
+                                  const PopupMenuItem<String>(
+                                    value: 'disable',
+                                    child: Text('Disable'),
+                                  ),
+                                  const PopupMenuItem<String>(
+                                    value: 'delete',
+                                    child: Text('Delete'),
+                                  )
+                                ],
                               ),
-                              const PopupMenuItem<String>(
-                                value: 'disable',
-                                child: Text('Disable'),
-                              ),
-                              const PopupMenuItem<String>(
-                                value: 'delete',
-                                child: Text('Delete'),
-                              )
-                            ],
-                          ),
-                          glowColor: Colors.red,
-                          shape: BoxShape.rectangle,
-                          endRadius: 30):PopupMenuButton<String>(
-                        icon: Icon(Icons.filter_list),
-                        onSelected: (String result) {
-                          switch (result) {
-                            case 'filter1':
-                              print('filter 1 clicked');
-                              break;
-                            case 'filter2':
-                              print('filter 2 clicked');
-                              break;
-                            case 'clearFilters':
-                              print('Clear filters');
-                              break;
-                            default:
-                          }
-                        },
-                        itemBuilder: (BuildContext context) =>
-                        <PopupMenuEntry<String>>[
-                          const PopupMenuItem<String>(
-                            value: 'Refilled',
-                            child: Text('Refilled'),
-                          ),
-                          const PopupMenuItem<String>(
-                            value: 'disable',
-                            child: Text('Disable'),
-                          ),
-                          const PopupMenuItem<String>(
-                            value: 'delete',
-                            child: Text('Delete'),
-                          )
-                        ],
-                      )
+                              glowColor: Colors.red,
+                              shape: BoxShape.rectangle,
+                              endRadius: 30)
+                          : PopupMenuButton<String>(
+                              icon: Icon(Icons.filter_list),
+                              onSelected: (String result) {
+                                switch (result) {
+                                  case 'filter1':
+                                    print('filter 1 clicked');
+                                    break;
+                                  case 'filter2':
+                                    print('filter 2 clicked');
+                                    break;
+                                  case 'clearFilters':
+                                    print('Clear filters');
+                                    break;
+                                  default:
+                                }
+                              },
+                              itemBuilder: (BuildContext context) =>
+                                  <PopupMenuEntry<String>>[
+                                const PopupMenuItem<String>(
+                                  value: 'Refilled',
+                                  child: Text('Refilled'),
+                                ),
+                                const PopupMenuItem<String>(
+                                  value: 'disable',
+                                  child: Text('Disable'),
+                                ),
+                                const PopupMenuItem<String>(
+                                  value: 'delete',
+                                  child: Text('Delete'),
+                                )
+                              ],
+                            )
                     ],
                   )),
                   Container(
@@ -154,7 +169,12 @@ class _IngredientsPageState extends State<IngredientsPage> {
                   Text(
                     "Location, (${ingredients[index].coordinateX}, ${ingredients[index].coordinateY}, ${ingredients[index].coordinateZ})",
                     style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  Text(
+                    "Type, (${ingredients[index].ingredientType})",
+                    style: Theme.of(context).textTheme.titleSmall,
                   )
+
                 ],
               ),
             ),
@@ -171,30 +191,8 @@ class _IngredientsPageState extends State<IngredientsPage> {
     );
   }
 
-  void setStockLevel(String stockLevel, setState) {
-    setState(() {
-      _stockLevel = stockLevel;
-    });
-  }
-
-  void setIngredientType(String ingredientType, setState) {
-    setState(() {
-      _ingredientType = ingredientType;
-    });
-  }
-
-  void setImagePath(String filename, setState) {
-    setState(() {
-      fileName = filename;
-    });
-  }
 
   Future _displayTextInputDialog(BuildContext context) async {
-    TextEditingController _ingredientNameController = TextEditingController();
-    TextEditingController _coordinateXController = TextEditingController();
-    TextEditingController _coordinateYController = TextEditingController();
-    TextEditingController _coordinateZController = TextEditingController();
-
     return showDialog(
       context: context,
       builder: (context) {
@@ -202,140 +200,9 @@ class _IngredientsPageState extends State<IngredientsPage> {
           builder: (context, setState) {
             return AlertDialog(
               title: Text('Add new ingredient'),
-              content: Container(
-                height: 450,
-                width: 450,
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 3),
-                      child: TextField(
-                        controller: _ingredientNameController,
-                        decoration: InputDecoration(
-                          isDense: true,
-                          border: OutlineInputBorder(),
-                          label: Text('Ingredient Name'),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 3),
-                      child: TextField(
-                        controller: _coordinateXController,
-                        decoration: InputDecoration(
-                          isDense: true,
-                          border: OutlineInputBorder(),
-                          label: Text('Coordinate X'),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 3),
-                      child: TextField(
-                        controller: _coordinateYController,
-                        decoration: InputDecoration(
-                          isDense: true,
-                          border: OutlineInputBorder(),
-                          label: Text('Coordinate Y'),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 3),
-                      child: TextField(
-                        controller: _coordinateZController,
-                        decoration: InputDecoration(
-                          isDense: true,
-                          border: OutlineInputBorder(),
-                          label: Text('Coordinate Z'),
-                        ),
-                      ),
-                    ),
-                    ListTile(
-                      title: Text("Choose a stock level"),
-                      subtitle: Text("${_stockLevel}"),
-                      trailing: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          items: <String>['LOW', 'MEDIUM', 'HIGH']
-                              .map((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            if (value != null) setStockLevel(value, setState);
-                          },
-                        ),
-                      ),
-                    ),
-                    ListTile(
-                      title: Text("Choose ingredient type"),
-                      subtitle: Text("${_ingredientType}"),
-                      trailing: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          items: <String>['LIQUID', 'SOLID', 'GRANULAR']
-                              .map((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            if (value != null)
-                              setIngredientType(value, setState);
-                          },
-                        ),
-                      ),
-                    ),
-                    ListTile(
-                      subtitle: Text("${fileName}"),
-                      title: Text("Pick image"),
-                      trailing: Icon(Icons.image),
-                      onTap: () async {
-                        FilePickerResult? result =
-                            await FilePicker.platform.pickFiles();
-                        if (result != null) {
-                          file = File(result.files.single.path!);
-                          var split = result.files.single.path!.split('\\');
-                          setImagePath(split[split.length - 1], setState);
-                        } else {
-                          // User canceled the picker
-                        }
-                      },
-                    )
-                  ],
-                ),
-              ),
-              actions: <Widget>[
-                ElevatedButton(
-                  child: Text('CANCEL'),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                ),
-                ElevatedButton(
-                  child: Text('OK'),
-                  onPressed: () async {
-                    File? copiedFile =
-                        await file?.copy("assets/images/${fileName}");
-                    Ingredient ing = Ingredient();
-                    ing.ingredientName = _ingredientNameController.text;
-                    ing.ingredientType = _ingredientType;
-                    ing.stockLevel = _stockLevel;
-                    ing.imageFilePath = copiedFile?.path;
-                    ing.coordinateX =
-                        double.tryParse(_coordinateXController.text);
-                    ing.coordinateY =
-                        double.tryParse(_coordinateYController.text);
-                    ing.coordinateZ =
-                        double.tryParse(_coordinateZController.text);
-                    await ingredientDataAccess?.create(ing);
-                    populateIngredient();
-                    Navigator.pop(context);
-                  },
-                ),
-              ],
+              content: IngredientCreationDialog(onEvent: () {
+                populateIngredient();
+              },),
             );
           },
         );

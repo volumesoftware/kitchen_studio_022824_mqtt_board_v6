@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:kitchen_module/kitchen_module.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/recipe_widget_action.dart';
+import '../form_formatter/custom_input_formatter.dart';
 
 class HeatAtTemperatureUntilTimeWidget extends StatefulWidget {
   final HeatForOperation operation;
@@ -90,6 +91,7 @@ class _HeatAtTemperatureUntilTimeWidgetState
                       padding: EdgeInsets.symmetric(vertical: 3),
                       child: TextField(
                         controller: _targetTemperatureController,
+                        inputFormatters: [FloatInputFormatter()],
                         decoration: InputDecoration(
                             suffixText: "celsius",
                             isDense: true,
@@ -106,6 +108,7 @@ class _HeatAtTemperatureUntilTimeWidgetState
                   ? Padding(
                       padding: EdgeInsets.symmetric(vertical: 3),
                       child: TextField(
+                        inputFormatters: [FloatInputFormatter()],
                         controller: _durationController,
                         decoration: InputDecoration(
                             suffixText: "seconds",
@@ -124,6 +127,9 @@ class _HeatAtTemperatureUntilTimeWidgetState
                       padding: EdgeInsets.symmetric(vertical: 3),
                       child: TextField(
                         controller: _tiltAngleController,
+                        inputFormatters: [
+                          FloatInputFormatter()
+                        ],
                         decoration: InputDecoration(
                           isDense: true,
                           suffixText: "degree",

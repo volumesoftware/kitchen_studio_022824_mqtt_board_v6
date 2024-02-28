@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kitchen_module/kitchen_module.dart';
 import 'package:kitchen_studio_10162023/pages/taskv2/completed_tasks_v2.dart';
-import 'package:kitchen_studio_10162023/pages/taskv2/running_tasks_v2.dart';
+import 'package:kitchen_studio_10162023/pages/taskv2/task_bar.dart';
 
 class TasksPageV2 extends StatefulWidget {
   const TasksPageV2({Key? key}) : super(key: key);
@@ -51,7 +51,7 @@ class _TasksPageV2State extends State<TasksPageV2> {
                 },
                 icon: Icon(Icons.arrow_back))
           ]),
-      body: RunningTasksV2(),
+      body: TaskBar(),
     );
   }
 }

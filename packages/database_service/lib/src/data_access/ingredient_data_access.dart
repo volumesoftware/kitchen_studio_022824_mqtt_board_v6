@@ -20,6 +20,8 @@ class IngredientDataAccess implements DataAccess<Ingredient> {
 
   @override
   Future<int?> delete(int id) async {
+    print('deleting ${id}');
+    getById(id);
     return database
         ?.delete(Ingredient.tableName(), where: "id = ?", whereArgs: [id]);
   }
@@ -41,10 +43,8 @@ class IngredientDataAccess implements DataAccess<Ingredient> {
 
   @override
   Future<Ingredient?> updateById(int id, Ingredient t) async {
-    int? count = await database?.update(
-        Ingredient.tableName(), t.toJson(),
-        where: "id = ?",
-        whereArgs: [id]);
+    int? count = await database?.update(Ingredient.tableName(), t.toJson(),
+        where: "id = ?", whereArgs: [id]);
 
     if (count != null) {
       if (count > 0) return getById(id);
@@ -55,13 +55,13 @@ class IngredientDataAccess implements DataAccess<Ingredient> {
   @override
   Future<List<Ingredient>?> search(String? where,
       {bool? distinct,
-        List<String>? columns,
-        List<Object?>? whereArgs,
-        String? groupBy,
-        String? having,
-        String? orderBy,
-        int? limit,
-        int? offse}) async {
+      List<String>? columns,
+      List<Object?>? whereArgs,
+      String? groupBy,
+      String? having,
+      String? orderBy,
+      int? limit,
+      int? offse}) async {
     var list = await database?.query(Ingredient.tableName(),
         whereArgs: whereArgs, where: where);
     return list?.map((e) => Ingredient.fromDatabase(e)).toList();

@@ -7,6 +7,8 @@ class Recipe {
   double? estimatedTimeCompletion;
   double? rating;
   int? cookCount;
+  int? portion;
+  int? parentId;
 
   Recipe(
       {this.id,
@@ -16,7 +18,10 @@ class Recipe {
       this.typeHandler,
       this.estimatedTimeCompletion,
       this.rating,
-      this.cookCount});
+      this.cookCount,
+      this.portion,
+      this.parentId
+      });
 
   Recipe.fromDatabase(Map<String, Object?> json) {
     id = json['id'] as int;
@@ -27,6 +32,8 @@ class Recipe {
     estimatedTimeCompletion = json["estimated_time_completion"] == null? 0.0 : json["estimated_time_completion"] as double;
     rating = json["rating"] == null ? 0.0: json["rating"] as double;
     cookCount = json["cook_count"] == null? 0: json["cook_count"] as int;
+    portion = json["portion"] == null? 0: json["portion"] as int;
+    parentId = json["parent_id"] == null? 0: json["parent_id"] as int;
   }
 
   Map<String, dynamic> toJson(){
@@ -38,6 +45,8 @@ class Recipe {
           'estimated_time_completion': estimatedTimeCompletion,
           'rating': rating,
           'cook_count': cookCount,
+          'portion': portion,
+          'parent_id': parentId
     };
   }
 
@@ -57,7 +66,9 @@ class Recipe {
         author TEXT,
         estimated_time_completion FLOAT,
         rating FLOAT,
-        cook_count INTEGER
+        cook_count INTEGER,
+        portion INTEGER,
+        parent_id INTEGER
     );
     ''';
   }

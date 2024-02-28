@@ -42,9 +42,9 @@ class _UnitMonitoringCardComponentState
     return Card(
       child: StreamBuilder(
         stream: widget.recipeProcessor.hearBeat,
-        builder: (BuildContext context, AsyncSnapshot<DeviceStats> snapshot) {
+        builder: (BuildContext context, AsyncSnapshot<ModuleResponse> snapshot) {
 
-          DeviceStats deviceStats = snapshot.data ?? widget.recipeProcessor.getDeviceStats();
+          ModuleResponse moduleResponse = snapshot.data ?? widget.recipeProcessor.getModuleResponse();
 
           return Container(
             padding: EdgeInsets.all(20),
@@ -56,11 +56,11 @@ class _UnitMonitoringCardComponentState
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "${deviceStats.moduleName}",
+                      "${moduleResponse.moduleName}",
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     PopupMenuButton<String>(
-                      enabled: deviceStats.requestId == 'idle',
+                      enabled: moduleResponse.requestId == 'idle',
                       icon: Icon(Icons.filter_list),
                       onSelected: (String result) {
                         switch (result) {
@@ -69,7 +69,7 @@ class _UnitMonitoringCardComponentState
                                 '{"operation":"199","request_id":"zeroing"}';
                             udpService.send(
                                 jsonData.codeUnits,
-                                InternetAddress(deviceStats.ipAddress!),
+                                InternetAddress(moduleResponse.ipAddress!),
                                 8888);
                             break;
                           case 'heat_until':
@@ -77,7 +77,7 @@ class _UnitMonitoringCardComponentState
                                 '{"operation":"212","target_temperature":40,"duration":120000,"request_id":"heat_until"}';
                             udpService.send(
                                 jsonData.codeUnits,
-                                InternetAddress(deviceStats.ipAddress!),
+                                InternetAddress(moduleResponse.ipAddress!),
                                 8888);
                             break;
                           case 'filter2':
@@ -132,9 +132,9 @@ class _UnitMonitoringCardComponentState
                           temperature: temperature,
                         ),
                       ),
-                      Text(
-                          "${deviceStats.temperature?.toStringAsFixed(2)} °C",
-                          style: Theme.of(context).textTheme.titleMedium),
+                      (moduleResponse is StirFryResponse) ? Text(
+                          "${moduleResponse.temperature?.toStringAsFixed(2)} °C",
+                          style: Theme.of(context).textTheme.titleMedium) : Row(),
                       Positioned(
                           child: Transform(
                             alignment: Alignment.center,
@@ -147,19 +147,19 @@ class _UnitMonitoringCardComponentState
                   ),
                 ),
                 Text(
-                  "${deviceStats.requestId}",
+                  "${moduleResponse.requestId}",
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 Text(
-                  "${deviceStats.ipAddress}:${deviceStats.port}",
+                  "${moduleResponse.ipAddress}:${moduleResponse.port}",
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 Text(
-                  "${deviceStats.type}",
+                  "${moduleResponse.type}",
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 Text(
-                  "${(deviceStats.machineTime)} up time",
+                  "${(moduleResponse.machineTime)} up time",
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 ElevatedButton(

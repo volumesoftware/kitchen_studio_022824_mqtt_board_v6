@@ -120,6 +120,9 @@ class BaseOperationDataAccess implements DataAccess<BaseOperation> {
     if (result is AdvancedOperation) {
       await database?.delete(AdvancedOperationItem.tableName(),
           where: "operation_id = ?", whereArgs: [id]);
+    } else if(result is DockIngredientOperation){
+      await database?.delete(IngredientItem.tableName(),
+          where: "operation_id = ?", whereArgs: [id]);
     }
     return database
         ?.delete(BaseOperation.tableName(), where: "id = ?", whereArgs: [id]);

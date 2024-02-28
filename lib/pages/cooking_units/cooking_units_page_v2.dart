@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:kitchen_studio_10162023/pages/cooking_units/cooking_unit_card_component.dart';
 import 'package:kitchen_module/kitchen_module.dart';
 import 'package:kitchen_studio_10162023/pages/cooking_units/cooking_unit_card_component_v2.dart';
 
@@ -16,7 +15,6 @@ class CookingUnitsPageV2 extends StatefulWidget {
 class _CookingUnitsPageV2State extends State<CookingUnitsPageV2> {
   Timer? timer;
   UdpService? udpService = UdpService.instance;
-  DeviceDataAccess deviceDataAccess = DeviceDataAccess.instance;
   ThreadPool threadPool = ThreadPool.instance;
 
   @override
@@ -37,13 +35,15 @@ class _CookingUnitsPageV2State extends State<CookingUnitsPageV2> {
           automaticallyImplyLeading: false,
           title: Text("Cooking Units"),
           actions: [IconButton(onPressed: () {}, icon: Icon(Icons.refresh))]),
-      body: StreamBuilder<List<RecipeProcessor>>(
+      body: StreamBuilder<List<KitchenToolProcessor>>(
         stream: threadPool.stateChanges,
         builder: (BuildContext context,
-            AsyncSnapshot<List<RecipeProcessor>> snapshot) {
-
-          if(threadPool.poolSize ==0 ){
-            return Center(child: Text("No module available", style: Theme.of(context).textTheme.displaySmall),);
+            AsyncSnapshot<List<KitchenToolProcessor>> snapshot) {
+          if (threadPool.poolSize == 0) {
+            return Center(
+              child: Text("No module available",
+                  style: Theme.of(context).textTheme.displaySmall),
+            );
           }
 
           return GridView.builder(
@@ -54,8 +54,16 @@ class _CookingUnitsPageV2State extends State<CookingUnitsPageV2> {
                 mainAxisSpacing: 10),
             itemCount: snapshot.data?.length ?? threadPool.poolSize,
             itemBuilder: (context, index) {
-              return CookingUnitCardComponentV2(
-                  recipeProcessor:snapshot.data!=null? snapshot.data![index] : threadPool.pool[index]);
+              KitchenToolProcessor processor = snapshot.data != null
+                  ? snapshot.data![index]
+                  : threadPool.pool[index];
+
+              if(processor is RecipeProcessor){
+                return CookingUnitCardComponentV2(
+                    recipeProcessor: processor);
+              }else{
+                return Card();
+              }
             },
           );
         },

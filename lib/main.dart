@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'app_router.dart';
 import 'package:kitchen_module/kitchen_module.dart';
+import 'package:dummy_module/dummy_udp_server.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  List<DummyUdpServer> data = [];
+  // for dummy purpose
+  DummyUdpServer server =DummyUdpServer("192.168.43.200", 8888, ModuleType.STIR_FRY_MODULE);
   await DatabasePackage.instance.initialize();
   runApp(const MyApp());
 }

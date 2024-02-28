@@ -71,4 +71,18 @@ class StirOperation extends TimedOperation {
     presetName =json['preset_name']==null? null: json['preset_name'] as String;
 
   }
+
+  @override
+  BaseOperation updateValue(Map<String, dynamic> json) {
+    id = json['id'] == null ? id : json['id'] as int;
+    requestId = json['request_id'] == null ? requestId : json['request_id'] as String;
+    recipeId = json['recipe_id'] == null ? recipeId : json['recipe_id'] as int;
+    operation = json["operation"] == null ? operation : json["operation"] as int;
+    currentIndex = json["current_index"] == null ? currentIndex : json["current_index"] as int;
+    instructionSize = json["instruction_size"] == null ? instructionSize : json["instruction_size"] as int;
+    targetTemperature = json["target_temperature"] == null ? targetTemperature : json["target_temperature"] as double;
+    duration = json["duration"] == null ? duration : json["duration"] as int;
+    presetName =json['preset_name']==null? presetName: json['preset_name'] as String;
+    return this;
+  }
 }

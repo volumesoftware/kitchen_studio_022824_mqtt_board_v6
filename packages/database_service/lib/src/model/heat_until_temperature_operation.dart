@@ -49,19 +49,27 @@ class HeatUntilTemperatureOperation implements BaseOperation {
 
   HeatUntilTemperatureOperation.fromDatabase(Map<String, Object?> json) {
     id = json['id'] as int;
-    requestId =
-        json['request_id'] == null ? null : json['request_id'] as String;
+    requestId = json['request_id'] == null ? null : json['request_id'] as String;
     recipeId = json['recipe_id'] == null ? null : json['recipe_id'] as int;
-    currentIndex =
-        json["current_index"] == null ? null : json["current_index"] as int;
-    instructionSize = json["instruction_size"] == null
-        ? null
-        : json["instruction_size"] as int;
-    targetTemperature = json["target_temperature"] == null
-        ? null
-        : json["target_temperature"] as double;
+    currentIndex = json["current_index"] == null ? null : json["current_index"] as int;
+    instructionSize = json["instruction_size"] == null ? null : json["instruction_size"] as int;
+    targetTemperature = json["target_temperature"] == null ? null : json["target_temperature"] as double;
     tiltAngleA = json["tilt_angle_a"]==null? null: json["tilt_angle_a"] as double;
     presetName =json['preset_name']==null? null: json['preset_name'] as String;
+
+  }
+
+  @override
+  BaseOperation updateValue(Map<String, dynamic> json) {
+    id = json['id'] == null ? id :  json['id'] as int;
+    requestId = json['request_id'] == null ? requestId : json['request_id'] as String;
+    recipeId = json['recipe_id'] == null ? recipeId : json['recipe_id'] as int;
+    currentIndex = json["current_index"] == null ? currentIndex : json["current_index"] as int;
+    instructionSize = json["instruction_size"] == null ? instructionSize : json["instruction_size"] as int;
+    targetTemperature = json["target_temperature"] == null ? targetTemperature : json["target_temperature"] as double;
+    tiltAngleA = json["tilt_angle_a"]==null? tiltAngleA: json["tilt_angle_a"] as double;
+    presetName =json['preset_name']==null? presetName: json['preset_name'] as String;
+    return this;
 
   }
 
@@ -70,4 +78,6 @@ class HeatUntilTemperatureOperation implements BaseOperation {
 
   @override
   IconData? iconData = Icons.thermostat;
+
+
 }

@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import 'package:database_service/database_service.dart';
-import 'package:database_service/src/model/device_stats.dart';
 import 'package:kitchen_module/kitchen_module.dart';
 
 class ThreadPool {
@@ -9,25 +7,29 @@ class ThreadPool {
 
   ThreadPool._privateConstructor() {
     if (!_initialized) {
-      _kmp.stateChanges.listen((Map<String, DeviceStats> deviceStats) {
-        for (var device in deviceStats.entries) {
+      _kmp.stateChanges.listen((Map<String, ModuleResponse> moduleResponse) {
+        for (var device in moduleResponse.entries) {
           bool exist = false;
 
-          _pool.forEach((RecipeProcessor processor) {
-            if (processor.moduleName == device.value.moduleName) {
+          _pool.forEach((KitchenToolProcessor processor) {
+            if (processor.moduleName() == device.value.moduleName) {
               exist = true;
               processor.updateStats(device.value);
             }
           });
 
-
           if (!exist) {
-            _pool.add(RecipeProcessor(device.value));
+            _pool.add((device.value is StirFryResponse)
+                ? RecipeProcessor(device.value)
+                : TransporterProcessor(device.value));
+
             _pool.sort(
-              (a, b) => a.moduleName!.compareTo(b.moduleName!),
+              (a, b) => a.moduleName().compareTo(b.moduleName()),
             );
             _poolChangeController.sink.add(_pool);
-          } else {}
+          } else {
+            _poolChangeController.sink.add(_pool);
+          }
         }
       });
 
@@ -40,33 +42,25 @@ class ThreadPool {
   static ThreadPool get instance => _instance;
 
   KitchenModulePool _kmp = KitchenModulePool.instance;
-  late List<RecipeProcessor> _pool = [];
-  StreamController<List<RecipeProcessor>> _poolChangeController =
-      StreamController<List<RecipeProcessor>>.broadcast();
+  late List<KitchenToolProcessor> _pool = [];
+  StreamController<List<KitchenToolProcessor>> _poolChangeController =
+      StreamController<List<KitchenToolProcessor>>.broadcast();
 
   //listen to the state change of the thread pool
-  Stream<List<RecipeProcessor>> get stateChanges =>
+  Stream<List<KitchenToolProcessor>> get stateChanges =>
       _poolChangeController.stream;
 
-  Future<void> submitRecipe(TaskPayload taskPayload,
-      {String? moduleName}) async {
-    final availableProcessor = _pool.firstWhere(
-        (processor) =>
-            ((!processor.isBusy()) && (processor.moduleName == moduleName)),
-        orElse: () => throw Exception('No available processors in the pool'));
-    await availableProcessor.processRecipe(taskPayload);
-  }
 
   int get poolSize => _pool.length;
 
-  List<RecipeProcessor> get pool => _pool;
+  List<KitchenToolProcessor> get pool => _pool;
 
   void dispose() {
     _pool.forEach((processor) => processor.dispose());
   }
 
-  void pop(RecipeProcessor recipeProcessor) {
-    recipeProcessor.dispose();
-    _pool.removeWhere((rp)=>rp.moduleName == recipeProcessor.moduleName);
+  void pop(KitchenToolProcessor KitchenToolProcessor) {
+    KitchenToolProcessor.dispose();
+    _pool.removeWhere((rp) => rp.moduleName == KitchenToolProcessor.moduleName);
   }
 }

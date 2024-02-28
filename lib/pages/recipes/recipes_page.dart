@@ -22,8 +22,9 @@ class _RecipesPageState extends State<RecipesPage> {
   String? fileName = "";
   String _typeHandler = '';
   RecipeDataAccess? recipeDataAccess;
-
-  List<Recipe>? recipes = [];
+  bool showAllPortion = false;
+  List<Recipe> allRecipes = [];
+  List<Recipe> filteredRecipes = [];
   static const String _chars =
       'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
   final Random _rnd = Random();
@@ -35,13 +36,21 @@ class _RecipesPageState extends State<RecipesPage> {
   void initState() {
     recipeDataAccess = RecipeDataAccess.instance;
     pullRecipes();
+
+
     super.initState();
   }
 
   void pullRecipes() {
     recipeDataAccess?.findAll().then((value) {
       setState(() {
-        recipes = value;
+        allRecipes = value ?? [];
+        if(showAllPortion){
+          filteredRecipes = allRecipes;
+        }else{
+          filteredRecipes = allRecipes.where((recipe) => recipe.portion == 1).toList();
+        }
+
       });
     });
   }
@@ -55,18 +64,18 @@ class _RecipesPageState extends State<RecipesPage> {
           actions: [
             IconButton(onPressed: () async {}, icon: Icon(Icons.search))
           ]),
-      body: recipes!.isNotEmpty
+      body: filteredRecipes!.isNotEmpty
           ? GridView.builder(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   childAspectRatio: .76,
                   crossAxisCount: 6,
                   crossAxisSpacing: 10,
                   mainAxisSpacing: 10),
-              itemCount: recipes?.length ?? 0,
+              itemCount: filteredRecipes.length ?? 0,
               itemBuilder: (context, index) {
                 return Card(
                   shadowColor:
-                      recipes?[index].recipeName == newlySavedRecipeName
+                      filteredRecipes[index].recipeName == newlySavedRecipeName
                           ? Colors.red
                           : Colors.black12,
                   elevation: 20,
@@ -82,7 +91,7 @@ class _RecipesPageState extends State<RecipesPage> {
                           children: [
                             SizedBox(
                               child: Text(
-                                "${recipes?[index].recipeName}",
+                                "${filteredRecipes[index].recipeName} (${filteredRecipes[index].portion})",
                                 style: Theme.of(context).textTheme.titleSmall,
                                 overflow: TextOverflow.clip,
                               ),
@@ -92,22 +101,102 @@ class _RecipesPageState extends State<RecipesPage> {
                               icon: Icon(Icons.filter_list),
                               onSelected: (String result) async {
                                 switch (result) {
+                                  case 'show_portion':
+                                    setState(() {
+                                      showAllPortion = true;
+                                      pullRecipes();
+                                    });
+                                    break;
+                                  case 'hide_portion':
+                                    setState(() {
+                                      showAllPortion = false;
+                                      pullRecipes();
+                                    });
+                                    break;
+
                                   case 'delete':
                                     int? count = await recipeDataAccess
-                                        ?.delete(recipes![index].id!);
+                                        ?.delete(filteredRecipes[index].id!);
                                     pullRecipes();
                                     break;
-                                  case 'filter2':
-                                    print('filter 2 clicked');
-                                    break;
+                                  case 'new_portion':
+                                    {
+                                      Recipe? a = await _displayPortionDialog(
+                                          context, filteredRecipes[index]);
+                                      if (a != null) {
+                                        setState(() {
+                                          newlySavedRecipeName = a.recipeName;
+                                        });
+                                        pullRecipes();
+                                      }
+
+                                      break;
+                                    }
                                   default:
                                 }
                               },
                               itemBuilder: (BuildContext context) =>
                                   <PopupMenuEntry<String>>[
+                                showAllPortion
+                                    ? const PopupMenuItem<String>(
+                                        value: 'hide_portion',
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text('hide Portions'),
+                                            Icon(
+                                              Icons.expand,
+                                            )
+                                          ],
+                                        ),
+                                      )
+                                    : const PopupMenuItem<String>(
+                                        value: 'show_portion',
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text('Show Portions'),
+                                            Icon(
+                                              Icons.expand,
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                const PopupMenuItem<String>(
+                                  value: 'new_portion',
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text('Create Portion'),
+                                      Icon(
+                                        Icons.splitscreen,
+                                      )
+                                    ],
+                                  ),
+                                ),
+                                const PopupMenuItem<String>(
+                                  value: 'new_portion',
+                                  padding: EdgeInsets.zero,
+                                  height: 0,
+                                  enabled: false,
+                                  child: Divider(),
+                                ),
                                 const PopupMenuItem<String>(
                                   value: 'delete',
-                                  child: Text('Delete'),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text('Delete'),
+                                      Icon(
+                                        Icons.delete,
+                                        color: Colors.redAccent,
+                                      )
+                                    ],
+                                  ),
                                 ),
                               ],
                             )
@@ -121,21 +210,21 @@ class _RecipesPageState extends State<RecipesPage> {
                               image: DecorationImage(
                                   fit: BoxFit.cover,
                                   image: FileImage(File(
-                                      recipes?[index].imageFilePath ??
+                                      filteredRecipes[index].imageFilePath ??
                                           "assets/images/img.png")))),
                         ),
                         Text(
-                          "Cook Count, ${recipes?[index].cookCount}",
+                          "Cook Count, ${filteredRecipes[index].cookCount}",
                           textAlign: TextAlign.left,
                           style: Theme.of(context).textTheme.titleSmall,
                         ),
                         Text(
-                          "Duration ${timeLeft(recipes?[index].estimatedTimeCompletion?.toInt() ?? 0)}",
+                          "Duration ${timeLeft(filteredRecipes[index].estimatedTimeCompletion?.toInt() ?? 0)}",
                           textAlign: TextAlign.left,
                           style: Theme.of(context).textTheme.titleSmall,
                         ),
                         Text(
-                          "Author : ${recipes?[index].author} ",
+                          "Author : ${filteredRecipes[index].author} ",
                           textAlign: TextAlign.left,
                           style: Theme.of(context).textTheme.titleSmall,
                         ),
@@ -145,9 +234,17 @@ class _RecipesPageState extends State<RecipesPage> {
                                 onPressed: () {
                                   Navigator.of(context).pushNamed(
                                       AppRouter.createRecipePage,
-                                      arguments: recipes![index]);
+                                      arguments: filteredRecipes[index]);
                                 },
                                 child: Text("Edit")),
+                            ElevatedButton(
+                                onPressed: () {
+                                  Navigator.of(context).pushNamed(
+                                      AppRouter.createRecipePageV2,
+                                      arguments: filteredRecipes[index]);
+                                },
+                                child: Text("Edit v2"))
+
                             // ElevatedButton(
                             //     onPressed: () {},
                             //     child: Row(
@@ -192,6 +289,74 @@ class _RecipesPageState extends State<RecipesPage> {
     setState(() {
       fileName = filename;
     });
+  }
+
+  Future _displayPortionDialog(BuildContext context, Recipe parent) async {
+    TextEditingController _portionController = TextEditingController();
+
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('New portion'),
+              content: Container(
+                height: 280,
+                width: 450,
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 3),
+                      child: TextField(
+                        controller: _portionController,
+                        decoration: InputDecoration(
+                          isDense: true,
+                          border: OutlineInputBorder(),
+                          hintText: 'Portion',
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: <Widget>[
+                ElevatedButton(
+                  child: Text('CANCEL'),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+                ElevatedButton(
+                  child: Text('OK'),
+                  onPressed: () async {
+                    GlobalLoaderService.instance.showLoading();
+
+                    Recipe recipe = Recipe(
+                      author: parent.author,
+                      recipeName: parent.recipeName,
+                      imageFilePath: parent.imageFilePath,
+                      typeHandler: parent.typeHandler,
+                      parentId: parent.id,
+                      portion: int.tryParse(_portionController.text),
+                    );
+                    var i = await recipeDataAccess?.create(recipe);
+                    if (i != null) {
+                      Recipe? createdRecipe =
+                          await recipeDataAccess?.getById(i);
+                      Navigator.pop(context, createdRecipe);
+                    } else {
+                      Navigator.pop(context);
+                    }
+                    GlobalLoaderService.instance.hideLoading();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   Future _displayTextInputDialog(BuildContext context) async {
@@ -282,7 +447,6 @@ class _RecipesPageState extends State<RecipesPage> {
                 ElevatedButton(
                   child: Text('OK'),
                   onPressed: () async {
-
                     GlobalLoaderService.instance.showLoading();
                     final Directory tempDir = await getTemporaryDirectory();
                     String path = "${tempDir.path}\\kitchen\\assets\\images";
@@ -295,10 +459,12 @@ class _RecipesPageState extends State<RecipesPage> {
                         author: _authorController.text,
                         recipeName: _recipeNameController.text,
                         imageFilePath: '${copiedFile?.path}',
-                        typeHandler: _typeHandler);
+                        typeHandler: _typeHandler,
+                        portion: 1);
                     var i = await recipeDataAccess?.create(recipe);
                     if (i != null) {
-                      Recipe? createdRecipe = await recipeDataAccess?.getById(i);
+                      Recipe? createdRecipe =
+                          await recipeDataAccess?.getById(i);
                       Navigator.pop(context, createdRecipe);
                     } else {
                       Navigator.pop(context);

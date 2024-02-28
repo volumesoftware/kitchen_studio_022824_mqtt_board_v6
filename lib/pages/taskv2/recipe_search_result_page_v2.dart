@@ -26,37 +26,46 @@ class RecipeSearchResultV2 extends StatefulWidget {
 class _RecipeSearchResultV2State extends State<RecipeSearchResultV2> {
   RecipeDataAccess? recipeDataAccess;
   TaskDataAccess? taskDataAccess;
-  DeviceDataAccess? deviceDataAccess;
   int gridCount = 8;
   int selectedIndex = 0;
 
   File? file;
   String? fileName = "";
   String? _mode = "";
-  List<Recipe> recipes = [];
+  List<Recipe> allRecipes = [];
+  List<Recipe> filteredRecipes = [];
   ValueNotifier<int?> selectedId = ValueNotifier(0);
   ValueNotifier<int?> pressed = ValueNotifier(0);
+
+  int portionIdToShow = 0;
 
   @override
   void initState() {
     recipeDataAccess = RecipeDataAccess.instance;
     taskDataAccess = TaskDataAccess.instance;
-    deviceDataAccess = DeviceDataAccess.instance;
     populateRecipe();
-
     super.initState();
   }
 
   populateRecipe() async {
-    if (widget.recipes.isNotEmpty) {
-      recipes = widget.recipes;
+    var value = await recipeDataAccess?.findAll();
+    setState(() {
+      allRecipes = value ?? [];
+    });
+
+    if (portionIdToShow == 0) {
+      setState(() {
+        filteredRecipes = allRecipes;
+      });
     } else {
-      recipeDataAccess?.findAll().then(
-          (value) => WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-                setState(() {
-                  recipes = value ?? [];
-                });
-              }));
+      var temp = allRecipes
+          .where((recipe) =>
+              (recipe.parentId == portionIdToShow) || (recipe.parentId == 0))
+          .toList();
+
+      setState(() {
+        filteredRecipes = temp;
+      });
     }
   }
 
@@ -65,35 +74,99 @@ class _RecipeSearchResultV2State extends State<RecipeSearchResultV2> {
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar : AppBar(
+      appBar: AppBar(
         title: Text("Recipes"),
       ),
-      body: recipes.isEmpty
+      body: filteredRecipes.isEmpty
           ? Text("No recipe available")
           : Padding(
-        key: Key(widget.namedKey),
-        padding: EdgeInsets.all(25),
-        child: GridView.builder(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              childAspectRatio: .6,
-              crossAxisCount: gridCount,
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10),
-          itemCount: recipes.length,
-          itemBuilder: (context, index) {
-            return RecipeItemSearch(
-              recipe: recipes[index],
-              recipeProcessor: widget.recipeProcessor,
-              selected: selectedId,
-              pressed: pressed,
-            );
-          },
-        ),
-      ),
+              key: Key(widget.namedKey),
+              padding: EdgeInsets.all(25),
+              child: GridView.builder(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    childAspectRatio: .75,
+                    crossAxisCount: gridCount,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10),
+                itemCount: filteredRecipes.length,
+                itemBuilder: (context, index) {
+                  return Scaffold(
+                    appBar: AppBar(
+                      automaticallyImplyLeading: false,
+                      title: Text(
+                        "${filteredRecipes[index].recipeName}",
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                      actions: [
+                        filteredRecipes[index].parentId == 0
+                            ? PopupMenuButton<String>(
+                                icon: Icon(Icons.filter_list),
+                                onSelected: (String result) async {
+                                  switch (result) {
+                                    case 'show_portion':
+                                      setState(() {
+                                        portionIdToShow =
+                                            filteredRecipes[index].id!;
+                                        populateRecipe();
+                                      });
+                                      break;
+                                    case 'hide_portion':
+                                      setState(() {
+                                        portionIdToShow = 0;
+                                        populateRecipe();
+                                      });
+                                      break;
+                                    default:
+                                  }
+                                },
+                                itemBuilder: (BuildContext context) =>
+                                    <PopupMenuEntry<String>>[
+                                  portionIdToShow != 0
+                                      ? const PopupMenuItem<String>(
+                                          value: 'hide_portion',
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text('hide Portions'),
+                                              Icon(
+                                                Icons.expand,
+                                              )
+                                            ],
+                                          ),
+                                        )
+                                      : const PopupMenuItem<String>(
+                                          value: 'show_portion',
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text('Show Portions'),
+                                              Icon(
+                                                Icons.expand,
+                                              )
+                                            ],
+                                          ),
+                                        ),
+                                ],
+                              )
+                            : Row()
+                      ],
+                    ),
+                    body: RecipeItemSearch(
+                      key: Key('RecipeItemSearch_${filteredRecipes[index].id}'),
+                      recipe: filteredRecipes[index],
+                      recipeProcessor: widget.recipeProcessor,
+                      selected: selectedId,
+                      pressed: pressed,
+                    ),
+                  );
+                },
+              ),
+            ),
     );
   }
 }
@@ -118,19 +191,16 @@ class RecipeItemSearch extends StatefulWidget {
 
 class _RecipeItemSearchState extends State<RecipeItemSearch> {
   TextEditingController _taskNameController = TextEditingController();
-  DeviceDataAccess deviceDataAccess = DeviceDataAccess.instance;
   TaskDataAccess taskDataAccess = TaskDataAccess.instance;
   BaseOperationDataAccess operationDataAccess =
       BaseOperationDataAccess.instance;
 
   Recipe? recipe;
-  String? _moduleName = "";
   late RecipeProcessor recipeProcessor;
   bool selected = false;
 
   @override
   void initState() {
-
     KeyService.instance.addKeyHandler(context);
 
     recipeProcessor = widget.recipeProcessor;
@@ -159,6 +229,7 @@ class _RecipeItemSearchState extends State<RecipeItemSearch> {
 
     super.initState();
   }
+
   @override
   void dispose() {
     KeyService.instance.removeHandler();
@@ -186,10 +257,6 @@ class _RecipeItemSearchState extends State<RecipeItemSearch> {
                       image: FileImage(File(
                           recipe?.imageFilePath ?? "assets/images/img.png")))),
             ),
-            Text(
-              "${recipe?.recipeName}",
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
             ElevatedButton(
                 onPressed: () async {
                   await createTask(context);
@@ -202,12 +269,12 @@ class _RecipeItemSearchState extends State<RecipeItemSearch> {
   }
 
   Future<void> createTask(BuildContext context) async {
-    DeviceStats deviceStats = recipeProcessor.getDeviceStats();
+    ModuleResponse moduleResponse = recipeProcessor.getModuleResponse();
     Task item = Task();
     item.recipeName = recipe!.recipeName;
     item.recipeId = recipe!.id;
     item.taskName = _taskNameController.text;
-    item.moduleName = deviceStats.moduleName;
+    item.moduleName = moduleResponse.moduleName;
     item.status = Task.CREATED;
     item.progress = 0.0;
     int? result = await taskDataAccess.create(item);
@@ -216,12 +283,17 @@ class _RecipeItemSearchState extends State<RecipeItemSearch> {
     if (result! > 0) {
       Task? savedTask = await taskDataAccess.getById(result);
       List<BaseOperation> operations = await operationDataAccess.search(
-          "recipe_id = ?",
-          whereArgs: [recipe!.id!],
-          orderBy: 'current_index ASC') ??
+              "recipe_id = ?",
+              whereArgs: [recipe!.id!],
+              orderBy: 'current_index ASC') ??
           [];
-      recipeProcessor
-          .processRecipe(TaskPayload(recipe!, operations ?? [], savedTask!));
+
+      if (operations.isEmpty) {
+        print("Recipe selected has no instruction");
+      } else {
+        recipeProcessor.process(
+            RecipeHandlerPayload(recipe!, operations ?? [], savedTask!));
+      }
       Navigator.of(context).pop(item);
     }
   }

@@ -5,7 +5,7 @@ import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recip
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/form_formatter/number_input_formatter.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/painters/cold_wok_painter.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/create_recipe/create_recipe_page/recipe_widgets/recipe_widget_action.dart';
-
+import '../form_formatter/custom_input_formatter.dart';
 class ColdMixOperationWidget extends StatefulWidget {
   final ColdMixOperation operation;
   final RecipeWidgetActions recipeWidgetActions;

@@ -85,23 +85,23 @@ class _DockIngredientWidgetState extends State<DockIngredientWidget> {
           margin: EdgeInsets.symmetric(vertical: 10),
           child: Column(
             children: [
-              inEditMode
-                  ? Padding(
-                      padding: EdgeInsets.symmetric(vertical: 3),
-                      child: TextField(
-                        controller: _targetTemperatureController,
-                        decoration: InputDecoration(
-                            suffixText: "celsius",
-                            isDense: true,
-                            border: OutlineInputBorder(),
-                            hintText: 'Target Temperature',
-                            label: Text("Target Temperature")),
-                      ),
-                    )
-                  : ListTile(
-                      title: Text('Target Temperature'),
-                      trailing: Text("${_targetTemperatureController?.text}"),
-                    ),
+              // inEditMode
+              //     ? Padding(
+              //         padding: EdgeInsets.symmetric(vertical: 3),
+              //         child: TextField(
+              //           controller: _targetTemperatureController,
+              //           decoration: InputDecoration(
+              //               suffixText: "celsius",
+              //               isDense: true,
+              //               border: OutlineInputBorder(),
+              //               hintText: 'Target Temperature',
+              //               label: Text("Target Temperature")),
+              //         ),
+              //       )
+              //     : ListTile(
+              //         title: Text('Target Temperature'),
+              //         trailing: Text("${_targetTemperatureController?.text}"),
+              //       ),
               inEditMode
                   ? ListTile(
                       title: Text('Ingredients'),

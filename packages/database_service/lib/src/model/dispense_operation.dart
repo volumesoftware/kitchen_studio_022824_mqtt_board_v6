@@ -87,6 +87,30 @@ class DispenseOperation implements BaseOperation {
     tiltSpeed = json["tilt_speed"]==null? null: json["tilt_speed"] as int;
   }
 
+
+
+
+  BaseOperation updateValue(Map<String, Object?> json) {
+    id = json['id'] == null ? id : json['id'] as int;
+    requestId =json['request_id']==null? requestId: json['request_id'] as String;
+    presetName =json['preset_name']==null? presetName: json['preset_name'] as String;
+    recipeId = json['recipe_id']==null? recipeId: json['recipe_id'] as int;
+    operation = json['operation']== null? operation: json['operation'] as int;
+    currentIndex = json["current_index"]==null? currentIndex: json["current_index"] as int;
+    instructionSize =json["instruction_size"]==null? instructionSize: json["instruction_size"] as int;
+    targetTemperature = json["target_temperature"]==null? targetTemperature: json["target_temperature"] as double;
+    cycle = json["cycle"] == null? cycle : json["cycle"] as int;
+
+    tiltAngleA = json["tilt_angle_a"]==null? tiltAngleA: json["tilt_angle_a"] as double;
+    tiltAngleB = json["tilt_angle_b"]==null? tiltAngleB: json["tilt_angle_b"] as double;
+    rotateAngle = json["rotate_angle"]==null? rotateAngle: json["rotate_angle"] as double;
+    rotateSpeed = json["rotate_speed"]==null? rotateSpeed: json["rotate_speed"] as int;
+    tiltSpeed = json["tilt_speed"]==null? tiltSpeed: json["tilt_speed"] as int;
+
+    return this;
+  }
+
+
   @override
   String? presetName;
 

@@ -19,6 +19,9 @@ abstract class BaseOperation {
 
   Map<String, dynamic> toJson();
 
+  BaseOperation updateValue(Map<String, dynamic> json);
+
+
   static String tableName() {
     return 'Operation';
   }

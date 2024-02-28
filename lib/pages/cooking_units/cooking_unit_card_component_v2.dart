@@ -30,8 +30,9 @@ class _CookingUnitCardComponentV2State
 
   @override
   void dispose() {
-    widget.recipeProcessor.hearBeat.listen((DeviceStats stats) {
-      temperature.value = stats.temperature! / 200;
+    widget.recipeProcessor.hearBeat.listen((ModuleResponse stats) {
+      if (stats is StirFryResponse)
+        temperature.value = stats.temperature! / 200;
     });
 
     super.dispose();
@@ -46,12 +47,13 @@ class _CookingUnitCardComponentV2State
           stream: widget.recipeProcessor.hearBeat,
           builder: (context, snapshot) {
             if ((snapshot.data == null) &&
-                (widget.recipeProcessor.getDeviceStats().moduleName == null)) {
+                (widget.recipeProcessor.getModuleResponse().moduleName ==
+                    null)) {
               return Text("Loading device");
             }
 
-            DeviceStats? deviceStats =
-                snapshot.data ?? widget.recipeProcessor.getDeviceStats();
+            ModuleResponse? moduleResponse =
+                snapshot.data ?? widget.recipeProcessor.getModuleResponse();
 
             return Container(
               padding: EdgeInsets.all(20),
@@ -66,11 +68,11 @@ class _CookingUnitCardComponentV2State
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "${deviceStats.moduleName}",
+                            "${moduleResponse.moduleName}",
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           Text(
-                            (timeLeft(deviceStats.machineTime ?? 0)),
+                            (timeLeft(moduleResponse.machineTime ?? 0)),
                             style: Theme.of(context).textTheme.bodySmall,
                           )
                         ],
@@ -109,9 +111,9 @@ class _CookingUnitCardComponentV2State
                                               udpService?.send(
                                                   jsonEncode(mOp.toJson())
                                                       .codeUnits,
-                                                  InternetAddress(
-                                                      deviceStats.ipAddress!),
-                                                  deviceStats.port!);
+                                                  InternetAddress(moduleResponse
+                                                      .ipAddress!),
+                                                  moduleResponse.port!);
                                             },
                                             title: Text("Tilt Up (3°)"),
                                             trailing: Icon(Icons.arrow_upward),
@@ -123,9 +125,9 @@ class _CookingUnitCardComponentV2State
                                               udpService?.send(
                                                   jsonEncode(mOp.toJson())
                                                       .codeUnits,
-                                                  InternetAddress(
-                                                      deviceStats.ipAddress!),
-                                                  deviceStats.port!);
+                                                  InternetAddress(moduleResponse
+                                                      .ipAddress!),
+                                                  moduleResponse.port!);
                                             },
                                             title: Text("Tilt Down (3°)"),
                                             trailing:
@@ -138,9 +140,9 @@ class _CookingUnitCardComponentV2State
                                               udpService?.send(
                                                   jsonEncode(mOp.toJson())
                                                       .codeUnits,
-                                                  InternetAddress(
-                                                      deviceStats.ipAddress!),
-                                                  deviceStats.port!);
+                                                  InternetAddress(moduleResponse
+                                                      .ipAddress!),
+                                                  moduleResponse.port!);
                                             },
                                             title: Text("Rotate Right (15°)"),
                                             trailing: Icon(Icons.arrow_forward),
@@ -152,9 +154,9 @@ class _CookingUnitCardComponentV2State
                                               udpService?.send(
                                                   jsonEncode(mOp.toJson())
                                                       .codeUnits,
-                                                  InternetAddress(
-                                                      deviceStats.ipAddress!),
-                                                  deviceStats.port!);
+                                                  InternetAddress(moduleResponse
+                                                      .ipAddress!),
+                                                  moduleResponse.port!);
                                             },
                                             title: Text("Rotate Left (15°)"),
                                             trailing: Icon(Icons.arrow_back),
@@ -180,7 +182,8 @@ class _CookingUnitCardComponentV2State
                                       '{"operation":"199","request_id":"zeroing"}';
                                   udpService?.send(
                                       jsonData.codeUnits,
-                                      InternetAddress(deviceStats.ipAddress!),
+                                      InternetAddress(
+                                          moduleResponse.ipAddress!),
                                       8888);
                                   break;
                                 case 'heat_until':
@@ -198,7 +201,8 @@ class _CookingUnitCardComponentV2State
                                           .toJson());
                                   udpService?.send(
                                       dispense.codeUnits,
-                                      InternetAddress(deviceStats.ipAddress!),
+                                      InternetAddress(
+                                          moduleResponse.ipAddress!),
                                       8888);
                                   break;
                                 case 'wash':
@@ -215,33 +219,36 @@ class _CookingUnitCardComponentV2State
                                       .toJson());
                                   udpService?.send(
                                       wash.codeUnits,
-                                      InternetAddress(deviceStats.ipAddress!),
+                                      InternetAddress(
+                                          moduleResponse.ipAddress!),
                                       8888);
                                   break;
                                 case 'prime_oil':
                                   String primeOil = jsonEncode({
-                                    "request_id" : "Prime Oil",
-                                    "operation" : 216,
-                                    "current_index" : 0,
-                                    "instruction_size" : 0,
-                                    "target_temperature" : 28.0,
+                                    "request_id": "Prime Oil",
+                                    "operation": 216,
+                                    "current_index": 0,
+                                    "instruction_size": 0,
+                                    "target_temperature": 28.0,
                                   });
                                   udpService?.send(
                                       primeOil.codeUnits,
-                                      InternetAddress(deviceStats.ipAddress!),
+                                      InternetAddress(
+                                          moduleResponse.ipAddress!),
                                       8888);
                                   break;
                                 case 'prime_water':
                                   String primeWater = jsonEncode({
-                                    "request_id" : "Prime Water",
-                                    "operation" : 217,
-                                    "current_index" : 0,
-                                    "instruction_size" : 0,
-                                    "target_temperature" : 28.0,
+                                    "request_id": "Prime Water",
+                                    "operation": 217,
+                                    "current_index": 0,
+                                    "instruction_size": 0,
+                                    "target_temperature": 28.0,
                                   });
                                   udpService?.send(
                                       primeWater.codeUnits,
-                                      InternetAddress(deviceStats.ipAddress!),
+                                      InternetAddress(
+                                          moduleResponse.ipAddress!),
                                       8888);
                                   break;
                                 default:
@@ -292,15 +299,16 @@ class _CookingUnitCardComponentV2State
                             temperature: temperature,
                           ),
                         ),
-                        Text(
-                            "${deviceStats.temperature?.toStringAsFixed(2)} °C",
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
-                                ?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold)),
-
+                        (moduleResponse is StirFryResponse)
+                            ? Text(
+                                "${moduleResponse.temperature?.toStringAsFixed(2)} °C",
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleLarge
+                                    ?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold))
+                            : Row(),
                         Positioned(
                             child: Transform(
                               alignment: Alignment.center,
@@ -313,15 +321,15 @@ class _CookingUnitCardComponentV2State
                     ),
                   ),
                   Text(
-                    "${deviceStats.requestId}",
+                    "${moduleResponse.requestId}",
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   Text(
-                    "${deviceStats.ipAddress}:${deviceStats.port}",
+                    "${moduleResponse.ipAddress}:${moduleResponse.port}",
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   Text(
-                    "${deviceStats.type}",
+                    "${moduleResponse.type}",
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ],

@@ -6,7 +6,7 @@ import 'package:kitchen_studio_10162023/pages/ingredients/ingredients_page.dart'
 import 'package:kitchen_studio_10162023/pages/operation_template/operation_template_page.dart';
 import 'package:kitchen_studio_10162023/pages/recipes/recipes_page.dart';
 import 'package:kitchen_studio_10162023/pages/taskv2/tasks_pagev2.dart';
-import 'package:kitchen_studio_10162023/pages/transporter_units/cooking_units_page.dart';
+import 'package:kitchen_studio_10162023/pages/transporter_units/transporter_units_page.dart';
 
 class AppShellScreen extends StatefulWidget {
   const AppShellScreen({Key? key}) : super(key: key);
@@ -17,21 +17,20 @@ class AppShellScreen extends StatefulWidget {
 
 class _AppShellScreenState extends State<AppShellScreen> {
   ThreadPool threadPool = ThreadPool.instance;
-  List<RecipeProcessor> _recipeProcessors = [];
-  FocusScopeNode _focusNode = FocusScopeNode();
   final GlobalKey _cookingUnitListTile = GlobalKey();
   final GlobalKey _recipesListTile = GlobalKey();
   final GlobalKey _tasksListTile = GlobalKey();
-  final GlobalKey _operationTemplateListTile = GlobalKey();
 
   int selectedIndex = 0;
 
+  int largeFlex = 5;
+  int smallFex = 1;
+
   @override
   void initState() {
-    threadPool.stateChanges.listen((List<RecipeProcessor> recipeProcessor) {
-      setState(() {
-        _recipeProcessors = recipeProcessor;
-      });
+    threadPool.stateChanges
+        .listen((List<KitchenToolProcessor> recipeProcessor) {
+      setState(() {});
     });
     super.initState();
   }
@@ -45,14 +44,12 @@ class _AppShellScreenState extends State<AppShellScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Row(
+        child: Flex(
+          direction: Axis.horizontal,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Card(
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                width: MediaQuery.of(context).size.width *
-                    (selectedIndex == 3 ? 0.05 : 0.15),
+            Expanded(
+              child: Card(
                 child: ListView(
                   children: [
                     Container(
@@ -86,18 +83,60 @@ class _AppShellScreenState extends State<AppShellScreen> {
                         });
                       },
                     ),
-                    // ListTile(
-                    //   selected: selectedIndex == 1,
-                    //   enabled: false,
-                    //   leading: Icon(Icons.transform_outlined),
-                    //   title: const Text('Transporter Units'),
-                    //   subtitle: const Text('Coming soon'),
-                    //   onTap: () {
-                    //     setState(() {
-                    //       selectedIndex = 1;
-                    //     });
-                    //   },
-                    // ),
+
+                    StreamBuilder(
+                      stream: threadPool.stateChanges,
+                      builder: (context, snapshot) {
+                        if (threadPool.pool.isNotEmpty) {
+                          Iterable<KitchenToolProcessor> transporters =
+                              threadPool.pool.where(
+                                  (element) => element is TransporterProcessor);
+
+                          return transporters.isNotEmpty
+                              ? ListTile(
+                                  selected: selectedIndex == 1,
+                                  leading: Icon(Icons.move_down),
+                                  title: selectedIndex == 3
+                                      ? Row()
+                                      : const Text('Transporter'),
+                                  onTap: () {
+                                    setState(() {
+                                      selectedIndex = 1;
+                                    });
+                                  },
+                                )
+                              : ListTile(
+                                  selected: selectedIndex == 1,
+                                  enabled: false,
+                                  leading: Icon(
+                                    Icons.warning,
+                                    color: Colors.orangeAccent,
+                                  ),
+                                  title: selectedIndex == 3
+                                      ? Row()
+                                      : const Text('Transporter'),
+                                  subtitle: selectedIndex == 3
+                                      ? Row()
+                                      : const Text(
+                                          'Transporter is not connected'),
+                                );
+                        } else {
+                          return ListTile(
+                            enabled: false,
+                            selected: selectedIndex == 1,
+                            leading: Stack(
+                              children: [Icon(Icons.move_down)],
+                            ),
+                            title: selectedIndex == 3
+                                ? Row()
+                                : const Text('Transporter'),
+                            subtitle: selectedIndex == 3
+                                ? Row()
+                                : const Text('Transporter is not connected'),
+                          );
+                        }
+                      },
+                    ),
                     ListTile(
                       key: _recipesListTile,
                       selected: selectedIndex == 2,
@@ -134,28 +173,29 @@ class _AppShellScreenState extends State<AppShellScreen> {
                         // Navigator.of(context).pushNamed(AppRouter.taskScreen);
                       },
                     ),
-                    // ListTile(
-                    //   selected: selectedIndex == 4,
-                    //   enabled: false,
-                    //   leading: Icon(Icons.data_object),
-                    //   title: const Text('Ingredients'),
-                    //   subtitle: const Text('Coming Soon'),
-                    //   onTap: () {
-                    //     setState(() {
-                    //       selectedIndex = 4;
-                    //     });
-                    //   },
-                    // ),
+                    ListTile(
+                      selected: selectedIndex == 4,
+                      leading: Icon(Icons.data_object),
+                      title: selectedIndex == 3
+                          ? Row()
+                          : const Text('Ingredients'),
+                      subtitle: selectedIndex == 3
+                          ? Row()
+                          : const Text('Coming Soon'),
+                      onTap: () {
+                        setState(() {
+                          selectedIndex = 4;
+                        });
+                      },
+                    ),
                   ],
                 ),
               ),
+              flex: 1,
             ),
-            Container(
-              color: Colors.green,
-              width: MediaQuery.of(context).size.width *
-                  (selectedIndex == 3 ? 0.95 : 0.8),
-              height: MediaQuery.of(context).size.height,
+            Expanded(
               child: getBody(selectedIndex),
+              flex: (selectedIndex == 3) ? 20 : 5,
             )
           ],
         ),

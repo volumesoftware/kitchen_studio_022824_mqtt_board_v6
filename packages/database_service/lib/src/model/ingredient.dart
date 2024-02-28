@@ -33,7 +33,7 @@ class Ingredient {
   Map<String, dynamic> toJson(){
     return {
       'ingredient_name':ingredientName ,
-      'ingredient_type': imageFilePath,
+      'ingredient_type': ingredientType,
       'image_file_path': imageFilePath,
       'stock_level': stockLevel,
       'coordinate_x': coordinateX,

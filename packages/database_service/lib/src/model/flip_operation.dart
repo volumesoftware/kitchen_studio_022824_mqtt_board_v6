@@ -96,10 +96,34 @@ class FlipOperation implements BaseOperation {
 
   }
 
+
+  @override
+  BaseOperation updateValue(Map<String, dynamic> json) {
+    id = json['id'] == null ? id:  json['id'] as int;
+    requestId =json['request_id']==null? requestId: json['request_id'] as String;
+    recipeId = json['recipe_id']==null? recipeId: json['recipe_id'] as int;
+    operation = json["operation"] == null ? operation : json["operation"] as int;
+    currentIndex = json["current_index"]==null? currentIndex: json["current_index"] as int;
+    instructionSize =json["instruction_size"]==null? instructionSize: json["instruction_size"] as int;
+    targetTemperature = json["target_temperature"]==null? targetTemperature: json["target_temperature"] as double;
+    cycle = json["cycle"] == null? cycle : json["cycle"] as int;
+    interval = json["interval"] == null? interval : json["interval"] as int;
+    presetName =json['preset_name']==null? presetName: json['preset_name'] as String;
+
+    tiltAngleA = json["tilt_angle_a"]==null? tiltAngleA: json["tilt_angle_a"] as double;
+    tiltAngleB = json["tilt_angle_b"]==null? tiltAngleB: json["tilt_angle_b"] as double;
+    rotateAngle = json["rotate_angle"]==null? rotateAngle: json["rotate_angle"] as double;
+    rotateSpeed = json["rotate_speed"]==null? rotateSpeed: json["rotate_speed"] as int;
+    tiltSpeed = json["tilt_speed"]==null? tiltSpeed: json["tilt_speed"] as int;
+    return this;
+
+  }
+
   @override
   String? presetName;
 
   @override
   IconData? iconData = Icons.flip_camera_android;
+
 
 }
