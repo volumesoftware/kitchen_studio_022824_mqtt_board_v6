@@ -8,8 +8,7 @@ import 'package:kitchen_studio_10162023/pages/taskv2/widget/module_items.dart';
 class TransporterProcessorTaskTimeline extends StatefulWidget {
   final TransporterProcessor transporterProcessor;
 
-  const TransporterProcessorTaskTimeline({Key? key, required this.transporterProcessor})
-      : super(key: key);
+  const TransporterProcessorTaskTimeline({Key? key, required this.transporterProcessor}) : super(key: key);
 
   @override
   State<TransporterProcessorTaskTimeline> createState() => _TransporterProcessorTaskTimelineState();
@@ -19,6 +18,8 @@ class _TransporterProcessorTaskTimelineState extends State<TransporterProcessorT
   final ValueNotifier<double> temperature = ValueNotifier(0.3);
   final ScrollController _scrollController = ScrollController();
   late StreamSubscription<ModuleResponse> _stateChange;
+  late StreamSubscription<Map<String, dynamic>> _taskChange;
+
   late Stream<ModuleResponse> heartBeat;
   GlobalKey<ScaffoldState> _key = GlobalKey();
   String? message;
@@ -28,13 +29,18 @@ class _TransporterProcessorTaskTimelineState extends State<TransporterProcessorT
   @override
   void initState() {
     heartBeat = widget.transporterProcessor.hearBeat;
+    _taskChange = widget.transporterProcessor.taskStream.listen((Map<String, dynamic> event) {
+      setState(() {
+        // {"operation": 20, "coordinate_x": xCoordinate, "request_title": "User Move X", "requester_name": "User"}
+        message = "${event["request_title"]} by ${event["requester_name"]}";
+        isError = true;
+        showMessage = true;
+      });
+    });
     _stateChange = widget.transporterProcessor.hearBeat.listen((ModuleResponse stats) {
-
-      if(stats is StirFryResponse){
+      if (stats is StirFryResponse) {
         temperature.value = stats.temperature! / 400;
       }
-
-
       if (stats.lastError!.isNotEmpty) {
         setState(() {
           message = "${stats.lastError}";
@@ -49,13 +55,13 @@ class _TransporterProcessorTaskTimelineState extends State<TransporterProcessorT
           },
         );
       }
-
     });
     super.initState();
   }
 
   @override
   void dispose() {
+    _taskChange.cancel();
     _stateChange.cancel();
     _scrollController.dispose();
     _key.currentState?.dispose();
@@ -70,10 +76,8 @@ class _TransporterProcessorTaskTimelineState extends State<TransporterProcessorT
         child: StreamBuilder(
           stream: heartBeat,
           builder: (BuildContext context, AsyncSnapshot<ModuleResponse> snapshot) {
-            ModuleResponse? moduleResponse =
-                snapshot.data ?? widget.transporterProcessor.getModuleResponse();
-            if ((snapshot.data == null) &&
-                (widget.transporterProcessor.getModuleResponse().moduleName == null)) {
+            ModuleResponse? moduleResponse = snapshot.data ?? widget.transporterProcessor.getModuleResponse();
+            if ((snapshot.data == null) && (widget.transporterProcessor.getModuleResponse().moduleName == null)) {
               return Text('Loading timeline');
             }
 
@@ -94,28 +98,16 @@ class _TransporterProcessorTaskTimelineState extends State<TransporterProcessorT
                             "${moduleResponse.type}",
                             style: Theme.of(context).textTheme.titleSmall,
                           ),
-                          (moduleResponse is StirFryResponse)? SizedBox(
-                            height: 150,
-                            child: ModuleItems(
-                              percentValue:
-                                  (widget.transporterProcessor.getProgress() ?? 0) *
-                                      100,
-                              temperatureValue: moduleResponse.temperature ?? 0.0,
-                              targetTemperatureValue:
-                                  moduleResponse.targetTemperature ?? 0.0,
-                            ),
-                          ): Row(),
-                          // SizedBox(
-                          //   height: 100,
-                          //   child: TemperatureView(
-                          //     temperature: moduleResponse.temperature ?? 0.0,
-                          //     targetTemperature:
-                          //         moduleResponse.targetTemperature ?? 0.0,
-                          //   ),
-                          // ),
-                          // ProgressView(
-                          //   progressvalue: (widget.ingredientProcessor.getProgress() ?? 0) * 100,
-                          // ),
+                          (moduleResponse is StirFryResponse)
+                              ? SizedBox(
+                                  height: 150,
+                                  child: ModuleItems(
+                                    percentValue: (widget.transporterProcessor.getProgress() ?? 0) * 100,
+                                    temperatureValue: moduleResponse.temperature ?? 0.0,
+                                    targetTemperatureValue: moduleResponse.targetTemperature ?? 0.0,
+                                  ),
+                                )
+                              : Row(),
                         ],
                       ),
                     )),
@@ -136,9 +128,7 @@ class _TransporterProcessorTaskTimelineState extends State<TransporterProcessorT
                                   ),
                                   Text(
                                     "${message}",
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .displayMedium,
+                                    style: Theme.of(context).textTheme.displayMedium,
                                   )
                                 ],
                               ),

@@ -46,9 +46,6 @@ class RecipeSearchDelegateV2 extends SearchDelegate<Task?> {
       if (item.recipeName == null) return false;
       return item.recipeName!.contains(query.toLowerCase());
     }).toList();
-
-    print(searchResults);
-
     if (searchResults.isEmpty)
       return Center(
         child: Text(

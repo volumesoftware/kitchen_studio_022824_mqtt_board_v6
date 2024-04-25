@@ -20,7 +20,6 @@ class UnitMonitoringCardComponent extends StatefulWidget {
 
 class _UnitMonitoringCardComponentState
     extends State<UnitMonitoringCardComponent> {
-  UdpService udpService = UdpService.instance;
 
   ThreadPool threadPool = ThreadPool.instance;
   final ValueNotifier<double> temperature = ValueNotifier(0.3);
@@ -67,24 +66,15 @@ class _UnitMonitoringCardComponentState
                           case 'zero':
                             String jsonData =
                                 '{"operation":"199","request_id":"zeroing"}';
-                            udpService.send(
-                                jsonData.codeUnits,
-                                InternetAddress(moduleResponse.ipAddress!),
-                                8888);
                             break;
                           case 'heat_until':
                             String jsonData =
                                 '{"operation":"212","target_temperature":40,"duration":120000,"request_id":"heat_until"}';
-                            udpService.send(
-                                jsonData.codeUnits,
-                                InternetAddress(moduleResponse.ipAddress!),
-                                8888);
+
                             break;
                           case 'filter2':
-                            print('filter 2 clicked');
                             break;
                           case 'clearFilters':
-                            print('Clear filters');
                             break;
                           default:
                         }

@@ -53,7 +53,6 @@ class _FlipWidgetState extends State<FlipWidget> {
     _rotateAngle = TextEditingController(text: "${operation?.rotateAngle}");
 
     _scrollController.addListener(() {
-      print(_scrollController.position.userScrollDirection);
       if (_scrollController.position.userScrollDirection ==
           ScrollDirection.forward) {
         if (!_showed) {

@@ -39,15 +39,17 @@ class _CompletedTasksV2State extends State<CompletedTasksV2> implements TaskChan
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        leading: Icon(Icons.done),
+        leading: const Icon(Icons.done),
         automaticallyImplyLeading: false,
-        title: Text("Completed Task"),
+        title: const Text("Completed Task"),
         bottom: PreferredSize(
-          preferredSize: Size(double.infinity, 50),
+          preferredSize: const Size(double.infinity, 50),
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
             child: SearchBar(
+
               controller: _searchController,
               onChanged: (value) {
                 setState(() {
@@ -57,7 +59,7 @@ class _CompletedTasksV2State extends State<CompletedTasksV2> implements TaskChan
               },
               trailing: [
                 query == ""
-                    ? Icon(Icons.search)
+                    ? const Icon(Icons.search)
                     : IconButton(
                         onPressed: () {
                           setState(() {
@@ -67,7 +69,7 @@ class _CompletedTasksV2State extends State<CompletedTasksV2> implements TaskChan
 
                           populateTask();
                         },
-                        icon: Icon(Icons.close))
+                        icon: const Icon(Icons.close))
               ],
             ),
           ),

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:kitchen_module/kitchen_module.dart';
+import 'package:kitchen_studio_10162023/pages/transporter_units/ingredient_mount_search_delegate.dart';
 
 class TransporterUnitsPage extends StatefulWidget {
   const TransporterUnitsPage({Key? key}) : super(key: key);
@@ -11,29 +12,26 @@ class TransporterUnitsPage extends StatefulWidget {
 }
 
 class _TransporterUnitsPageState extends State<TransporterUnitsPage> {
-  ThreadPool _threadPool = ThreadPool.instance;
+  final ThreadPool _threadPool = ThreadPool.instance;
 
-  late StreamSubscription<List<KitchenToolProcessor>>
-      _kitchenToolProcessorListener;
-
+  late StreamSubscription<List<KitchenToolProcessor>> _kitchenToolProcessorListener;
   TransporterProcessor? transporter;
+  final TextEditingController _xCoordinateTextController = TextEditingController();
 
   @override
   void initState() {
     assignTransporter();
-    _kitchenToolProcessorListener =
-        _threadPool.stateChanges.listen((List<KitchenToolProcessor> event) {
+    _kitchenToolProcessorListener = _threadPool.stateChanges.listen((List<KitchenToolProcessor> event) {
       assignTransporter();
     });
     super.initState();
   }
 
   void assignTransporter() {
-    List<KitchenToolProcessor> _transporters =
-        _threadPool.pool.whereType<TransporterProcessor>().toList();
-    if (_transporters.isNotEmpty && mounted) {
+    List<KitchenToolProcessor> transporters = _threadPool.pool.whereType<TransporterProcessor>().toList();
+    if (transporters.isNotEmpty && mounted) {
       setState(() {
-        transporter = _transporters.first as TransporterProcessor;
+        transporter = transporters.first as TransporterProcessor;
       });
     }
   }
@@ -48,123 +46,225 @@ class _TransporterUnitsPageState extends State<TransporterUnitsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          automaticallyImplyLeading: false,
-          title: Text("Transporter Unit"),
-          actions: [IconButton(onPressed: () {}, icon: Icon(Icons.refresh))]),
+          automaticallyImplyLeading: false, title: const Text("Transporter Unit"), actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.refresh))]),
       body: transporter == null
-          ? Center(
+          ? const Center(
               child: Text("loading...."),
             )
-          : StreamBuilder(
-              stream: transporter?.hearBeat,
-              builder: (BuildContext context,
-                  AsyncSnapshot<ModuleResponse> snapshot) {
-                var data = snapshot.data ?? transporter?.getModuleResponse();
+          : Padding(
+              padding: const EdgeInsets.all(10),
+              child: StreamBuilder(
+                stream: transporter?.hearBeat,
+                builder: (BuildContext context, AsyncSnapshot<ModuleResponse> snapshot) {
+                  TransporterResponse? data = (snapshot.data ?? transporter?.getModuleResponse()) as TransporterResponse?;
+                  var buffer = transporter?.buffer;
+                  return Flex(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    direction: Axis.horizontal,
+                    children: [
+                      Expanded(
+                        flex: 4,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "${data?.ipAddress}",
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                            Text(
+                              "Connected",
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                            Text(
+                              "${transporter!.isBusy() ? "Busy" : "Idle"} Buffer Length ${buffer?.length}",
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                            Text(
+                              "Uptime ${timeLeft(data?.machineTime ?? 0)}",
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                            const SizedBox(
+                              height: 100,
+                            ),
+                            const SizedBox(
+                              height: 5,
+                            ),
+                            ListTile(
+                              tileColor: Theme.of(context).secondaryHeaderColor,
+                              onTap: () async {
+                                transporter?.handleRequest({"operation": 199, "request_title": "Zeroing", "requester_name": "User", "flag": "user"});
 
-                return Flex(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  direction: Axis.horizontal,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "${data?.ipAddress}",
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          Text(
-                            "Connected",
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          Text(
-                            "${transporter!.isBusy() ? "Busy" : "Idle"}",
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          Text(
-                            "Uptime ${timeLeft(data?.machineTime ?? 0)}",
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          SizedBox(
-                            height: 100,
-                          ),
-                          ListTile(
-                            tileColor: Theme.of(context).secondaryHeaderColor,
-                            onTap: () {},
-                            title: Text("Start"),
-                            trailing: Icon(
-                              Icons.play_circle,
-                              color: Colors.green,
+                                var dialog = showDialog(
+                                  context: context,
+                                  builder: (context) => const Dialog(
+                                    child: SizedBox(
+                                      height: 50,
+                                      width: 200,
+                                      child: Padding(
+                                        padding: EdgeInsets.all(5),
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                          children: [Text("moving..."), LinearProgressIndicator()],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+
+                                bool? completed = await transporter?.waitForTaskCompletion();
+                                if (completed != null) {
+                                  Navigator.of(context).pop();
+                                }
+                              },
+                              title: const Text("Zero Transporter"),
+                              trailing: Icon(
+                                Icons.restart_alt,
+                                color: Theme.of(context).hintColor,
+                              ),
                             ),
-                          ),
-                          SizedBox(
-                            height: 5,
-                          ),
-                          ListTile(
-                            tileColor: Theme.of(context).secondaryHeaderColor,
-                            onTap: () {},
-                            title: Text("Stop"),
-                            trailing: Icon(
-                              Icons.stop_circle_outlined,
-                              color: Colors.red,
-                            ),
-                          ),
-                          SizedBox(
-                            height: 5,
-                          ),
-                          ListTile(
-                            tileColor: Theme.of(context).secondaryHeaderColor,
-                            onTap: () {},
-                            title: Text("Disable Transporter"),
-                            trailing: Icon(
-                              Icons.disabled_by_default,
-                              color: Theme.of(context).hintColor,
-                            ),
-                          ),
-                          SizedBox(
-                            height: 5,
-                          ),
-                          ListTile(
-                            tileColor: Theme.of(context).secondaryHeaderColor,
-                            onTap: () {},
-                            title: Text("Zero Transporter"),
-                            trailing: Icon(
-                              Icons.restart_alt,
-                              color: Theme.of(context).hintColor,
-                            ),
-                          ),
-                        ],
+                            Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: TextField(
+                                      controller: _xCoordinateTextController,
+                                      decoration: const InputDecoration(
+                                        suffixText: '(mm)',
+                                        hintText: 'Coordinate...',
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8.0),
+                                  FilledButton(
+                                    onPressed: () async {
+                                      int xCoordinate = int.tryParse(_xCoordinateTextController.text) ?? 0;
+                                      transporter?.handleRequest({
+                                        "operation": 20,
+                                        "request_id": "manual_move",
+                                        "coordinate_x": xCoordinate,
+                                        "request_title": "User Move X",
+                                        "requester_name": "User",
+                                        "flag": "user"
+                                      });
+                                      var dialog = showDialog(
+                                        context: context,
+                                        builder: (context) => const Dialog(
+                                          child: SizedBox(
+                                            height: 50,
+                                            width: 200,
+                                            child: Padding(
+                                              padding: EdgeInsets.all(5),
+                                              child: Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                crossAxisAlignment: CrossAxisAlignment.center,
+                                                children: [Text("moving..."), LinearProgressIndicator()],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      );
+
+                                      bool? completed = await transporter?.waitForTaskCompletion();
+                                      if (completed != null) {
+                                        Navigator.of(context).pop();
+                                      }
+                                    },
+                                    child: Text(data?.requestId == 'idle' ? 'Move X' : 'Moving'),
+                                  ),
+                                ],
+                              ),
+                            )
+                          ],
+                        ),
                       ),
-                      flex: 4,
-                    ),
-                    Expanded(
-                      child: Row(),
-                      flex: 2,
-                    ),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: 10,
-                        itemBuilder: (context, index) {
-                          return ListTile(
-                            leading: CircleAvatar(),
-                            title: Text("1kg, Hot dog"),
-                            subtitle: Text("Cooking Unit 1"),
-                            trailing: CircularProgressIndicator(
-                              value: .8,
-                            ),
-                          );
-                        },
+                      const Expanded(
+                        flex: 2,
+                        child: Row(),
                       ),
-                      flex: 12,
-                    ),
-                    Expanded(
-                      child: Row(),
-                      flex: 1,
-                    ),
-                  ],
-                );
-              },
+                      Expanded(
+                        flex: 12,
+                        child: GridView.builder(
+                          itemCount: data?.coordinates?.length ?? 0,
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 8),
+                          itemBuilder: (context, index) {
+                            return Card(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                children: [
+                                  Column(
+                                    children: [
+                                      Text("${data?.coordinates?[index].name}"),
+                                      TextButton(
+                                        onPressed: () async {
+                                          transporter?.handleRequest({
+                                            "operation": 20,
+                                            "coordinate_x": data?.coordinates?[index].coordinate,
+                                            "request_title": "User Move X",
+                                            "requester_name": "User",
+                                            "flag": "user"
+                                          });
+
+                                          var dialog = showDialog(
+                                            context: context,
+                                            builder: (context) => const Dialog(
+                                              child: SizedBox(
+                                                height: 50,
+                                                width: 200,
+                                                child: Padding(
+                                                  padding: EdgeInsets.all(5),
+                                                  child: Column(
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                                    children: [Text("moving..."), LinearProgressIndicator()],
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          );
+
+                                          bool? completed = await transporter?.waitForTaskCompletion();
+                                          if (completed != null) {
+                                            Navigator.of(context).pop();
+                                          }
+                                        },
+                                        child: Text("${data?.coordinates?[index].coordinate} mm"),
+                                      ),
+                                    ],
+                                  ),
+                                  Column(
+                                    children: [
+                                      FilledButton(
+                                        onPressed: () async {
+                                          Ingredient? result = await showSearch<Ingredient?>(
+                                            context: context,
+                                            delegate: IngredientMountSearchDelegate(),
+                                          );
+                                          if (result != null) {
+                                            result.coordinateX = data!.coordinates![index].coordinate;
+                                            await IngredientDataAccess.instance.updateById(result.id!, result);
+                                          }
+                                        },
+                                        child: const Text('mount'),
+                                      )
+                                    ],
+                                  )
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const Expanded(
+                        flex: 1,
+                        child: Row(),
+                      ),
+                    ],
+                  );
+                },
+              ),
             ),
     );
   }

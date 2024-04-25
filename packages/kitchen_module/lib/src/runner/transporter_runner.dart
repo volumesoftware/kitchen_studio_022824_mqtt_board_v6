@@ -13,41 +13,38 @@ Future<void> transporterIsolateEntryPoint(SendPort sendPort) async {
 
   await for (var message in receivePort) {
     if (message is List) {
-      // event sender port to notify the user about anything
       final SendPort eventSenderPort = message[0];
-      final IngredientHandlerPayload payload = message[1];
+
+      final Map<String, dynamic> task = message[1];
       final ModuleResponse _device = message[2];
+      final String flag = message[3];
+      final dynamic requester = message[4];
+
       eventSenderPort.send("started");
-      bool? available = await waitForTransporterIdle(payload, _device);
-      eventSenderPort.send(TaskProgress(1));
-      eventSenderPort.send("completed");
+      bool? available = await sendToTransporter(task, device: _device, flag: flag);
+      eventSenderPort.send(requester);
+      eventSenderPort.send("complete");
     }
   }
 }
 
-Future<bool?> waitForTransporterIdle(
-    IngredientHandlerPayload payload, ModuleResponse server) async {
+Future<bool?> sendToTransporter(Map<String, dynamic> toSend, {String? flag, required ModuleResponse device}) async {
+  Completer<bool?> completer = Completer();
   int maX = 9000;
   int miN = 8000;
   int randomPort = Random().nextInt(maX - miN) + miN;
-  RawDatagramSocket? socket =
-      await RawDatagramSocket.bind(InternetAddress.anyIPv4, randomPort);
+  RawDatagramSocket? socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, randomPort);
 
   String jsonData = '{"operation":100}';
   Timer timer = Timer.periodic(
     Duration(seconds: 3),
     (timer) {
-      socket.send(
-          jsonData.codeUnits, InternetAddress(server.ipAddress!), server.port!);
+      socket.send(jsonData.codeUnits, InternetAddress(device.ipAddress!), device.port!);
     },
   );
 
-  var json = payload.toJson();
-  print("sending $json");
-  socket.send(jsonEncode(json).codeUnits, InternetAddress(server.ipAddress!),
-      server.port!);
+  socket.send(jsonEncode(toSend).codeUnits, InternetAddress(device.ipAddress!), device.port!);
 
-  Completer<bool?> completer = Completer();
   // Listen for incoming data and complete the Future when data is received
   var sub = socket.listen((RawSocketEvent event) {
     if (event == RawSocketEvent.read) {
@@ -57,13 +54,13 @@ Future<bool?> waitForTransporterIdle(
           String result = String.fromCharCodes(datagram.data);
           var parsedJson = jsonDecode(result);
           ModuleResponse incomingStats;
-          if (parsedJson['type'] == 'STIR_FRY_MODULE') {
+          if (parsedJson['type'] == 'STIR_FRY_MODULE' || parsedJson['type'] == 'STIR FRY MODULE') {
             incomingStats = StirFryResponse(parsedJson);
-          } else if (parsedJson['type'] == 'TRANSPORTER_MODULE') {
+          } else if (parsedJson['type'] == 'TRANSPORTER_MODULE' || parsedJson['type'] == 'TRANSPORTER MODULE') {
             incomingStats = TransporterResponse(parsedJson);
           } else {
             throw HandshakeException(
-                "waitForTransporterIdle() Failed to handshake with incoming response with type, ${parsedJson['type']}");
+                " TransporterRunner.dart waitForTransporterIdle() Failed to handshake with incoming response with type, ${parsedJson['type']}");
           }
           if (incomingStats.requestId == 'idle') {
             socket.close();

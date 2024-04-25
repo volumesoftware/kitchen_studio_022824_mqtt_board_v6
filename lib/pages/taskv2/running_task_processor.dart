@@ -20,20 +20,18 @@ class RunningTaskProcessorWidget extends StatefulWidget {
   });
 
   @override
-  State<RunningTaskProcessorWidget> createState() =>
-      _RunningTaskProcessorWidgetState();
+  State<RunningTaskProcessorWidget> createState() => _RunningTaskProcessorWidgetState();
 }
 
-class _RunningTaskProcessorWidgetState
-    extends State<RunningTaskProcessorWidget> {
+class _RunningTaskProcessorWidgetState extends State<RunningTaskProcessorWidget> {
   late RecipeProcessor _recipeProcessor;
   ScrollController _scrollController = ScrollController();
   late StreamSubscription<ModuleResponse> _stateChange;
 
   Color getColor(int index) {
-    if (index == _recipeProcessor.getIndexProgress()) {
+    if (index == _recipeProcessor.getTaskProgress()?.progressIndex) {
       return inProgressColor;
-    } else if (index < _recipeProcessor.getIndexProgress()) {
+    } else if (index < _recipeProcessor.getTaskProgress()!.progressIndex) {
       return completeColor;
     } else {
       return todoColor;
@@ -47,11 +45,12 @@ class _RunningTaskProcessorWidgetState
     });
 
     _stateChange = widget.recipeProcessor.hearBeat.listen((ModuleResponse stats) {
-      scrollToIndex(widget.recipeProcessor.getIndexProgress());
+      scrollToIndex(widget.recipeProcessor.getTaskProgress()?.progressIndex ?? 0);
     });
 
     super.initState();
   }
+
   @override
   void dispose() {
     _scrollController.dispose();
@@ -61,9 +60,7 @@ class _RunningTaskProcessorWidgetState
 
   void scrollToIndex(int index) {
     _scrollController.animateTo(
-      index *
-          MediaQuery.of(context).size.width *
-          0.08, // Replace ITEM_WIDTH with your item's width
+      index * MediaQuery.of(context).size.width * 0.08, // Replace ITEM_WIDTH with your item's width
       duration: Duration(milliseconds: 500),
       curve: Curves.ease,
     );
@@ -83,18 +80,20 @@ class _RunningTaskProcessorWidgetState
         ),
       ),
       builder: TimelineTileBuilder.connected(
+        itemCount: _recipeProcessor.getInstructionsLength(),
         connectionDirection: ConnectionDirection.before,
         // itemExtentBuilder: (_, __) {
         //   int operationLength = operationsLength();
         //   return (MediaQuery.of(context).size.width * 1) / operationLength;
         // },
-        itemExtent: MediaQuery.of(context).size.width *
-            0.08 ,
+        itemExtent: MediaQuery.of(context).size.width * 0.08,
         oppositeContentsBuilder: (context, index) {
           return Padding(
             padding: const EdgeInsets.only(bottom: 15.0),
-            child: Icon(_recipeProcessor.getPayload()?.operations[index].iconData,
-                color: getColor(index), size: 45),
+            child: Icon(
+                IconData(_recipeProcessor.getFlattenedInstructions()[index]['icon_data']['code_point'], fontFamily: 'MaterialIcons') ?? Icons.question_mark,
+                color: getColor(index),
+                size: 45),
           );
         },
         contentsBuilder: (context, index) {
@@ -103,28 +102,30 @@ class _RunningTaskProcessorWidgetState
             child: Column(
               children: [
                 Text(
-                  "${_recipeProcessor.getPayload()?.operations[index].requestId}",
+                  "${_recipeProcessor.getFlattenedInstructions()[index]['request_id']}",
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: getColor(index),
                   ),
                 ),
-                _recipeProcessor.getPayload()?.operations[index].operation == UserActionOperation.CODE? Text(
-                  "${(_recipeProcessor.getPayload()?.operations[index] as UserActionOperation).title}",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: getColor(index),
-                  ),
-                ): Row()
+                _recipeProcessor.getFlattenedInstructions()[index]['request_id'] == InstructionCode.userAction
+                    ? Text(
+                        "${_recipeProcessor.getFlattenedInstructions()[index]['title']}",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: getColor(index),
+                        ),
+                      )
+                    : Row()
               ],
             ),
           );
         },
         indicatorBuilder: (_, index) {
-          int operationLength = operationsLength();
+          int operationLength = _recipeProcessor.getInstructionsLength();
           var color;
           var child;
-          if (index == _recipeProcessor.getIndexProgress()) {
+          if (index == _recipeProcessor.getTaskProgress()?.progressIndex) {
             color = inProgressColor;
             child = const Padding(
               padding: EdgeInsets.all(8.0),
@@ -133,7 +134,7 @@ class _RunningTaskProcessorWidgetState
                 valueColor: AlwaysStoppedAnimation(Colors.white),
               ),
             );
-          } else if (index < _recipeProcessor.getIndexProgress()) {
+          } else if (index < _recipeProcessor.getTaskProgress()!.progressIndex) {
             color = completeColor;
             child = const Icon(
               Icons.check,
@@ -144,7 +145,7 @@ class _RunningTaskProcessorWidgetState
             color = todoColor;
           }
 
-          if (index <= _recipeProcessor.getIndexProgress()) {
+          if (index <= _recipeProcessor.getTaskProgress()!.progressIndex) {
             return Stack(
               children: [
                 CustomPaint(
@@ -152,7 +153,7 @@ class _RunningTaskProcessorWidgetState
                   painter: _BezierPainter(
                     color: color,
                     drawStart: index > 0,
-                    drawEnd: index < _recipeProcessor.getIndexProgress(),
+                    drawEnd: index < _recipeProcessor.getTaskProgress()!.progressIndex,
                   ),
                 ),
                 DotIndicator(
@@ -182,17 +183,14 @@ class _RunningTaskProcessorWidgetState
         },
         connectorBuilder: (_, index, type) {
           if (index > 0) {
-            if (index == _recipeProcessor.getIndexProgress()) {
+            if (index == _recipeProcessor.getTaskProgress()!.progressIndex) {
               final prevColor = getColor(index - 1);
               final color = getColor(index);
               List<Color> gradientColors;
               if (type == ConnectorType.start) {
                 gradientColors = [Color.lerp(prevColor, color, 0.5)!, color];
               } else {
-                gradientColors = [
-                  prevColor,
-                  Color.lerp(prevColor, color, 0.5)!
-                ];
+                gradientColors = [prevColor, Color.lerp(prevColor, color, 0.5)!];
               }
               return DecoratedLineConnector(
                 decoration: BoxDecoration(
@@ -210,15 +208,8 @@ class _RunningTaskProcessorWidgetState
             return null;
           }
         },
-        itemCount: operationsLength(),
       ),
     );
-  }
-
-  int operationsLength() {
-    var taskPayload = _recipeProcessor.getPayload();
-    int operationLength = taskPayload!=null? taskPayload.operations.length : 0;
-    return operationLength;
   }
 }
 
@@ -262,8 +253,7 @@ class _BezierPainter extends CustomPainter {
       offset2 = _offset(radius, -angle);
       path = Path()
         ..moveTo(offset1.dx, offset1.dy)
-        ..quadraticBezierTo(0.0, size.height / 2, -radius,
-            radius) // TODO connector start & gradient
+        ..quadraticBezierTo(0.0, size.height / 2, -radius, radius) // TODO connector start & gradient
         ..quadraticBezierTo(0.0, size.height / 2, offset2.dx, offset2.dy)
         ..close();
 
@@ -276,8 +266,7 @@ class _BezierPainter extends CustomPainter {
 
       path = Path()
         ..moveTo(offset1.dx, offset1.dy)
-        ..quadraticBezierTo(size.width, size.height / 2, size.width + radius,
-            radius) // TODO connector end & gradient
+        ..quadraticBezierTo(size.width, size.height / 2, size.width + radius, radius) // TODO connector end & gradient
         ..quadraticBezierTo(size.width, size.height / 2, offset2.dx, offset2.dy)
         ..close();
 
@@ -287,8 +276,6 @@ class _BezierPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_BezierPainter oldDelegate) {
-    return oldDelegate.color != color ||
-        oldDelegate.drawStart != drawStart ||
-        oldDelegate.drawEnd != drawEnd;
+    return oldDelegate.color != color || oldDelegate.drawStart != drawStart || oldDelegate.drawEnd != drawEnd;
   }
 }

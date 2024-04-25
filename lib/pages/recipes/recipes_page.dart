@@ -8,6 +8,9 @@ import 'package:kitchen_module/kitchen_module.dart';
 import 'package:kitchen_studio_10162023/service/globla_loader_service.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'package:url_launcher/url_launcher.dart';
+
+
 class RecipesPage extends StatefulWidget {
   const RecipesPage({Key? key}) : super(key: key);
 
@@ -230,20 +233,24 @@ class _RecipesPageState extends State<RecipesPage> {
                         ),
                         ButtonBar(
                           children: [
+                            // ElevatedButton(
+                            //     onPressed: () {
+                            //       Navigator.of(context).pushNamed(
+                            //           AppRouter.createRecipePage,
+                            //           arguments: filteredRecipes[index]);
+                            //     },
+                            //     child: Text("Edit")),
                             ElevatedButton(
-                                onPressed: () {
+                                onPressed: () async {
                                   Navigator.of(context).pushNamed(
-                                      AppRouter.createRecipePage,
-                                      arguments: filteredRecipes[index]);
+                                      AppRouter.recipeWebView, arguments: filteredRecipes[index]);
+
+                                  // final Uri _url = Uri.parse('http://localhost:8080/?recipeId=${filteredRecipes[index].id}');
+                                  // if (!await launchUrl(_url)) {
+                                  // throw Exception('Could not launch $_url');
+                                  // }
                                 },
-                                child: Text("Edit")),
-                            ElevatedButton(
-                                onPressed: () {
-                                  Navigator.of(context).pushNamed(
-                                      AppRouter.createRecipePageV2,
-                                      arguments: filteredRecipes[index]);
-                                },
-                                child: Text("Edit v2"))
+                                child: Text("Recipe Creator"))
 
                             // ElevatedButton(
                             //     onPressed: () {},

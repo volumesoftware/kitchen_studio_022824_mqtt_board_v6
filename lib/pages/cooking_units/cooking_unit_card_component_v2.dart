@@ -11,18 +11,13 @@ class CookingUnitCardComponentV2 extends StatefulWidget {
   final RecipeProcessor recipeProcessor;
   final String? backgroundImage;
 
-  const CookingUnitCardComponentV2(
-      {Key? key, required this.recipeProcessor, this.backgroundImage})
-      : super(key: key);
+  const CookingUnitCardComponentV2({Key? key, required this.recipeProcessor, this.backgroundImage}) : super(key: key);
 
   @override
-  State<CookingUnitCardComponentV2> createState() =>
-      _CookingUnitCardComponentV2State();
+  State<CookingUnitCardComponentV2> createState() => _CookingUnitCardComponentV2State();
 }
 
-class _CookingUnitCardComponentV2State
-    extends State<CookingUnitCardComponentV2> {
-  UdpService? udpService = UdpService.instance;
+class _CookingUnitCardComponentV2State extends State<CookingUnitCardComponentV2> {
   final ValueNotifier<double> temperature = ValueNotifier(0.3);
   double _progress = 0.0;
   bool _busy = false;
@@ -31,8 +26,7 @@ class _CookingUnitCardComponentV2State
   @override
   void dispose() {
     widget.recipeProcessor.hearBeat.listen((ModuleResponse stats) {
-      if (stats is StirFryResponse)
-        temperature.value = stats.temperature! / 200;
+      if (stats is StirFryResponse) temperature.value = stats.temperature! / 200;
     });
 
     super.dispose();
@@ -46,14 +40,11 @@ class _CookingUnitCardComponentV2State
         child: StreamBuilder(
           stream: widget.recipeProcessor.hearBeat,
           builder: (context, snapshot) {
-            if ((snapshot.data == null) &&
-                (widget.recipeProcessor.getModuleResponse().moduleName ==
-                    null)) {
+            if ((snapshot.data == null) && (widget.recipeProcessor.getModuleResponse().moduleName == null)) {
               return Text("Loading device");
             }
 
-            ModuleResponse? moduleResponse =
-                snapshot.data ?? widget.recipeProcessor.getModuleResponse();
+            ModuleResponse? moduleResponse = snapshot.data ?? widget.recipeProcessor.getModuleResponse();
 
             return Container(
               padding: EdgeInsets.all(20),
@@ -82,81 +73,44 @@ class _CookingUnitCardComponentV2State
                         children: [
                           IconButton(
                               onPressed: () {
-                                _key.currentState?.showBottomSheet((context) =>
-                                    Container(
+                                _key.currentState?.showBottomSheet((context) => Container(
                                       padding: EdgeInsets.all(10),
                                       child: Column(
                                         children: [
                                           Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                             children: [
                                               Text(
                                                 "Motor Control",
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .titleMedium,
+                                                style: Theme.of(context).textTheme.titleMedium,
                                               ),
-                                              IconButton(
-                                                  onPressed: () =>
-                                                      Navigator.of(context)
-                                                          .pop(),
-                                                  icon: Icon(Icons.close))
+                                              IconButton(onPressed: () => Navigator.of(context).pop(), icon: Icon(Icons.close))
                                             ],
                                           ),
                                           ListTile(
                                             onTap: () {
-                                              MotorOperation mOp =
-                                                  MotorOperation(2, 3, 0);
-                                              udpService?.send(
-                                                  jsonEncode(mOp.toJson())
-                                                      .codeUnits,
-                                                  InternetAddress(moduleResponse
-                                                      .ipAddress!),
-                                                  moduleResponse.port!);
+                                              MotorOperation mOp = MotorOperation(2, 3, 0);
                                             },
                                             title: Text("Tilt Up (3°)"),
                                             trailing: Icon(Icons.arrow_upward),
                                           ),
                                           ListTile(
                                             onTap: () {
-                                              MotorOperation mOp =
-                                                  MotorOperation(2, -3, 0);
-                                              udpService?.send(
-                                                  jsonEncode(mOp.toJson())
-                                                      .codeUnits,
-                                                  InternetAddress(moduleResponse
-                                                      .ipAddress!),
-                                                  moduleResponse.port!);
+                                              MotorOperation mOp = MotorOperation(2, -3, 0);
                                             },
                                             title: Text("Tilt Down (3°)"),
-                                            trailing:
-                                                Icon(Icons.arrow_downward),
+                                            trailing: Icon(Icons.arrow_downward),
                                           ),
                                           ListTile(
                                             onTap: () {
-                                              MotorOperation mOp =
-                                                  MotorOperation(2, 0, 15);
-                                              udpService?.send(
-                                                  jsonEncode(mOp.toJson())
-                                                      .codeUnits,
-                                                  InternetAddress(moduleResponse
-                                                      .ipAddress!),
-                                                  moduleResponse.port!);
+                                              MotorOperation mOp = MotorOperation(2, 0, 15);
                                             },
                                             title: Text("Rotate Right (15°)"),
                                             trailing: Icon(Icons.arrow_forward),
                                           ),
                                           ListTile(
                                             onTap: () {
-                                              MotorOperation mOp =
-                                                  MotorOperation(2, 0, -15);
-                                              udpService?.send(
-                                                  jsonEncode(mOp.toJson())
-                                                      .codeUnits,
-                                                  InternetAddress(moduleResponse
-                                                      .ipAddress!),
-                                                  moduleResponse.port!);
+                                              MotorOperation mOp = MotorOperation(2, 0, -15);
                                             },
                                             title: Text("Rotate Left (15°)"),
                                             trailing: Icon(Icons.arrow_back),
@@ -164,8 +118,7 @@ class _CookingUnitCardComponentV2State
                                           SizedBox(
                                             height: 70,
                                             width: 40,
-                                            child: RotatingCylinder(
-                                                temperature: ValueNotifier(.8)),
+                                            child: RotatingCylinder(temperature: ValueNotifier(.8)),
                                           )
                                         ],
                                       ),
@@ -178,32 +131,16 @@ class _CookingUnitCardComponentV2State
                             onSelected: (String result) {
                               switch (result) {
                                 case 'zero':
-                                  String jsonData =
-                                      '{"operation":"199","request_id":"zeroing"}';
-                                  udpService?.send(
-                                      jsonData.codeUnits,
-                                      InternetAddress(
-                                          moduleResponse.ipAddress!),
-                                      8888);
+                                  String jsonData = '{"operation":"199","request_id":"zeroing"}';
+
                                   break;
                                 case 'heat_until':
                                   break;
                                 case 'dispense':
-                                  String dispense = jsonEncode(
-                                      DispenseOperation(
-                                              currentIndex: 0,
-                                              cycle: 1,
-                                              targetTemperature: 0,
-                                              tiltAngleB: -30,
-                                              tiltAngleA: 15,
-                                              tiltSpeed: 0,
-                                              rotateSpeed: 0)
-                                          .toJson());
-                                  udpService?.send(
-                                      dispense.codeUnits,
-                                      InternetAddress(
-                                          moduleResponse.ipAddress!),
-                                      8888);
+                                  String dispense = jsonEncode(DispenseOperation(
+                                          currentIndex: 0, cycle: 1, targetTemperature: 0, tiltAngleB: -30, tiltAngleA: 15, tiltSpeed: 0, rotateSpeed: 0)
+                                      .toJson());
+
                                   break;
                                 case 'wash':
                                   String wash = jsonEncode(WashOperation(
@@ -217,11 +154,7 @@ class _CookingUnitCardComponentV2State
                                           tiltSpeed: 0,
                                           targetTemperature: 80)
                                       .toJson());
-                                  udpService?.send(
-                                      wash.codeUnits,
-                                      InternetAddress(
-                                          moduleResponse.ipAddress!),
-                                      8888);
+
                                   break;
                                 case 'prime_oil':
                                   String primeOil = jsonEncode({
@@ -231,11 +164,7 @@ class _CookingUnitCardComponentV2State
                                     "instruction_size": 0,
                                     "target_temperature": 28.0,
                                   });
-                                  udpService?.send(
-                                      primeOil.codeUnits,
-                                      InternetAddress(
-                                          moduleResponse.ipAddress!),
-                                      8888);
+
                                   break;
                                 case 'prime_water':
                                   String primeWater = jsonEncode({
@@ -245,17 +174,12 @@ class _CookingUnitCardComponentV2State
                                     "instruction_size": 0,
                                     "target_temperature": 28.0,
                                   });
-                                  udpService?.send(
-                                      primeWater.codeUnits,
-                                      InternetAddress(
-                                          moduleResponse.ipAddress!),
-                                      8888);
+
                                   break;
                                 default:
                               }
                             },
-                            itemBuilder: (BuildContext context) =>
-                                <PopupMenuEntry<String>>[
+                            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
                               const PopupMenuItem<String>(
                                 value: 'wash',
                                 child: Text('Wash'),
@@ -300,21 +224,14 @@ class _CookingUnitCardComponentV2State
                           ),
                         ),
                         (moduleResponse is StirFryResponse)
-                            ? Text(
-                                "${moduleResponse.temperature?.toStringAsFixed(2)} °C",
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleLarge
-                                    ?.copyWith(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold))
+                            ? Text("${moduleResponse.temperature?.toStringAsFixed(2)} °C",
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.bold))
                             : Row(),
                         Positioned(
                             child: Transform(
                               alignment: Alignment.center,
                               transform: Matrix4.rotationY(math.pi),
-                              child: RotatedBox(
-                                  quarterTurns: 2, child: progressGauge()),
+                              child: RotatedBox(quarterTurns: 2, child: progressGauge()),
                             ),
                             bottom: 0),
                       ],

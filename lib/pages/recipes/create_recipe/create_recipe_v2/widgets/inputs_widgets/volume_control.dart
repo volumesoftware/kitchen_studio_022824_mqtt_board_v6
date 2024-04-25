@@ -120,7 +120,6 @@ class _VolumeControlState extends State<VolumeControl> {
                       child: TextFormField(
 
                         onChanged: (value) {
-                          print("Value is changing");
                           setState(() {
                             _level = double.tryParse(value) ?? 0.0;
                           });

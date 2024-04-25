@@ -98,7 +98,6 @@ class _OperationTemplatePageState extends State<OperationTemplatePage> {
                                   pullRecipes();
                                   break;
                                 case 'filter2':
-                                  print('filter 2 clicked');
                                   break;
                                 default:
                               }

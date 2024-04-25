@@ -9,7 +9,6 @@ class IngredientHandlerPayload extends HandlerPayload {
 
   IngredientHandlerPayload(this.ingredientItem, this.source, this.destination);
 
-
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['source'] = source; //get the item from source
@@ -18,15 +17,13 @@ class IngredientHandlerPayload extends HandlerPayload {
     data['quantity'] = ingredientItem.quantity;
     return data;
   }
-
-
-
 }
 
 class RecipeHandlerPayload extends HandlerPayload {
   final Recipe recipe;
-  final List<BaseOperation> operations;
   final Task task;
+  final String version; // for now version 6
+  List<Map<String, dynamic>> instructions; // for now version 6
 
-  RecipeHandlerPayload(this.recipe, this.operations, this.task);
+  RecipeHandlerPayload(this.recipe, this.task, this.version, this.instructions);
 }

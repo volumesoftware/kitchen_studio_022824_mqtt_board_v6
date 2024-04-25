@@ -14,7 +14,6 @@ class CookingUnitsPageV2 extends StatefulWidget {
 
 class _CookingUnitsPageV2State extends State<CookingUnitsPageV2> {
   Timer? timer;
-  UdpService? udpService = UdpService.instance;
   ThreadPool threadPool = ThreadPool.instance;
 
   @override

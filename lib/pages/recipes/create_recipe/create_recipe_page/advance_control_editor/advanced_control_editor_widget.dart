@@ -50,7 +50,6 @@ class _AdvanceControlWidgetState extends State<AdvanceControlWidget> {
     _messageToUserController.text = '${_advancedOperation.message}';
     _titleController.text = '${_advancedOperation.title}';
     _requireUserPermission = _advancedOperation.requireUserPermission ?? false;
-    print(_advancedOperation.toJson());
     populateData();
     super.initState();
   }

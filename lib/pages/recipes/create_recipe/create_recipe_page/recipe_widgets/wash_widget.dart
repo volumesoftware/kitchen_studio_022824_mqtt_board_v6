@@ -48,7 +48,6 @@ class _WashWidgetState extends State<WashWidget> {
     _rotateAngle = TextEditingController(text: "${operation?.rotateAngle}");
 
     _scrollController.addListener(() {
-      print(_scrollController.position.userScrollDirection);
       if (_scrollController.position.userScrollDirection ==
           ScrollDirection.forward) {
         if (!_showed) {

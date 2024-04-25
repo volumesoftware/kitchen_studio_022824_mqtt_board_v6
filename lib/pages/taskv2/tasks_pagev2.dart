@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:kitchen_module/kitchen_module.dart';
-import 'package:kitchen_studio_10162023/pages/taskv2/completed_tasks_v2.dart';
 import 'package:kitchen_studio_10162023/pages/taskv2/task_bar.dart';
 
 class TasksPageV2 extends StatefulWidget {
@@ -38,19 +37,10 @@ class _TasksPageV2State extends State<TasksPageV2> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _key,
-      endDrawer: Container(
-          width: MediaQuery.of(context).size.width * 0.25,
-          child: CompletedTasksV2()),
       appBar: AppBar(
-          automaticallyImplyLeading: false,
-          title: Text("Tasks"),
-          actions: [
-            IconButton(
-                onPressed: () {
-                  _key.currentState?.openEndDrawer();
-                },
-                icon: Icon(Icons.arrow_back))
-          ]),
+        automaticallyImplyLeading: false,
+        title: const Text("Tasks"),
+      ),
       body: TaskBar(),
     );
   }

@@ -37,16 +37,9 @@ class _IngredientsPageState extends State<IngredientsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-          automaticallyImplyLeading: false,
-          title: Text("Ingredients"),
-          actions: [IconButton(onPressed: () {}, icon: Icon(Icons.search))]),
+      appBar: AppBar(automaticallyImplyLeading: false, title: Text("Ingredients"), actions: [IconButton(onPressed: () {}, icon: Icon(Icons.search))]),
       body: GridView.builder(
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            childAspectRatio: 0.85,
-            crossAxisCount: 6,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(childAspectRatio: 0.85, crossAxisCount: 6, crossAxisSpacing: 10, mainAxisSpacing: 10),
         itemCount: ingredients.length,
         itemBuilder: (context, index) {
           return Card(
@@ -64,91 +57,54 @@ class _IngredientsPageState extends State<IngredientsPage> {
                         "${ingredients[index].ingredientName} ",
                         style: Theme.of(context).textTheme.titleSmall,
                       ),
-                      ingredients[index].stockLevel == "LOW"
-                          ? AvatarGlow(
-                              child: PopupMenuButton<String>(
-                                icon: Icon(Icons.filter_list),
-                                onSelected: (String result) async {
-                                  switch (result) {
-                                    case 'filter1':
-                                      print('filter 1 clicked');
-                                      break;
-                                    case 'filter2':
-                                      print('filter 2 clicked');
-                                      break;
-                                    case 'delete':
-                                      await ingredientDataAccess.delete(ingredients[index].id!);
-                                      populateIngredient();
-                                      break;
-                                    default:
-                                  }
-                                },
-                                itemBuilder: (BuildContext context) =>
-                                    <PopupMenuEntry<String>>[
-                                  ingredients[index].ingredientType == 'SOLID'
-                                      ? const PopupMenuItem<String>(
-                                          value: 'dispense',
-                                          child: Text('Dispense'),
-                                        )
-                                      : ingredients[index].ingredientType ==
-                                              'GRANULAR'
-                                          ? const PopupMenuItem<String>(
-                                              value: 'dispense',
-                                              child: Text('Dispense'),
-                                            )
-                                          : const PopupMenuItem<String>(
-                                              value: 'dispense',
-                                              child: Text('Dispense'),
-                                            ),
-                                  const PopupMenuItem<String>(
-                                    value: 'Refilled',
-                                    child: Text('Refilled'),
-                                  ),
-                                  const PopupMenuItem<String>(
-                                    value: 'disable',
-                                    child: Text('Disable'),
-                                  ),
-                                  const PopupMenuItem<String>(
-                                    value: 'delete',
-                                    child: Text('Delete'),
-                                  )
-                                ],
-                              ),
-                              glowColor: Colors.red,
-                              shape: BoxShape.rectangle,
-                              endRadius: 30)
-                          : PopupMenuButton<String>(
-                              icon: Icon(Icons.filter_list),
-                              onSelected: (String result) {
-                                switch (result) {
-                                  case 'filter1':
-                                    print('filter 1 clicked');
-                                    break;
-                                  case 'filter2':
-                                    print('filter 2 clicked');
-                                    break;
-                                  case 'clearFilters':
-                                    print('Clear filters');
-                                    break;
-                                  default:
-                                }
-                              },
-                              itemBuilder: (BuildContext context) =>
-                                  <PopupMenuEntry<String>>[
-                                const PopupMenuItem<String>(
-                                  value: 'Refilled',
-                                  child: Text('Refilled'),
-                                ),
-                                const PopupMenuItem<String>(
-                                  value: 'disable',
-                                  child: Text('Disable'),
-                                ),
-                                const PopupMenuItem<String>(
-                                  value: 'delete',
-                                  child: Text('Delete'),
+                      PopupMenuButton<String>(
+                        icon: Icon(Icons.filter_list),
+                        onSelected: (String result) async {
+                          switch (result) {
+                            case 'filter1':
+                              break;
+                            case 'unmount':
+                              ingredients[index].coordinateX = null;
+                              await ingredientDataAccess.updateById(ingredients[index].id!, ingredients[index]);
+                              populateIngredient();
+                              break;
+                            case 'delete':
+                              print('deleteing obj');
+                              await ingredientDataAccess.delete(ingredients[index].id!);
+                              populateIngredient();
+                              break;
+                            default:
+                          }
+                        },
+                        itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                          ingredients[index].ingredientType == 'SOLID'
+                              ? const PopupMenuItem<String>(
+                                  value: 'dispense',
+                                  child: Text('Dispense'),
                                 )
-                              ],
-                            )
+                              : ingredients[index].ingredientType == 'GRANULAR'
+                                  ? const PopupMenuItem<String>(
+                                      value: 'dispense',
+                                      child: Text('Dispense'),
+                                    )
+                                  : const PopupMenuItem<String>(
+                                      value: 'dispense',
+                                      child: Text('Dispense'),
+                                    ),
+                          const PopupMenuItem<String>(
+                            value: 'Refilled',
+                            child: Text('Refilled'),
+                          ),
+                          const PopupMenuItem<String>(
+                            value: 'unmount',
+                            child: Text('Unmount'),
+                          ),
+                          const PopupMenuItem<String>(
+                            value: 'delete',
+                            child: Text('Delete'),
+                          )
+                        ],
+                      )
                     ],
                   )),
                   Container(
@@ -156,25 +112,23 @@ class _IngredientsPageState extends State<IngredientsPage> {
                     height: 150,
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
-                        image: DecorationImage(
-                            fit: BoxFit.cover,
-                            image: FileImage(File(
-                                ingredients[index].imageFilePath ??
-                                    "assets/images/img.png")))),
+                        image: DecorationImage(fit: BoxFit.cover, image: FileImage(File(ingredients[index].imageFilePath ?? "assets/images/img.png")))),
                   ),
                   Text(
                     "Stock, ${ingredients[index].stockLevel}",
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
-                  Text(
-                    "Location, (${ingredients[index].coordinateX}, ${ingredients[index].coordinateY}, ${ingredients[index].coordinateZ})",
+                  ingredients[index].coordinateX != null? Text(
+                    "Location, ${ingredients[index].coordinateX} mm)",
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ): Text(
+                    "Not mounted",
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                   Text(
                     "Type, (${ingredients[index].ingredientType})",
                     style: Theme.of(context).textTheme.titleSmall,
                   )
-
                 ],
               ),
             ),
@@ -191,7 +145,6 @@ class _IngredientsPageState extends State<IngredientsPage> {
     );
   }
 
-
   Future _displayTextInputDialog(BuildContext context) async {
     return showDialog(
       context: context,
@@ -200,9 +153,11 @@ class _IngredientsPageState extends State<IngredientsPage> {
           builder: (context, setState) {
             return AlertDialog(
               title: Text('Add new ingredient'),
-              content: IngredientCreationDialog(onEvent: () {
-                populateIngredient();
-              },),
+              content: IngredientCreationDialog(
+                onEvent: () {
+                  populateIngredient();
+                },
+              ),
             );
           },
         );

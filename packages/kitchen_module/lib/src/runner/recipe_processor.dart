@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'dart:isolate';
-import 'package:database_service/database_service.dart';
+import 'dart:math';
 import 'package:kitchen_module/kitchen_module.dart';
+import 'package:kitchen_studio_10162023/service/json_processor.dart';
 
 class RecipeProcessor implements KitchenToolProcessor {
   bool _isInitialized = false;
@@ -10,27 +13,24 @@ class RecipeProcessor implements KitchenToolProcessor {
   late DateTime taskStarted;
   int etaInSeconds = 0;
   Timer? timer;
-  static int IDLE_TIME = 10;
+  static const int IDLE_TIME = 10;
+  TaskProgress? _currentProgress;
 
-  Set<String?> lastErrors = Set();
+  Set<String?> lastErrors = {};
 
   TaskDataAccess taskDataAccess = TaskDataAccess.instance;
   RecipeDataAccess recipeDataAccess = RecipeDataAccess.instance;
-  BaseOperationDataAccess baseOperationDataAccess =
-      BaseOperationDataAccess.instance;
-  StreamController<ModuleResponse> _deviceStateChange =
-      StreamController<ModuleResponse>.broadcast();
-  StreamController<ModuleResponse> _heartBeatChange =
-      StreamController<ModuleResponse>.broadcast();
+  BaseOperationDataAccess baseOperationDataAccess = BaseOperationDataAccess.instance;
+  final StreamController<ModuleResponse> _deviceStateChange = StreamController<ModuleResponse>.broadcast();
+  final StreamController<ModuleResponse> _heartBeatChange = StreamController<ModuleResponse>.broadcast();
 
   ModuleResponse _device;
   late Isolate _isolate;
   late SendPort _sendPort;
+  late SendPort _ingredientFilledPort;
   late ReceivePort _receivePort;
 
   RecipeHandlerPayload? _payload;
-  double _progress = 0.0;
-  int _index = 0;
   bool _chain = false;
   bool _notStateChangeOccured = false;
 
@@ -39,8 +39,7 @@ class RecipeProcessor implements KitchenToolProcessor {
 
     _stateChanges.listen((moduleResponse) {
       DateTime currentTime = DateTime.now();
-      if (currentTime.difference(lastStateChangeTime) >=
-          Duration(seconds: RecipeProcessor.IDLE_TIME)) {
+      if (currentTime.difference(lastStateChangeTime) >= Duration(seconds: RecipeProcessor.IDLE_TIME)) {
         _notStateChangeOccured = true;
       } else {
         _notStateChangeOccured = false;
@@ -54,10 +53,9 @@ class RecipeProcessor implements KitchenToolProcessor {
       _heartBeatChange.sink.add(moduleResponse);
     });
 
-    Timer.periodic(Duration(seconds: 2), (_) {
+    Timer.periodic(const Duration(seconds: 2), (_) {
       DateTime currentTime = DateTime.now();
-      if (currentTime.difference(lastStateChangeTime) >=
-          Duration(seconds: RecipeProcessor.IDLE_TIME)) {
+      if (currentTime.difference(lastStateChangeTime) >= Duration(seconds: RecipeProcessor.IDLE_TIME)) {
         _notStateChangeOccured = true;
       } else {
         _notStateChangeOccured = false;
@@ -83,29 +81,23 @@ class RecipeProcessor implements KitchenToolProcessor {
     _receivePort = ReceivePort();
     _receivePort.listen((message) async {
       print(message);
-
       if (message is String) {
         if (message == "completed") {
           _busy = false;
           _payload!.task.status = Task.COMPLETED;
           var endTime = DateTime.now();
-          int estimatedTimeCompletion =
-              endTime.difference(taskStarted).inSeconds;
-
+          int estimatedTimeCompletion = endTime.difference(taskStarted).inSeconds;
           _payload!.recipe.cookCount = _payload!.recipe.cookCount ?? 0 + 1;
-          _payload!.recipe.estimatedTimeCompletion =
-              estimatedTimeCompletion.toDouble();
-
-          await recipeDataAccess.updateById(
-              _payload!.recipe.id!, _payload!.recipe);
+          _payload!.recipe.estimatedTimeCompletion = estimatedTimeCompletion.toDouble();
+          await recipeDataAccess.updateById(_payload!.recipe.id!, _payload!.recipe);
           await taskDataAccess.updateById(_payload!.task.id!, _payload!.task);
           _payload = null;
         } else if (message == "started") {
           _busy = true;
           if (_payload != null) {
             taskStarted = DateTime.now();
-            const oneSec = const Duration(seconds: 1);
-            timer = new Timer.periodic(
+            const oneSec = Duration(seconds: 1);
+            timer = Timer.periodic(
               oneSec,
               (Timer timer) {
                 if (etaInSeconds == 0) {
@@ -120,85 +112,94 @@ class RecipeProcessor implements KitchenToolProcessor {
           }
         }
       } else if (message is TaskProgress) {
-        _progress = message.progress;
-      } else if (message is IndexProgress) {
-        _index = message.progress;
+        _currentProgress = message;
       } else if (message is UserAction) {
-        print(message);
       } else if (message is UserResponse) {
-        print(message);
       } else if (message is Exception) {
         _payload = null;
         _busy = false;
       } else if (message is KillIsolate) {
         // Isolate.kill(priority: Isolate.immediate);
-      } else if (message is SendPort) {
-        _sendPort = message;
+      } else if (message is SendPorts) {
+        _sendPort = message.taskSendPort;
+        _ingredientFilledPort = message.ingredientSendPort;
         // print('_sendPort assigned');
-      } else if (message is IngredientHandlerPayload) {
-        final availableProcessor = ThreadPool.instance.pool.firstWhere(
-            (processor) => (processor is TransporterProcessor),
-            orElse: () => throw Exception('No transporter available in the pool'));
-        await (availableProcessor as TransporterProcessor).process(message);
+      } else if (message is Map<String, dynamic>) {
+        if (message["operation"] == InstructionCode.requestIngredient) {
+          final availableProcessor = ThreadPool.instance.pool
+              .firstWhere((processor) => (processor is TransporterProcessor), orElse: () => throw Exception('No transporter available in the pool'));
+          message["requester"] = getModuleResponse();
+          message["flag"] = getModuleResponse().moduleName;
+
+          (availableProcessor as TransporterProcessor).handleRequest(message);
+        }
       }
     });
-
-    _isolate = await Isolate.spawn(recipeIsolateEntryPoint, _receivePort.sendPort);
+    _isolate = await Isolate.spawn(recipeV6IsolateEntryPoint, _receivePort.sendPort);
   }
 
+  @override
   Future<void> process(HandlerPayload p) async {
     if (p is RecipeHandlerPayload) {
       _payload = p;
-
-      int? duration = p.recipe.estimatedTimeCompletion?.toInt();
-
-      for (var i = 0; i < p.operations.length; i++) {
-        if (p.operations[i] is AdvancedOperation) {
-          print('Porting new object');
-          p.operations[i] =
-              (await baseOperationDataAccess.getById(p.operations[i].id!))!;
-        }
-      }
-
-      if (duration == null || duration == 0) {
-        for (var i = 0; i < p.operations.length; i++) {
-          if (p.operations[i] is AdvancedOperation) {
-            p.operations[i] =
-                (await baseOperationDataAccess.getById(p.operations[i].id!))!;
-          }
-
-          BaseOperation operation = p.operations[i];
-          if (operation is TimedOperation) {
-            TimedOperation op = (operation) as TimedOperation;
-            duration = duration! + (op.duration ?? 0);
-          }
-
-          if (operation.operation == RepeatOperation.CODE) {
-            RepeatOperation repeater = (operation as RepeatOperation);
-            Iterable<BaseOperation> _repeatSequence = p.operations.getRange(
-                (repeater.repeatIndex!) > 0 ? (repeater.repeatIndex! - 1) : 0,
-                i);
-
-            for (var j = 0; j < repeater.repeatCount!; j++) {
-              print("REPEAT ${j + 1}");
-              for (BaseOperation _operation in _repeatSequence) {
-                if (_operation is TimedOperation) {
-                  TimedOperation _op = (_operation) as TimedOperation;
-                  duration = duration! + _op.duration!;
-                }
-              }
-            }
-          }
-        }
-        etaInSeconds = duration ?? 0 + 120;
-      } else {
-        etaInSeconds = duration;
-      }
-
+      _payload!.instructions = replaceRepeat(p.instructions); // flatten the instructions
       _sendPort.send([_receivePort.sendPort, p, _device]);
     }
   }
 
+  void notifyIngredientSlotFilled() {
+    _ingredientFilledPort.send(getModuleResponse());
+  }
+
+  Future<bool?> sendAction(Map<String, dynamic> operation) async {
+    int maX = 9000;
+    int miN = 8000;
+    int randomPort = Random().nextInt(maX - miN) + miN;
+    RawDatagramSocket? socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, randomPort);
+
+    String jsonData = '{"operation":100}';
+    Timer timer = Timer.periodic(
+      const Duration(seconds: 3),
+      (timer) {
+        socket.send(jsonData.codeUnits, InternetAddress(getModuleResponse().ipAddress!), getModuleResponse().port!);
+      },
+    );
+
+    socket.send(jsonEncode(operation).codeUnits, InternetAddress(getModuleResponse().ipAddress!), getModuleResponse().port!);
+
+    Completer<bool?> completer = Completer();
+    // Listen for incoming data and complete the Future when data is received
+    var sub = socket.listen((RawSocketEvent event) {
+      if (event == RawSocketEvent.read) {
+        Datagram? datagram = socket.receive();
+        if (datagram != null) {
+          try {
+            String result = String.fromCharCodes(datagram.data);
+            var parsedJson = jsonDecode(result);
+            ModuleResponse incomingStats;
+            if (parsedJson['type'] == 'STIR_FRY_MODULE' || parsedJson['type'] == 'STIR FRY MODULE') {
+              incomingStats = StirFryResponse(parsedJson);
+            } else if (parsedJson['type'] == 'TRANSPORTER_MODULE' || parsedJson['type'] == 'TRANSPORTER MODULE') {
+              incomingStats = TransporterResponse(parsedJson);
+            } else {
+              throw HandshakeException("RecipeRunner.dart waitForIdle() Failed to handshake with incoming response with type, ${parsedJson['type']}");
+            }
+            if ((incomingStats.requestId == 'idle') && (incomingStats.moduleName == getModuleResponse().moduleName)) {
+              print("arduinos ${incomingStats.requestId}");
+              socket.close();
+              timer.cancel();
+              completer.complete(true);
+            }
+          } catch (e) {
+            print(e);
+          }
+        }
+      }
+    });
+    return completer.future;
+  }
+
+  @override
   void updateStats(ModuleResponse moduleResponse) {
     _device = moduleResponse;
     _busy = _device.requestId != 'idle';
@@ -217,6 +218,7 @@ class RecipeProcessor implements KitchenToolProcessor {
     _chain = chain;
   }
 
+  @override
   bool isBusy() {
     return _busy;
   }
@@ -225,31 +227,24 @@ class RecipeProcessor implements KitchenToolProcessor {
     return _payload;
   }
 
-  double getProgress() {
-    return _progress;
+  List<Map<String, dynamic>> getFlattenedInstructions() {
+    return getPayload()?.instructions ?? [];
   }
 
-  int getIndexProgress() {
-    return _index;
+  int getInstructionsLength() {
+    return _payload?.instructions.length ?? 0;
   }
 
-  BaseOperation? getCurrentOperation() {
-    if (_payload == null) {
-      return null;
-    }
-
-    if (_payload!.operations.isEmpty) {
-      print("Operation is empty");
-      return null;
-    }
-
-    return _payload?.operations[_index];
+  TaskProgress? getTaskProgress() {
+    return _currentProgress;
   }
 
+  @override
   ModuleResponse getModuleResponse() {
     return _device;
   }
 
+  @override
   void dispose() {
     lastErrors.clear();
     _receivePort.close();

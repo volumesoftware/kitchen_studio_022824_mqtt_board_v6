@@ -1,0 +1,65 @@
+[
+  {
+    "code": 1,
+    "repeat": 1,
+    "repeat_objects": [
+      {
+        "code": 16,
+        "volume": 15
+      },
+      {
+        "code": 2,
+        "temperature": 206,
+        "induction_power": 3
+      },
+      {
+        "code": 21,
+        "ingredient": "2",
+        "quantity": 20
+      },
+      {
+        "code": 15,
+        "duration": 15,
+        "angle_a": 0,
+        "angle_b": 90,
+        "angle_c": 90,
+        "angle_d": 90
+      },
+      {
+        "code": 1,
+        "repeat": 1,
+        "repeat_objects": [
+          {
+            "code": 16,
+            "volume": 15
+          },
+          {
+            "code": 9,
+            "duration": 15,
+            "angle_a": 90,
+            "angle_b": 90,
+            "angle_c": 90
+          },
+          {
+            "code": 20,
+            "duration": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": 16,
+    "volume": 15
+  },
+  {
+    "code": 2,
+    "temperature": 206,
+    "induction_power": 3
+  },
+  {
+    "code": 21,
+    "ingredient": "2",
+    "quantity": 20
+  }
+]

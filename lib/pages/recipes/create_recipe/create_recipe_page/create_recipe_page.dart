@@ -37,7 +37,6 @@ class _CreateRecipePageState extends State<CreateRecipePage>
       BaseOperationDataAccess.instance;
   ThreadPool threadPool = ThreadPool.instance;
 
-  UdpService? udpService = UdpService.instance;
   TaskDataAccess taskDataAccess = TaskDataAccess.instance;
   bool showAddBetweenButton = false;
   bool manualOpen = false;
@@ -131,11 +130,9 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                     if (value.isEmpty) {
                       populateOperations();
                     } else {
-                      print(value);
                       var filteredPreset = await baseOperationDataAccess.search(
                           "preset_name like ? and recipe_id = ?",
                           whereArgs: ["%$value%", -1]);
-                      print(filteredPreset);
                       setState(() {
                         presets = filteredPreset ?? [];
                       });
@@ -471,9 +468,6 @@ class _CreateRecipePageState extends State<CreateRecipePage>
                           isOnlyLongPress: true,
                           dragCompletion: (List<DraggableGridItem> list,
                               int beforeIndex, int afterIndex) async {
-                            print('onDragAccept: $beforeIndex -> $afterIndex');
-                            print(instructions[beforeIndex].requestId);
-                            print(instructions[afterIndex].requestId);
                             instructions[beforeIndex].currentIndex = afterIndex;
                             instructions[afterIndex].currentIndex = beforeIndex;
                             await baseOperationDataAccess.updateById(
@@ -698,8 +692,7 @@ class _CreateRecipePageState extends State<CreateRecipePage>
       );
     }
 
-    udpService?.send(jsonEncode(operation.toJson()).codeUnits,
-        InternetAddress(recipeProcessor!.getModuleResponse().ipAddress!), 8888);
+
   }
 
   TextEditingController _presetNameController = TextEditingController();
@@ -734,13 +727,11 @@ class _CreateRecipePageState extends State<CreateRecipePage>
 
                 if (createdId != null) {
                   if (operation is AdvancedOperation) {
-                    print('is advanced operation');
                     List<AdvancedOperationItem> items = child;
                     for (var value in items) {
                       value.operationId = createdId;
                       await AdvancedOperationItemDataAccess.instance
                           .create(value);
-                      print(value);
                     }
                   }
                 }

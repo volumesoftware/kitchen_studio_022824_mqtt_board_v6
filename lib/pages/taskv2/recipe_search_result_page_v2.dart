@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -11,13 +12,7 @@ class RecipeSearchResultV2 extends StatefulWidget {
   final RecipeProcessor recipeProcessor;
   final String namedKey;
 
-  const RecipeSearchResultV2(
-      {Key? key,
-      required this.query,
-      required this.recipeProcessor,
-      required this.namedKey,
-      required this.recipes})
-      : super(key: key);
+  const RecipeSearchResultV2({Key? key, required this.query, required this.recipeProcessor, required this.namedKey, required this.recipes}) : super(key: key);
 
   @override
   State<RecipeSearchResultV2> createState() => _RecipeSearchResultV2State();
@@ -58,10 +53,7 @@ class _RecipeSearchResultV2State extends State<RecipeSearchResultV2> {
         filteredRecipes = allRecipes;
       });
     } else {
-      var temp = allRecipes
-          .where((recipe) =>
-              (recipe.parentId == portionIdToShow) || (recipe.parentId == 0))
-          .toList();
+      var temp = allRecipes.where((recipe) => (recipe.parentId == portionIdToShow) || (recipe.parentId == 0)).toList();
 
       setState(() {
         filteredRecipes = temp;
@@ -86,11 +78,8 @@ class _RecipeSearchResultV2State extends State<RecipeSearchResultV2> {
               key: Key(widget.namedKey),
               padding: EdgeInsets.all(25),
               child: GridView.builder(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    childAspectRatio: .75,
-                    crossAxisCount: gridCount,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10),
+                gridDelegate:
+                    SliverGridDelegateWithFixedCrossAxisCount(childAspectRatio: .75, crossAxisCount: gridCount, crossAxisSpacing: 10, mainAxisSpacing: 10),
                 itemCount: filteredRecipes.length,
                 itemBuilder: (context, index) {
                   return Scaffold(
@@ -108,8 +97,7 @@ class _RecipeSearchResultV2State extends State<RecipeSearchResultV2> {
                                   switch (result) {
                                     case 'show_portion':
                                       setState(() {
-                                        portionIdToShow =
-                                            filteredRecipes[index].id!;
+                                        portionIdToShow = filteredRecipes[index].id!;
                                         populateRecipe();
                                       });
                                       break;
@@ -122,14 +110,12 @@ class _RecipeSearchResultV2State extends State<RecipeSearchResultV2> {
                                     default:
                                   }
                                 },
-                                itemBuilder: (BuildContext context) =>
-                                    <PopupMenuEntry<String>>[
+                                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
                                   portionIdToShow != 0
                                       ? const PopupMenuItem<String>(
                                           value: 'hide_portion',
                                           child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                             children: [
                                               Text('hide Portions'),
                                               Icon(
@@ -141,8 +127,7 @@ class _RecipeSearchResultV2State extends State<RecipeSearchResultV2> {
                                       : const PopupMenuItem<String>(
                                           value: 'show_portion',
                                           child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                             children: [
                                               Text('Show Portions'),
                                               Icon(
@@ -177,13 +162,7 @@ class RecipeItemSearch extends StatefulWidget {
   final ValueNotifier<int?> selected;
   final ValueNotifier<int?> pressed;
 
-  const RecipeItemSearch(
-      {Key? key,
-      required this.recipe,
-      required this.recipeProcessor,
-      required this.selected,
-      required this.pressed})
-      : super(key: key);
+  const RecipeItemSearch({Key? key, required this.recipe, required this.recipeProcessor, required this.selected, required this.pressed}) : super(key: key);
 
   @override
   State<RecipeItemSearch> createState() => _RecipeItemSearchState();
@@ -192,8 +171,7 @@ class RecipeItemSearch extends StatefulWidget {
 class _RecipeItemSearchState extends State<RecipeItemSearch> {
   TextEditingController _taskNameController = TextEditingController();
   TaskDataAccess taskDataAccess = TaskDataAccess.instance;
-  BaseOperationDataAccess operationDataAccess =
-      BaseOperationDataAccess.instance;
+  BaseOperationDataAccess operationDataAccess = BaseOperationDataAccess.instance;
 
   Recipe? recipe;
   late RecipeProcessor recipeProcessor;
@@ -252,10 +230,7 @@ class _RecipeItemSearchState extends State<RecipeItemSearch> {
               height: 150,
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
-                  image: DecorationImage(
-                      fit: BoxFit.cover,
-                      image: FileImage(File(
-                          recipe?.imageFilePath ?? "assets/images/img.png")))),
+                  image: DecorationImage(fit: BoxFit.cover, image: FileImage(File(recipe?.imageFilePath ?? "assets/images/img.png")))),
             ),
             ElevatedButton(
                 onPressed: () async {
@@ -282,18 +257,12 @@ class _RecipeItemSearchState extends State<RecipeItemSearch> {
 
     if (result! > 0) {
       Task? savedTask = await taskDataAccess.getById(result);
-      List<BaseOperation> operations = await operationDataAccess.search(
-              "recipe_id = ?",
-              whereArgs: [recipe!.id!],
-              orderBy: 'current_index ASC') ??
-          [];
+      List<BaseOperation> operations = await operationDataAccess.search("recipe_id = ?", whereArgs: [recipe!.id!], orderBy: 'current_index ASC') ?? [];
 
-      if (operations.isEmpty) {
-        print("Recipe selected has no instruction");
-      } else {
-        recipeProcessor.process(
-            RecipeHandlerPayload(recipe!, operations ?? [], savedTask!));
-      }
+      List<Map<String, dynamic>> dataList = jsonDecode(recipe!.v6Instruction!).cast<Map<String, dynamic>>();
+
+      recipeProcessor.process(RecipeHandlerPayload(recipe!, savedTask!, "v6", dataList));
+
       Navigator.of(context).pop(item);
     }
   }

@@ -10,6 +10,7 @@ class StirFryResponse extends ModuleResponse {
   int? instructionSize;
   double? rotaryMotorAngle;
   double? tiltingMotorAngle;
+  double? xCoordinate;
 
   List<double> temperatureArray = [];
 
@@ -25,6 +26,7 @@ class StirFryResponse extends ModuleResponse {
     rotaryMotorAngle = json['rmotor'] == null ? 0.0 : json['rmotor'].toDouble();
     tiltingMotorAngle = json['tmotor'] == null ? 0.0 : json['tmotor'].toDouble();
     temperature = json['temp'] == null || json['temp'] == 0 ? 0.0 : json['temp']?.toDouble();
+    xCoordinate = json['xcor'] == null || json['xcor'] == 0 ? 0.0 : json['xcor']?.toDouble();
     instructionSize = json['i_s'].toInt();
   }
 }

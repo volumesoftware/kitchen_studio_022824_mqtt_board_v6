@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter_draggable_gridview/flutter_draggable_gridview.dart';
 import 'package:kitchen_module/kitchen_module.dart';
@@ -38,7 +36,6 @@ class _CreateRecipePageV2State extends State<CreateRecipePageV2>
       BaseOperationDataAccess.instance;
   ThreadPool threadPool = ThreadPool.instance;
 
-  UdpService? udpService = UdpService.instance;
   TaskDataAccess taskDataAccess = TaskDataAccess.instance;
   bool showAddBetweenButton = false;
 
@@ -471,9 +468,6 @@ class _CreateRecipePageV2State extends State<CreateRecipePageV2>
                           isOnlyLongPress: true,
                           dragCompletion: (List<DraggableGridItem> list,
                               int beforeIndex, int afterIndex) async {
-                            print('onDragAccept: $beforeIndex -> $afterIndex');
-                            print(instructions[beforeIndex].requestId);
-                            print(instructions[afterIndex].requestId);
                             instructions[beforeIndex].currentIndex = afterIndex;
                             instructions[afterIndex].currentIndex = beforeIndex;
                             await baseOperationDataAccess.updateById(
@@ -635,8 +629,7 @@ class _CreateRecipePageV2State extends State<CreateRecipePageV2>
       );
     }
 
-    udpService?.send(jsonEncode(operation.toJson()).codeUnits,
-        InternetAddress(recipeProcessor!.getModuleResponse().ipAddress!), 8888);
+
   }
 
   TextEditingController _presetNameController = TextEditingController();
@@ -671,13 +664,11 @@ class _CreateRecipePageV2State extends State<CreateRecipePageV2>
 
                 if (createdId != null) {
                   if (operation is AdvancedOperation) {
-                    print('is advanced operation');
                     List<AdvancedOperationItem> items = child;
                     for (var value in items) {
                       value.operationId = createdId;
                       await AdvancedOperationItemDataAccess.instance
                           .create(value);
-                      print(value);
                     }
                   }
                 }

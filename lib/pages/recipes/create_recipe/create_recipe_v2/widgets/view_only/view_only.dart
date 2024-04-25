@@ -89,7 +89,6 @@ class _ViewOnlyState extends State<ViewOnly> {
             json: json,
             valueChanged: (Map<String, dynamic> value) {
               BaseOperation updateValue = _operation.updateValue(value);
-              print(value);
               setState(() {
                 _operation = updateValue;
               });

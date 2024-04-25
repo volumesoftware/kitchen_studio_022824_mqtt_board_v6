@@ -10,19 +10,15 @@ class ThreadPool {
       _kmp.stateChanges.listen((Map<String, ModuleResponse> moduleResponse) {
         for (var device in moduleResponse.entries) {
           bool exist = false;
-
-          _pool.forEach((KitchenToolProcessor processor) {
+          for (var processor in _pool) {
             if (processor.moduleName() == device.value.moduleName) {
               exist = true;
               processor.updateStats(device.value);
             }
-          });
+          }
 
           if (!exist) {
-            _pool.add((device.value is StirFryResponse)
-                ? RecipeProcessor(device.value)
-                : TransporterProcessor(device.value));
-
+            _pool.add((device.value is StirFryResponse) ? RecipeProcessor(device.value) : TransporterProcessor(device.value));
             _pool.sort(
               (a, b) => a.moduleName().compareTo(b.moduleName()),
             );
@@ -41,26 +37,25 @@ class ThreadPool {
 
   static ThreadPool get instance => _instance;
 
-  KitchenModulePool _kmp = KitchenModulePool.instance;
-  late List<KitchenToolProcessor> _pool = [];
-  StreamController<List<KitchenToolProcessor>> _poolChangeController =
-      StreamController<List<KitchenToolProcessor>>.broadcast();
+  final KitchenModulePool _kmp = KitchenModulePool.instance;
+  late final List<KitchenToolProcessor> _pool = [];
+  final StreamController<List<KitchenToolProcessor>> _poolChangeController = StreamController<List<KitchenToolProcessor>>.broadcast();
 
   //listen to the state change of the thread pool
-  Stream<List<KitchenToolProcessor>> get stateChanges =>
-      _poolChangeController.stream;
-
+  Stream<List<KitchenToolProcessor>> get stateChanges => _poolChangeController.stream;
 
   int get poolSize => _pool.length;
 
   List<KitchenToolProcessor> get pool => _pool;
 
   void dispose() {
-    _pool.forEach((processor) => processor.dispose());
+    for (var processor in _pool) {
+      processor.dispose();
+    }
   }
 
-  void pop(KitchenToolProcessor KitchenToolProcessor) {
-    KitchenToolProcessor.dispose();
-    _pool.removeWhere((rp) => rp.moduleName == KitchenToolProcessor.moduleName);
+  void pop(KitchenToolProcessor kitchenToolProcessor) {
+    kitchenToolProcessor.dispose();
+    _pool.removeWhere((rp) => rp.moduleName == kitchenToolProcessor.moduleName);
   }
 }

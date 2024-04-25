@@ -39,8 +39,6 @@ class _ValueEditorDialogState extends State<ValueEditorDialog> {
     _messageController =
         TextEditingController(text: "${jsonData['message'] ?? ''}");
 
-    print(jsonData);
-
     super.initState();
   }
 

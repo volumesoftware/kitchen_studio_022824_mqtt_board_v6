@@ -20,8 +20,7 @@ class IngredientDataAccess implements DataAccess<Ingredient> {
 
   @override
   Future<int?> delete(int id) async {
-    print('deleting ${id}');
-    getById(id);
+    print('deleteing');
     return database
         ?.delete(Ingredient.tableName(), where: "id = ?", whereArgs: [id]);
   }

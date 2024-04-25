@@ -21,15 +21,14 @@ class _AppShellScreenState extends State<AppShellScreen> {
   final GlobalKey _recipesListTile = GlobalKey();
   final GlobalKey _tasksListTile = GlobalKey();
 
-  int selectedIndex = 0;
+  int selectedIndex = 3;
 
   int largeFlex = 5;
   int smallFex = 1;
 
   @override
   void initState() {
-    threadPool.stateChanges
-        .listen((List<KitchenToolProcessor> recipeProcessor) {
+    threadPool.stateChanges.listen((List<KitchenToolProcessor> recipeProcessor) {
       setState(() {});
     });
     super.initState();
@@ -64,41 +63,47 @@ class _AppShellScreenState extends State<AppShellScreen> {
                           : Center(
                               child: Text(
                                 "Kitchen Studio",
-                                style:
-                                    Theme.of(context).textTheme.headlineMedium,
+                                style: Theme.of(context).textTheme.headlineMedium,
                               ),
                             ),
                       margin: const EdgeInsets.symmetric(vertical: 20),
                     ),
                     ListTile(
-                      key: _cookingUnitListTile,
-                      selected: selectedIndex == 0,
-                      leading: Icon(Icons.device_hub),
-                      title: selectedIndex == 3
-                          ? Row()
-                          : const Text('Cooking Units'),
+                      key: _tasksListTile,
+                      selected: selectedIndex == 3,
+                      leading: Icon(Icons.list),
+                      title: selectedIndex == 3 ? Row() : const Text('Tasks'),
                       onTap: () {
                         setState(() {
-                          selectedIndex = 0;
+                          selectedIndex = 3;
                         });
+
+                        // Navigator.of(context).pushNamed(AppRouter.taskScreen);
                       },
                     ),
+                    // ListTile(
+                    //   key: _cookingUnitListTile,
+                    //   selected: selectedIndex == 0,
+                    //   leading: Icon(Icons.device_hub),
+                    //   title: selectedIndex == 3 ? Row() : const Text('Cooking Units'),
+                    //   onTap: () {
+                    //     setState(() {
+                    //       selectedIndex = 0;
+                    //     });
+                    //   },
+                    // ),
 
                     StreamBuilder(
                       stream: threadPool.stateChanges,
                       builder: (context, snapshot) {
                         if (threadPool.pool.isNotEmpty) {
-                          Iterable<KitchenToolProcessor> transporters =
-                              threadPool.pool.where(
-                                  (element) => element is TransporterProcessor);
+                          Iterable<KitchenToolProcessor> transporters = threadPool.pool.where((element) => element is TransporterProcessor);
 
                           return transporters.isNotEmpty
                               ? ListTile(
                                   selected: selectedIndex == 1,
                                   leading: Icon(Icons.move_down),
-                                  title: selectedIndex == 3
-                                      ? Row()
-                                      : const Text('Transporter'),
+                                  title: selectedIndex == 3 ? Row() : const Text('Transporter'),
                                   onTap: () {
                                     setState(() {
                                       selectedIndex = 1;
@@ -107,32 +112,31 @@ class _AppShellScreenState extends State<AppShellScreen> {
                                 )
                               : ListTile(
                                   selected: selectedIndex == 1,
-                                  enabled: false,
+                                  onTap: () {
+                                    setState(() {
+                                      selectedIndex = 1;
+                                    });
+                                  },
                                   leading: Icon(
                                     Icons.warning,
                                     color: Colors.orangeAccent,
                                   ),
-                                  title: selectedIndex == 3
-                                      ? Row()
-                                      : const Text('Transporter'),
-                                  subtitle: selectedIndex == 3
-                                      ? Row()
-                                      : const Text(
-                                          'Transporter is not connected'),
+                                  title: selectedIndex == 3 ? Row() : const Text('Transporter'),
+                                  subtitle: selectedIndex == 3 ? Row() : const Text('Transporter is not connected'),
                                 );
                         } else {
                           return ListTile(
-                            enabled: false,
                             selected: selectedIndex == 1,
+                            onTap: () {
+                              setState(() {
+                                selectedIndex = 1;
+                              });
+                            },
                             leading: Stack(
                               children: [Icon(Icons.move_down)],
                             ),
-                            title: selectedIndex == 3
-                                ? Row()
-                                : const Text('Transporter'),
-                            subtitle: selectedIndex == 3
-                                ? Row()
-                                : const Text('Transporter is not connected'),
+                            title: selectedIndex == 3 ? Row() : const Text('Transporter'),
+                            subtitle: selectedIndex == 3 ? Row() : const Text('Transporter is not connected'),
                           );
                         }
                       },
@@ -161,27 +165,9 @@ class _AppShellScreenState extends State<AppShellScreen> {
                     //   },
                     // ),
                     ListTile(
-                      key: _tasksListTile,
-                      selected: selectedIndex == 3,
-                      leading: Icon(Icons.list),
-                      title: selectedIndex == 3 ? Row() : const Text('Tasks'),
-                      onTap: () {
-                        setState(() {
-                          selectedIndex = 3;
-                        });
-
-                        // Navigator.of(context).pushNamed(AppRouter.taskScreen);
-                      },
-                    ),
-                    ListTile(
                       selected: selectedIndex == 4,
                       leading: Icon(Icons.data_object),
-                      title: selectedIndex == 3
-                          ? Row()
-                          : const Text('Ingredients'),
-                      subtitle: selectedIndex == 3
-                          ? Row()
-                          : const Text('Coming Soon'),
+                      title: selectedIndex == 3 ? Row() : const Text('Ingredients'),
                       onTap: () {
                         setState(() {
                           selectedIndex = 4;

@@ -49,7 +49,6 @@ class _HotMixOperationWidgetState extends State<HotMixOperationWidget> {
     _rotateAngle = TextEditingController(text: "${operation?.rotateAngle}");
 
     _scrollController.addListener(() {
-      print(_scrollController.position.userScrollDirection);
       if (_scrollController.position.userScrollDirection ==
           ScrollDirection.forward) {
         if (!_showed) {
